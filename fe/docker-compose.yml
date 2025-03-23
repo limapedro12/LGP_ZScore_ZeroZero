@@ -1,0 +1,13 @@
+services:
+  web-dev:
+    container_name: web_app
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/usr/src/src
+      - ./public:/usr/src/public
+    ports:
+      - "${HOST_PORT}:8000"
+    environment:
+      - PORT=8000
