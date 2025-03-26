@@ -15,8 +15,10 @@ for ($i = 0; $i < $maxRetries; $i++) {
         $pdo = new PDO($dsn, $user, $pass);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // Use the Placard class to create the table
-        Placard::createTable($pdo);
+        // Run schema.sql to set up the database schema
+        $schemaFile = __DIR__ . '/../mariaDB/schema.sql';
+        $schema = file_get_contents($schemaFile);
+        $pdo->exec($schema);
 
         echo "Connected to the MariaDB database successfully!\n";
 

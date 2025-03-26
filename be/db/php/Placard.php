@@ -9,22 +9,6 @@ class Placard {
         $this->description = $description;
     }
 
-    public static function createTable($pdo) {
-        try {
-            $pdo->exec("
-                CREATE TABLE IF NOT EXISTS placards (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    title VARCHAR(255) NOT NULL,
-                    description TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ");
-            echo "Table 'placards' created successfully or already exists.\n";
-        } catch (PDOException $e) {
-            echo "Error creating table: " . $e->getMessage() . "\n";
-        }
-    }
-
     public function saveToDatabase($pdo) {
         try {
             $stmt = $pdo->prepare("INSERT INTO placards (title, description) VALUES (:title, :description)");
