@@ -1,0 +1,37 @@
+<?php
+require_once 'Placard.php';
+
+$host = 'mariadb';
+$db = 'zscoredb';
+$user = 'root';
+$pass = 'password';
+
+$maxRetries = 10;
+$retryDelay = 3;
+
+for ($i = 0; $i < $maxRetries; $i++) {
+    try {
+        $dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
+        $pdo = new PDO($dsn, $user, $pass);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // Use the Placard class to create the table
+        Placard::createTable($pdo);
+
+        echo "Connected to the MariaDB database successfully!\n";
+
+        // Example usage of the Placard class
+        $placard = new Placard("Sample Title", "This is a sample description.");
+        $placard->saveToDatabase($pdo);
+
+        break;
+    } catch (PDOException $e) {
+        if ($i == $maxRetries - 1) {
+            echo "Connection failed: " . $e->getMessage();
+            exit(1);
+        }
+        echo "Retrying connection in $retryDelay seconds...\n";
+        sleep($retryDelay);
+    }
+}
+?>
