@@ -16,7 +16,7 @@ for ($i = 0; $i < $maxRetries; $i++) {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // Run schema.sql to set up the database schema
-        $schemaFile = __DIR__ . '/../mariaDB/schema.sql';
+        $schemaFile = '/mariaDB/schema.sql';
         $schema = file_get_contents($schemaFile);
         $pdo->exec($schema);
 
