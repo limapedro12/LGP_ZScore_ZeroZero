@@ -4,11 +4,14 @@ FROM php:8.2-cli
 RUN docker-php-ext-install pdo pdo_mysql
 
 # Copy the PHP scripts into the container
-COPY php/connect.php /var/www/html/connect.php
-COPY php/Placard.php /var/www/html/Placard.php
+COPY php/connect.php /php/connect.php
+COPY php/Placard.php /php/Placard.php
+
+#Copy the schema.sql file into the container
+COPY mariaDB/schema.sql /mariaDB/schema.sql
 
 # Set the working directory
-WORKDIR /var/www/html
+WORKDIR /php
 
 # Command to run the PHP script
 CMD ["php", "connect.php"]

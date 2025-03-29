@@ -1,0 +1,3 @@
+include:
+- path: ./be/docker-compose.yml
+- path: ./fe/docker-compose.yml

@@ -13,7 +13,6 @@ COPY .eslintrc .
 COPY vite.config.ts .
 
 # Necessary files for building the app
-COPY public/ public/
 COPY src/ src/
 
 COPY index.html .
