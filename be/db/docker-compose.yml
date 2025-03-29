@@ -1,24 +1,27 @@
+version: '3.8'
+
 services:
   mariadb:
     image: mariadb:latest
-    container_name: mariadb_container
+    container_name: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: mydatabase
-      MYSQL_USER: user
-      MYSQL_PASSWORD: userpassword
-    volumes:
-      - ./mariaDB:/docker-entrypoint-initdb.d
-      - mariadb_data:/var/lib/mysql
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: zscoredb
     ports:
       - "3306:3306"
-    networks:
-      - backend_network
+    volumes:
+      - ./volume:/var/lib/mysql
+
+  php-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mariadb
+    environment:
+      PHP_MAX_RETRIES: 10
+      PHP_RETRY_DELAY: 3
 
 volumes:
   mariadb_data:
     driver: local
-
-networks:
-  backend_network:
-    driver: bridge
