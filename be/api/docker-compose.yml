@@ -3,10 +3,11 @@ services:
     build: .
     container_name: api
     environment:
-      DB_HOST: mariadb_container
+      DB_HOST: mariadb
+      DB_ROOT_PASSWORD: rootpassword
+      DB_NAME: zscoredb
       DB_USER: user
-      DB_PASSWORD: userpassword
-      DB_NAME: mydatabase
+      DB_PASSWORD: password
     volumes:
       - ./src:/var/www/html
     networks:

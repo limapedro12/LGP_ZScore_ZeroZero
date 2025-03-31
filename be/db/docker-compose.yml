@@ -1,16 +1,18 @@
-version: '3.8'
-
 services:
   mariadb:
     image: mariadb:latest
     container_name: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: zscoredb
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: zscore
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     ports:
       - "3306:3306"
     volumes:
       - ./volume:/var/lib/mysql
+    networks:
+      - backend_network
 
   php-app:
     build:
@@ -21,7 +23,14 @@ services:
     environment:
       PHP_MAX_RETRIES: 10
       PHP_RETRY_DELAY: 3
+    networks:
+      - backend_network
 
 volumes:
   mariadb_data:
     driver: local
+
+networks:
+  backend_network:
+    driver: bridge
+
