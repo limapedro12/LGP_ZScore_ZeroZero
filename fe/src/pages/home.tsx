@@ -6,6 +6,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
 import apiManager from '../api/apiManager';
 
 /**
@@ -23,15 +24,66 @@ const HomePage: React.FC = () => {
             const response = await apiManager.startTimer();
             if (response.ok) {
                 const data = await response.json();
-                setTimerStatus('Timer started successfully');
-                console.log('Timer started:', data);
+                setTimerStatus(`Timer started: 
+                    Start time: ${new Date(data.timer.start_time * 1000).toLocaleTimeString()}
+                    Elapsed: ${data.timer.elapsed_time} seconds
+                    Paused: ${data.timer.is_paused ? 'Yes' : 'No'}`);
             } else {
                 setTimerStatus('Failed to start timer');
-                console.error('Failed to start timer');
             }
         } catch (error) {
             setTimerStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            console.error('Error starting timer:', error);
+        }
+    };
+
+    const handleStopTimer = async () => {
+        try {
+            const response = await apiManager.stopTimer();
+            if (response.ok) {
+                const data = await response.json();
+                setTimerStatus(`Timer paused: 
+                    Start time: ${data.timer.start_time ? new Date(data.timer.start_time * 1000).toLocaleTimeString() : 'None'}
+                    Elapsed: ${data.timer.elapsed_time} seconds
+                    Paused: ${data.timer.is_paused ? 'Yes' : 'No'}`);
+            } else {
+                setTimerStatus('Failed to stop timer');
+            }
+        } catch (error) {
+            setTimerStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+
+    const handleResetTimer = async () => {
+        try {
+            const response = await apiManager.resetTimer();
+            if (response.ok) {
+                const data = await response.json();
+                setTimerStatus(`Timer reset: 
+                    Start time: ${data.timer.start_time ? new Date(data.timer.start_time * 1000).toLocaleTimeString() : 'None'}
+                    Elapsed: ${data.timer.elapsed_time} seconds
+                    Paused: ${data.timer.is_paused ? 'Yes' : 'No'}`);
+            } else {
+                setTimerStatus('Failed to reset timer');
+            }
+        } catch (error) {
+            setTimerStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+
+    const handleGetTimerStatus = async () => {
+        try {
+            const response = await apiManager.getTimerStatus();
+            if (response.ok) {
+                const data = await response.json();
+                setTimerStatus(`Current timer status: 
+                    Start time: ${data.timer.start_time ? new Date(data.timer.start_time * 1000).toLocaleTimeString() : 'None'}
+                    Elapsed: ${data.timer.elapsed_time} seconds
+                    Paused: ${data.timer.is_paused ? 'Yes' : 'No'}`);
+            } else {
+                setTimerStatus('Failed to get timer status');
+            }
+        } catch (error) {
+            setTimerStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 
@@ -59,11 +111,18 @@ const HomePage: React.FC = () => {
             <Container className="mt-4">
                 <div className="mb-4">
                     <h3>Timer Control</h3>
-                    <Button variant="primary" onClick={handleStartTimer}>Start Timer</Button>
+                    <div className="d-flex gap-2 mb-3">
+                        <Button variant="primary" onClick={handleStartTimer}>Start Timer</Button>
+                        <Button variant="warning" onClick={handleStopTimer}>Stop Timer</Button>
+                        <Button variant="danger" onClick={handleResetTimer}>Reset Timer</Button>
+                        <Button variant="info" onClick={handleGetTimerStatus}>Get Status</Button>
+                    </div>
                     {timerStatus && (
-                        <p className="mt-2">
-                            {timerStatus}
-                        </p>
+                        <Card className="mt-2">
+                            <Card.Body>
+                                {timerStatus}
+                            </Card.Body>
+                        </Card>
                     )}
                 </div>
                 <Tabs
