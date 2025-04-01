@@ -1,6 +1,6 @@
 <?php
-// Query to fetch data from the `users` table
-$sql = "SELECT id, username, email FROM users";
+// Query to fetch data from the `placards` table instead of users
+$sql = "SELECT id, title, description FROM placards";
 $result = $conn->query($sql);
 
 // Check if the query was successful
@@ -9,11 +9,11 @@ if (!$result) {
 }
 
 // Fetch data and store it in an array
-$users = [];
+$placards = [];
 while ($row = $result->fetch_assoc()) {
-    $users[] = $row;
+    $placards[] = $row;
 }
 
 // Return the data as JSON
-echo json_encode(["users" => $users]);
+echo json_encode(["placards" => $placards]);
 ?>
