@@ -4,10 +4,10 @@ services:
     container_name: api
     environment:
       DB_HOST: mariadb
-      DB_ROOT_PASSWORD: rootpassword
-      DB_NAME: zscoredb
-      DB_USER: user
-      DB_PASSWORD: password
+      DB_ROOT_PASSWORD: ${DB_ROOTPASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./src:/var/www/html
     networks:
