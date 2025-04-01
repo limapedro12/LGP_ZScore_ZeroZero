@@ -16,7 +16,6 @@
 
 *.local
 
-
 build/
 .env.local
 .env.development.local

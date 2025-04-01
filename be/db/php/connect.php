@@ -1,12 +1,12 @@
 <?php
 require_once 'Placard.php';
 
-$host = 'mariadb';
-$db = 'zscoredb';
-$user = 'root';
-$pass = 'password';
+$host = getenv('DB_HOST');
+$db = getenv('DB_NAME');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASSWORD');
 
-$maxRetries = 10;
+$maxRetries = 20;
 $retryDelay = 3;
 
 for ($i = 0; $i < $maxRetries; $i++) {
