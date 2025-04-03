@@ -4,3 +4,12 @@ CREATE TABLE IF NOT EXISTS placards (
     description TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS timers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    placard_id INT NOT NULL,
+    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    elapsed_time INT DEFAULT 0,
+    is_paused BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (placard_id) REFERENCES placards(id)
+);

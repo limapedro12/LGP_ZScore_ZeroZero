@@ -2,51 +2,48 @@ import config from '../config/config';
 import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
+
 /**
  * API Manager that handles all API requests
  */
 class ApiManager {
-    startTimer = () => {
-        const url = `${BASE_URL}${ENDPOINTS.START_TIMER()}`;
+    startTimer = (gameId: string) => {
+        const url = `${BASE_URL}${ENDPOINTS.START_TIMER(gameId)}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
         });
     };
 
-    stopTimer = () => {
-        const url = `${BASE_URL}${ENDPOINTS.STOP_TIMER()}`;
+    stopTimer = (gameId: string) => {
+        const url = `${BASE_URL}${ENDPOINTS.STOP_TIMER(gameId)}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
         });
     };
 
-    getTimerStatus = () => {
-        const url = `${BASE_URL}${ENDPOINTS.GET_TIMER()}`;
+    getTimerStatus = (gameId: string) => {
+        const url = `${BASE_URL}${ENDPOINTS.GET_TIMER(gameId)}`;
         return fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
         });
     };
 
-    resetTimer = () => {
-        const url = `${BASE_URL}${ENDPOINTS.RESET_TIMER()}`;
+    resetTimer = (gameId: string) => {
+        const url = `${BASE_URL}${ENDPOINTS.RESET_TIMER(gameId)}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
         });
     };
 }

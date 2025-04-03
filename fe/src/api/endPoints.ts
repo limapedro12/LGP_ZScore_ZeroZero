@@ -1,8 +1,8 @@
 const ENDPOINTS = {
-    START_TIMER: () => '/timer/timer?action=start',
-    STOP_TIMER: () => '/timer/timer?action=pause',
-    GET_TIMER: () => '/timer/timer?action=status',
-    RESET_TIMER: () => '/timer/timer?action=reset',
+    START_TIMER: (gameId: string) => `/timer/timer?action=start&gameId=${gameId}`,
+    STOP_TIMER: (gameId: string) => `/timer/timer?action=pause&gameId=${gameId}`,
+    GET_TIMER: (gameId: string) => `/timer/timer?action=status&gameId=${gameId}`,
+    RESET_TIMER: (gameId: string) => `/timer/timer?action=reset&gameId=${gameId}`,
 };
 
 export default ENDPOINTS;

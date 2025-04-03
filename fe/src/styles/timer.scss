@@ -1,0 +1,11 @@
+@use "./config.scss";
+
+.timer {
+    font-family: config.$font-secondary;
+    color: config.$text-color;
+
+    .timer-display {
+        text-align: center;
+        font-weight: bold;
+    }
+}
