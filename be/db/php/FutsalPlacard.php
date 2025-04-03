@@ -6,7 +6,6 @@ class FutsalPlacard extends AbstractPlacard {
     private $currentGoalsSecondTeam;
     private $numberFoulsFirst;
     private $numberFoulsSecond;
-    private $currentTime;
     private $availableTimeOutsFirst;
     private $availableTimeOutsSecond;
     private $isTimeOut;
@@ -25,7 +24,6 @@ class FutsalPlacard extends AbstractPlacard {
                     $this->currentGoalsSecondTeam = $result['currentGoalsSecondTeam'];
                     $this->numberFoulsFirst = $result['numberFoulsFirst'];
                     $this->numberFoulsSecond = $result['numberFoulsSecond'];
-                    $this->currentTime = $result['currentTime'];
                     $this->availableTimeOutsFirst = $result['availableTimeOutsFirst'];
                     $this->availableTimeOutsSecond = $result['availableTimeOutsSecond'];
                     $this->isTimeOut = $result['isTimeOut'];
@@ -42,13 +40,12 @@ class FutsalPlacard extends AbstractPlacard {
     public function saveToDatabase($pdo) {
         parent::saveToDatabase($pdo);
         try {
-            $stmt = $pdo->prepare("INSERT INTO FutsalPlacard (abstractPlacardId, currentGoalsFirstTeam, currentGoalsSecondTeam, numberFoulsFirst, numberFoulsSecond, currentTime, availableTimeOutsFirst, availableTimeOutsSecond, isTimeOut, isTimeStopped) VALUES (:abstractPlacardId, :currentGoalsFirstTeam, :currentGoalsSecondTeam, :numberFoulsFirst, :numberFoulsSecond, :currentTime, :availableTimeOutsFirst, :availableTimeOutsSecond, :isTimeOut, :isTimeStopped)");
+            $stmt = $pdo->prepare("INSERT INTO FutsalPlacard (abstractPlacardId, currentGoalsFirstTeam, currentGoalsSecondTeam, numberFoulsFirst, numberFoulsSecond, availableTimeOutsFirst, availableTimeOutsSecond, isTimeOut, isTimeStopped) VALUES (:abstractPlacardId, :currentGoalsFirstTeam, :currentGoalsSecondTeam, :numberFoulsFirst, :numberFoulsSecond, :availableTimeOutsFirst, :availableTimeOutsSecond, :isTimeOut, :isTimeStopped)");
             $stmt->bindParam(':abstractPlacardId', $this->id);
             $stmt->bindParam(':currentGoalsFirstTeam', $this->currentGoalsFirstTeam);
             $stmt->bindParam(':currentGoalsSecondTeam', $this->currentGoalsSecondTeam);
             $stmt->bindParam(':numberFoulsFirst', $this->numberFoulsFirst);
             $stmt->bindParam(':numberFoulsSecond', $this->numberFoulsSecond);
-            $stmt->bindParam(':currentTime', $this->currentTime);
             $stmt->bindParam(':availableTimeOutsFirst', $this->availableTimeOutsFirst);
             $stmt->bindParam(':availableTimeOutsSecond', $this->availableTimeOutsSecond);
             $stmt->bindParam(':isTimeOut', $this->isTimeOut);
