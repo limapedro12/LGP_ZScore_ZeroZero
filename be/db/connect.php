@@ -25,7 +25,8 @@ for ($i = 0; $i < $maxRetries; $i++) {
         echo "Connected to the MariaDB database successfully!\n";
 
         // Example usage of the Placard class
-        $placard = new Placard("Sample Title", "This is a sample description.");
+        $futsalPlacard = new FutsalPlacard();
+        $volleyballPlacard = new VolleyballPlacard();
         $placard->saveToDatabase($pdo);
 
         break;
