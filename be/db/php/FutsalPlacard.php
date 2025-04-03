@@ -16,7 +16,7 @@ class FutsalPlacard extends AbstractPlacard {
         parent::__construct($pdo, $id);
         if ($id !== null) {
             try {
-                $stmt = $pdo->prepare("SELECT * FROM FutsalPlacard WHERE id = :id");
+                $stmt = $pdo->prepare("SELECT * FROM FutsalPlacard WHERE abstractPlacardId = :id");
                 $stmt->bindParam(':id', $id);
                 $stmt->execute();
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
