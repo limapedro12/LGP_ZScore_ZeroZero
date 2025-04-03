@@ -77,6 +77,4 @@ logs/
 *.sql.7z
 *.sql.bz2
 
-*package-lock.json
-
 !schema.sql

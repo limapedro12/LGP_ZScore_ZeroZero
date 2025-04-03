@@ -9,15 +9,10 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import apiManager from '../api/apiManager';
 
-/**
- * Home page component
- * This is the component used in the landing page that shows the steps the
- * user has to follow to use the application successfully.
- *
- * @returns {React.FC} Home page component
- */
 const HomePage: React.FC = () => {
     const [timerStatus, setTimerStatus] = useState<string>('');
+    const [score, setScore] = useState<number>(0);
+    const [scoreMessage, setScoreMessage] = useState<string>('');
 
     const handleStartTimer = async () => {
         try {
@@ -87,6 +82,46 @@ const HomePage: React.FC = () => {
         }
     };
 
+    // ----- Score Control Section -----
+    const handleAddPoint = async () => {
+        try {
+            const response = await fetch('http://localhost/api/src/routes/score/updateScore.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamId: 1, points: 1 }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setScore((prevScore) => prevScore + 1);
+                setScoreMessage('Point added successfully.');
+            } else {
+                setScoreMessage(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            setScore(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+
+    const handleRemovePoint = async () => {
+        try {
+            const response = await fetch('http://localhost/api/src/routes/score/updateScore.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamId: 1, points: -1 }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setScore((prevScore) => prevScore - 1);
+                setScoreMessage('Point removed successfully.');
+            } else {
+                setScoreMessage(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            setScore(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
+    // ----------------------------------
+
     return (
         <>
             <Navbar expand="lg" className="bg-body-tertiary">
@@ -112,10 +147,18 @@ const HomePage: React.FC = () => {
                 <div className="mb-4">
                     <h3>Timer Control</h3>
                     <div className="d-flex gap-2 mb-3">
-                        <Button variant="primary" onClick={handleStartTimer}>Start Timer</Button>
-                        <Button variant="warning" onClick={handleStopTimer}>Stop Timer</Button>
-                        <Button variant="danger" onClick={handleResetTimer}>Reset Timer</Button>
-                        <Button variant="info" onClick={handleGetTimerStatus}>Get Status</Button>
+                        <Button variant="primary" onClick={handleStartTimer}>
+                            Start Timer
+                        </Button>
+                        <Button variant="warning" onClick={handleStopTimer}>
+                            Stop Timer
+                        </Button>
+                        <Button variant="danger" onClick={handleResetTimer}>
+                            Reset Timer
+                        </Button>
+                        <Button variant="info" onClick={handleGetTimerStatus}>
+                            Get Status
+                        </Button>
                     </div>
                     {timerStatus && (
                         <Card className="mt-2">
@@ -125,11 +168,34 @@ const HomePage: React.FC = () => {
                         </Card>
                     )}
                 </div>
-                <Tabs
-                    defaultActiveKey="profile"
-                    id="uncontrolled-tab-example"
-                    className="mb-3"
-                >
+                {/* New Score Control Section */}
+                <div className="mb-4">
+                    <h3>Score Control</h3>
+                    <div className="d-flex gap-2 mb-3">
+                        <Button variant="success" onClick={handleAddPoint}>
+                            +1 Point
+                        </Button>
+                        <Button variant="danger" onClick={handleRemovePoint}>
+                            -1 Point
+                        </Button>
+                    </div>
+                    <Card className="mt-2">
+                        <Card.Body>
+                            <h4>
+                                Current Score:
+                                <br />
+                                {score}
+                            </h4>
+                            {scoreMessage && (
+                                <>
+                                    <br />
+                                    {scoreMessage}
+                                </>
+                            )}
+                        </Card.Body>
+                    </Card>
+                </div>
+                <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" className="mb-3">
                     <Tab eventKey="home" title="Home">
                         Tab content for Home
                     </Tab>

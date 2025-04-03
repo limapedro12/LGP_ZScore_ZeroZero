@@ -6,7 +6,7 @@ export interface Config {
 
 export default {
 
-    APP_BASE_ROUTE: import.meta.env.APP_BASE_ROUTE || '',
+    APP_BASE_ROUTE: import.meta.env.APP_BAUSE_ROUTE || '',
     API_HOSTNAME: import.meta.env.API_HOSTNAME || 'http://localhost:8080',
 
 } as Config;
