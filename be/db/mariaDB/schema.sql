@@ -18,14 +18,14 @@ CREATE TABLE IF NOT EXISTS VoleibolPlacard (
     FOREIGN KEY (abstractPlacardId) REFERENCES AbstractPlacard(id)
 );
 
-CREATE TABLE IF NOT EXISTS VolleyballSetResult {
+CREATE TABLE IF NOT EXISTS VolleyballSetResult (
     id INT PRIMARY KEY,
     placardId INT NOT NULL,
     setNumber INT NOT NULL,
     pointsFirstTeam INT NOT NULL,
     pointsSecondTeam INT NOT NULL,
     FOREIGN KEY (placardId) REFERENCES VoleibolPlacard(id)
-}
+);
 
 CREATE TABLE IF NOT EXISTS FutsalPlacard (
     id INT PRIMARY KEY,
