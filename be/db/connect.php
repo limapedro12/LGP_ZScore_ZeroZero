@@ -27,7 +27,9 @@ for ($i = 0; $i < $maxRetries; $i++) {
         // Example usage of the Placard class
         $futsalPlacard = new FutsalPlacard();
         $volleyballPlacard = new VolleyballPlacard();
-        $placard->saveToDatabase($pdo);
+        $futsalPlacard->saveToDatabase($pdo);
+        $volleyballPlacard->saveToDatabase($pdo);
+        echo "Placards saved successfully!\n";
 
         break;
     } catch (PDOException $e) {
