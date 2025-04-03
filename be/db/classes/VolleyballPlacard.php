@@ -8,8 +8,16 @@ class VolleyballPlacard extends AbstractPlacard {
     private $isTimeOut;
     private $setRes = []; // Array of set results as pairs (setNumber, [pointsFirst, pointsSecond])
 
-    public function __construct($pdo, $id = null) {
-        parent::__construct($pdo, $id);
+    public function __construct($firstTeamId = 0, $secondTeamId = 0, $isFinished = false, $currentSet = 0, $availableTimeOutsFirst = 0, $availableTimeOutsSecond = 0, $isTimeOut = false) {
+        parent::__construct($firstTeamId, $secondTeamId, $isFinished, $type = "Volleyball");
+        $this->currentSet = $currentSet;
+        $this->availableTimeOutsFirst = $availableTimeOutsFirst;
+        $this->availableTimeOutsSecond = $availableTimeOutsSecond;
+        $this->isTimeOut = $isTimeOut;
+    }
+
+    public function loadFromDatabase($pdo, $id) {
+        parent::loadFromDatabase($pdo, $id);
         if ($id !== null) {
             try {
                 $stmt = $pdo->prepare("SELECT * FROM VoleibolPlacard WHERE abstractPlacardId = :id");

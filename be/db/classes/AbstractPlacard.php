@@ -6,7 +6,14 @@ abstract class AbstractPlacard {
     protected $isFinished;
     protected $type;
 
-    public function __construct($pdo, $id = null) {
+    public function __construct($firstTeamId = 0, $secondTeamId = 0, $isFinished = false, $type = "") {
+        $this->firstTeamId = $firstTeamId;
+        $this->secondTeamId = $secondTeamId;
+        $this->isFinished = $isFinished;
+        $this->type = $type;
+    }
+
+    public function loadFromDatabase($pdo, $id) {
         if ($id !== null) {
             try {
                 $stmt = $pdo->prepare("SELECT * FROM AbstractPlacard WHERE id = :id");

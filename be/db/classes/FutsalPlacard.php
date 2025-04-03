@@ -11,8 +11,21 @@ class FutsalPlacard extends AbstractPlacard {
     private $isTimeOut;
     private $isTimeStopped;
 
-    public function __construct($pdo, $id = null) {
-        parent::__construct($pdo, $id);
+    public function __construct($firstTeamId = 0, $secondTeamId = 0, $isFinished = false, $currentGoalsFirstTeam = 0, $currentGoalsSecondTeam = 0, $numberFoulsFirst = 0, $numberFoulsSecond = 0, $currentTime = 0, $availableTimeOutsFirst = 0, $availableTimeOutsSecond = 0, $isTimeOut = false, $isTimeStopped = false) {
+        parent::__construct($firstTeamId, $secondTeamId, $isFinished, $type = "Futsal");
+        $this->currentGoalsFirstTeam = $currentGoalsFirstTeam;
+        $this->currentGoalsSecondTeam = $currentGoalsSecondTeam;
+        $this->numberFoulsFirst = $numberFoulsFirst;
+        $this->numberFoulsSecond = $numberFoulsSecond;
+        $this->currentTime = $currentTime;
+        $this->availableTimeOutsFirst = $availableTimeOutsFirst;
+        $this->availableTimeOutsSecond = $availableTimeOutsSecond;
+        $this->isTimeOut = $isTimeOut;
+        $this->isTimeStopped = $isTimeStopped;
+    }
+
+    public function loadFromDatabase($pdo, $id = null) {
+        parent::loadFromDatabase($pdo, $id);
         if ($id !== null) {
             try {
                 $stmt = $pdo->prepare("SELECT * FROM FutsalPlacard WHERE abstractPlacardId = :id");
