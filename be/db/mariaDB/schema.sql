@@ -32,7 +32,6 @@ CREATE TABLE IF NOT EXISTS FutsalPlacard (
     currentGoalsSecondTeam INT NOT NULL,
     numberFoulsFirst INT NOT NULL,
     numberFoulsSecond INT NOT NULL,
-    currentTime INT NOT NULL,
     availableTimeOutsFirst INT NOT NULL,
     availableTimeOutsSecond INT NOT NULL,
     isTimeOut BOOLEAN NOT NULL,
