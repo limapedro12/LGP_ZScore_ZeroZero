@@ -1,5 +1,7 @@
 <?php
-require_once 'Placard.php';
+require_once 'classes/AbstractPlacard.php';
+require_once 'classes/FutsalPlacard.php';
+require_once 'classes/VolleyballPlacard.php';
 
 $host = getenv('DB_HOST');
 $db = getenv('DB_NAME');
@@ -16,7 +18,7 @@ for ($i = 0; $i < $maxRetries; $i++) {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // Run schema.sql to set up the database schema
-        $schemaFile = '/mariaDB/schema.sql';
+        $schemaFile = '/schema/schema.sql';
         $schema = file_get_contents($schemaFile);
         $pdo->exec($schema);
 
