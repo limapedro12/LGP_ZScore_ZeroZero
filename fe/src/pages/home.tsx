@@ -98,7 +98,7 @@ const HomePage: React.FC = () => {
                 setScoreMessage(`Error: ${data.message}`);
             }
         } catch (error) {
-            setScore(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            setScoreMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
 
@@ -117,7 +117,7 @@ const HomePage: React.FC = () => {
                 setScoreMessage(`Error: ${data.message}`);
             }
         } catch (error) {
-            setScore(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            setScoreMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
     // ----------------------------------
