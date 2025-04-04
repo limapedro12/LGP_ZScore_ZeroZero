@@ -49,6 +49,18 @@ class ApiManager {
             credentials: 'include',
         });
     };
+
+    updateScore = (team_id: number, points: number) => {
+        const url = `${BASE_URL}${ENDPOINTS.UPDATE_SCORE}`;
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ team_id, points }),
+        });
+    };
 }
 
 // Export a singleton instance

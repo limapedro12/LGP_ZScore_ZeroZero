@@ -85,11 +85,7 @@ const HomePage: React.FC = () => {
     // ----- Score Control Section -----
     const handleAddPoint = async () => {
         try {
-            const response = await fetch('http://localhost/api/src/routes/score/updateScore.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ teamId: 1, points: 1 }),
-            });
+            const response = await apiManager.updateScore(1, 1);
             const data = await response.json();
             if (data.success) {
                 setScore((prevScore) => prevScore + 1);
@@ -101,14 +97,10 @@ const HomePage: React.FC = () => {
             setScoreMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
-
+    
     const handleRemovePoint = async () => {
         try {
-            const response = await fetch('http://localhost/api/src/routes/score/updateScore.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ teamId: 1, points: -1 }),
-            });
+            const response = await apiManager.updateScore(1, -1);
             const data = await response.json();
             if (data.success) {
                 setScore((prevScore) => prevScore - 1);
