@@ -51,7 +51,7 @@ class ApiManager {
     };
 
     updateScore = (teamId: number, points: number) => {
-        const url = `${BASE_URL}${ENDPOINTS.UPDATE_SCORE}`;
+        const url = `${BASE_URL}${ENDPOINTS.UPDATE_SCORE()}`;
         return fetch(url, {
             method: 'POST',
             headers: {
