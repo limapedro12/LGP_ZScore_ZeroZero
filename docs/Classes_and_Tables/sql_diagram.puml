@@ -79,7 +79,7 @@ entity FutsalPlayer {
 
 entity AbstractEvent {
     id : Int
-    time : Int
+    time : Time
     sport : String
     placardId : Int (AbstractPlacard)
 }
@@ -110,6 +110,8 @@ AbstractPlacard "1"--"1" AbstractTeam : "secondTeam"
 
 VolleyballPlacard "1"-up-"1" AbstractPlacard : "inherits"
 FutsalPlacard "1"-up-"1" AbstractPlacard : "inherits"
+
+VolleyballPlacard "1"-down-"*" VolleyballSetResult : "has"
 
 AbstractTeam "1"-up-"*" AbstractPlayer : "has"
 VolleyballTeam "1"-up-"1" AbstractTeam : "inherits"
