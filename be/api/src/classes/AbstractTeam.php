@@ -14,9 +14,9 @@ abstract class AbstractTeam {
         $this->players = $players;
     }
 
-    public function loadFromDatabase($pdo, $id) {}
+    public function loadFromDatabase($conn, $id) {}
 
-    public function saveToDatabase($pdo) {}
+    public function saveToDatabase($conn) {}
 
     public function getId() {
         return $this->id;

@@ -1,13 +1,13 @@
 <?php
 require_once 'AbstractTeam.php';
 
-class FutsalTeam extends AbstractTeam {
+class VolleyballTeam extends AbstractTeam {
     public function __construct($id = 0, $name = "", $logoURL = "", $players = []) {
         parent::__construct($id, $players, $name, $logoURL, $type = "Volleyball");
     }
 
-    public function loadFromDatabase($pdo, $id) {}
+    public function loadFromDatabase($conn, $id) {}
 
-    public function saveToDatabase($pdo) {}
+    public function saveToDatabase($conn) {}
 }
 ?>

@@ -16,9 +16,9 @@ class VolleyballPlacard extends AbstractPlacard {
         $this->isTimeOut = $isTimeOut;
     }
 
-    public function loadFromDatabase($pdo, $id) {}
+    public function loadFromDatabase($conn, $id) {}
 
-    public function saveToDatabase($pdo) {}
+    public function saveToDatabase($conn) {}
 
     public function addSetResult($setNumber, $pointsFirst, $pointsSecond) {
         $res = [

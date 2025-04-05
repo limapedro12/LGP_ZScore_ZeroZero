@@ -23,9 +23,9 @@ class FutsalPlacard extends AbstractPlacard {
         $this->isTimeStopped = $isTimeStopped;
     }
 
-    public function loadFromDatabase($pdo, $id = null) {}
+    public function loadFromDatabase($conn, $id = null) {}
 
-    public function saveToDatabase($pdo) {}
+    public function saveToDatabase($conn) {}
 
     public function getCurrentGoalsFirstTeam() {
         return $this->currentGoalsFirstTeam;
