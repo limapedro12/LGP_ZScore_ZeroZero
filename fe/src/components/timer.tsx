@@ -50,8 +50,8 @@ const Timer: React.FC = () => {
             const response = await apiManager.getTimerStatus(gameId);
             const data = await response.json();
 
-            if (data.timer) {
-                setElapsedTime(data.timer.elapsed_time);
+            if (data.elapsed_time !== undefined) {
+                setElapsedTime(data.elapsed_time);
             }
         } catch (error) {
             console.error('Error fetching timer status:', error);
@@ -66,7 +66,6 @@ const Timer: React.FC = () => {
         return () => clearInterval(intervalId);
     }, [gameId, fetchTimerStatus]);
 
-    // Render the Timer component
     return (
         <div className="timer">
             <h1>

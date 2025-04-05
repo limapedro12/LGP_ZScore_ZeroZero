@@ -1,110 +1,132 @@
 <?php
-require_once __DIR__ . '/../../index.php';
+require_once __DIR__ . '/../../connRedis.php';
 
-$placardId = $_GET['gameId'] ?? 'default';
+header('Content-Type: application/json');
+
+// Helper functions
+function getTimerData($redis, $placardId, $currentTime) {
+    $prefix = "game:$placardId:";
+    $status = $redis->get($prefix . 'status') ?: 'paused';
+    $startTime = (int)$redis->get($prefix . 'start_time') ?: 0;
+    $storedElapsed = (int)$redis->get($prefix . 'elapsed_time') ?: 0;
+    
+    $elapsedTime = ($status === 'running' && $startTime > 0) 
+        ? $currentTime - $startTime + $storedElapsed 
+        : $storedElapsed;
+        
+    return [
+        'status' => $status,
+        'start_time' => $startTime,
+        'elapsed_time' => $elapsedTime
+    ];
+}
+
+// Input validation
+$placardId = $_GET['gameId'] ?? null;
 $action = $_GET['action'] ?? null;
 
-// Use a transaction to reduce overhead
-$conn->begin_transaction();
-try {
-    // Check if timer exists in a single query and create if needed
-    $stmt = $conn->prepare("
-        INSERT INTO timers (placard_id, start_time, elapsed_time, is_paused)
-        SELECT ?, NULL, 0, TRUE FROM dual
-        WHERE EXISTS (SELECT 1 FROM placards WHERE id = ?)
-        AND NOT EXISTS (SELECT 1 FROM timers WHERE placard_id = ?)
-    ");
-    $stmt->bind_param("iii", $placardId, $placardId, $placardId);
-    $stmt->execute();
-    
-    // Handle the requested action
-    switch ($action) {
-        case 'start':
-            // Update and get timer in one transaction
-            $stmt = $conn->prepare("
-                UPDATE timers SET 
-                    start_time = CASE 
-                        WHEN is_paused = TRUE AND start_time IS NULL THEN FROM_UNIXTIME(?)
-                        WHEN is_paused = TRUE THEN DATE_SUB(NOW(), INTERVAL elapsed_time SECOND)
-                        ELSE start_time
-                    END,
-                    is_paused = CASE WHEN is_paused = TRUE THEN FALSE ELSE is_paused END
-                WHERE placard_id = ?
-            ");
-            $now = time();
-            $stmt->bind_param("ii", $now, $placardId);
-            $stmt->execute();
-            break;
-            
-        case 'pause':
-            $stmt = $conn->prepare("
-                UPDATE timers SET
-                    elapsed_time = CASE 
-                        WHEN is_paused = FALSE AND start_time IS NOT NULL
-                        THEN TIMESTAMPDIFF(SECOND, start_time, NOW())
-                        ELSE elapsed_time
-                    END,
-                    is_paused = CASE
-                        WHEN is_paused = FALSE AND start_time IS NOT NULL
-                        THEN TRUE
-                        ELSE is_paused
-                    END
-                WHERE placard_id = ?
-            ");
-            $stmt->bind_param("i", $placardId);
-            $stmt->execute();
-            break;
-            
-        case 'reset':
-            $stmt = $conn->prepare("
-                UPDATE timers SET
-                    start_time = NULL,
-                    elapsed_time = 0,
-                    is_paused = TRUE
-                WHERE placard_id = ?
-            ");
-            $stmt->bind_param("i", $placardId);
-            $stmt->execute();
-            break;
-    }
-    
-    // Get the current timer status in one query
-    $stmt = $conn->prepare("
-        SELECT 
-            UNIX_TIMESTAMP(start_time) as start_timestamp,
-            elapsed_time,
-            is_paused,
-            CASE 
-                WHEN is_paused = FALSE AND start_time IS NOT NULL
-                THEN UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(start_time)
-                ELSE elapsed_time
-            END as current_elapsed
-        FROM timers
-        WHERE placard_id = ?
-    ");
-    $stmt->bind_param("i", $placardId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $timer = $result->fetch_assoc();
-    
-    $conn->commit();
-    
-    // Format response
-    $response = [
-        'start_time' => $timer['start_timestamp'],
-        'elapsed_time' => $timer['is_paused'] ? $timer['elapsed_time'] : $timer['current_elapsed'],
-        'is_paused' => (bool)$timer['is_paused']
-    ];
-    
-    echo json_encode([
-        "message" => "Timer $action operation completed",
-        "timer" => $response
-    ]);
-    
-} catch (Exception $e) {
-    $conn->rollback();
-    echo json_encode([
-        "error" => "Database operation failed: " . $e->getMessage()
-    ]);
+if(is_null($placardId)) {
+    echo json_encode(["error" => "Missing gameId"]);
+    exit;
 }
+
+if(is_null($action)) {
+    echo json_encode(["error" => "Missing action"]);
+    exit;
+}
+
+// Validate action is one of the allowed values
+$allowedActions = ['start', 'pause', 'reset', 'status'];
+if (!in_array($action, $allowedActions)) {
+    echo json_encode(["error" => "Invalid action. Must be one of: " . implode(', ', $allowedActions)]);
+    exit;
+}
+
+// Connect to Redis
+$redis = connectRedis();
+if (!$redis) {
+    echo json_encode(["error" => "Failed to connect to Redis"]);
+    exit;
+}
+
+// Define Redis keys
+$startTimeKey = "game:$placardId:start_time";
+$elapsedTimeKey = "game:$placardId:elapsed_time";
+$timerStatusKey = "game:$placardId:status";
+
+$currentTime = time();
+$timerData = getTimerData($redis, $placardId, $currentTime);
+
+// Process actions
+switch ($action) {
+    case 'start':
+        if($timerData['status'] !== 'running') {
+            $startTime = $currentTime - $timerData['elapsed_time'];
+            $redis->set($startTimeKey, $startTime);
+            $redis->set($timerStatusKey, 'running');
+            
+            $response = [
+                "message" => "Timer started",
+                "status" => "running",
+                "start_time" => $startTime,
+                "elapsed_time" => $timerData['elapsed_time']
+            ];
+        } else {
+            $response = [
+                "message" => "Timer already running",
+                "status" => "running",
+                "start_time" => $timerData['start_time'],
+                "elapsed_time" => $timerData['elapsed_time']
+            ];
+        }
+        break;
+        
+    case 'pause':
+        if($timerData['status'] === 'running') {
+            $redis->set($elapsedTimeKey, $timerData['elapsed_time']);
+            $redis->set($timerStatusKey, 'paused');
+            
+            $response = [
+                "message" => "Timer paused",
+                "status" => "paused",
+                "elapsed_time" => $timerData['elapsed_time']
+            ];
+        } else {
+            $response = [
+                "message" => "Timer already paused",
+                "status" => "paused",
+                "elapsed_time" => $timerData['elapsed_time']
+            ];
+        }
+        break;
+        
+    case 'status':
+        $response = [
+            "message" => "Timer status",
+            "status" => $timerData['status'],
+            "start_time" => $timerData['start_time'],
+            "elapsed_time" => $timerData['elapsed_time']
+        ];
+        break;
+        
+    case 'reset':
+        $redis->set($startTimeKey, 0);
+        $redis->set($elapsedTimeKey, 0);
+        $redis->set($timerStatusKey, 'paused');
+        
+        $response = [
+            "message" => "Timer reset",
+            "status" => "paused",
+            "start_time" => 0,
+            "elapsed_time" => 0
+        ];
+        break;
+        
+    default:
+        $response = ["error" => "Invalid action"];
+        break;
+}
+
+// Return response
+echo json_encode($response);
 ?>
