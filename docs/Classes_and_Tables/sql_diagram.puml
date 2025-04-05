@@ -6,7 +6,7 @@ entity AbstractPlacard {
     firstTeamId : Int (AbstractTeam)
     secondTeamId : Int (AbstractTeam)
     isFinished : Boolean
-    type : String
+    sport : String
 }
 
 entity VolleyballPlacard {
@@ -43,7 +43,7 @@ entity AbstractTeam {
     id : Int
     logoURL : String
     name : String
-    type : String
+    sport : String
 }
 
 entity VolleyballTeam {
@@ -62,7 +62,7 @@ entity AbstractPlayer {
     position : String
     number : Int
     teamId : Int (AbstractTeam)
-    type : String
+    sport : String
 }
 
 entity VolleyballPlayer {
@@ -80,7 +80,7 @@ entity FutsalPlayer {
 entity AbstractEvent {
     id : Int
     time : Int
-    type : String
+    sport : String
     placardId : Int (AbstractPlacard)
 }
 

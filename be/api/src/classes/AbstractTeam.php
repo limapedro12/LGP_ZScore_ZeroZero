@@ -2,15 +2,15 @@
 abstract class AbstractTeam {
     protected $id;
     protected $players;
-    protected $type;
+    protected $sport;
     protected $name;
     protected $logoURL;
 
-    public function __construct(int $id = 0, string $name = "", string $logoURL = "", array $players = [], string $type = "") {
+    public function __construct(int $id = 0, string $name = "", string $logoURL = "", array $players = [], string $sport = "") {
         $this->id = $id;
         $this->name = $name;
         $this->logoURL = $logoURL;
-        $this->type = $type;
+        $this->sport = $sport;
         $this->players = $players;
     }
 
@@ -34,12 +34,12 @@ abstract class AbstractTeam {
         $this->players = $players;
     }
 
-    public function getType() {
-        return $this->type;
+    public function getSport() {
+        return $this->sport;
     }
 
-    public function setType($type) {
-        $this->type = $type;
+    public function setSport($sport) {
+        $this->sport = $sport;
     }
 
     public function getName() {

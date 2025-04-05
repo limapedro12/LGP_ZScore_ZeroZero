@@ -4,7 +4,7 @@ require_once 'AbstractTeam.php';
 
 class FutsalPlayer extends AbstractPlayer {
     public function __construct(int $id = 0, string $name = "", string $position = "", int $number = 0, ?FutsalTeam $team = null) {
-        parent::__construct($id, $name, $position, $number, $team, $type = "Futsal");
+        parent::__construct($id, $name, $position, $number, $team, $sport = "Futsal");
     }
 }
 ?>

@@ -6,7 +6,7 @@ abstract AbstractPlacard {
     secondTeam : AbstractTeam
     logEvents : List<AbstractEvent>
     isFinished : Boolean
-    type : String
+    sport : String
 }
 
 class VolleyballPlacard {
@@ -17,7 +17,7 @@ class VolleyballPlacard {
     currentSetRes : Pair<Int, Int>
     availableTimeOuts : Pair<Int, Int>
     isTimeOut : Boolean
-    type = "Volleyball"
+    sport = "Volleyball"
 }
 class FutsalPlacard {
     firstTeam : FutsalTeam
@@ -27,41 +27,41 @@ class FutsalPlacard {
     availableTimeOuts : Pair<Int, Int>
     isTimeOut : Boolean
     isTimeStopped : Boolean
-    type = "Futsal"
+    sport = "Futsal"
 }
 
 abstract AbstractTeam {
     players : Set<AbstractPlayer>
-    type : String
+    sport : String
     name : String
     logoURL : String
 }
 
 class VolleyballTeam {
-    type = "Volleyball"
+    sport = "Volleyball"
 }
 class FutsalTeam {
-    type = "Futsal"
+    sport = "Futsal"
 }
 
 abstract AbstractPlayer {
     name : String
     position : String
     number : Int
-    type : String
+    sport : String
     team : AbstractTeam
 }
 
 class VolleyballPlayer {
-    type = "Volleyball"
+    sport = "Volleyball"
 }
 class FutsalPlayer {
-    type = "Futsal"
+    sport = "Futsal"
 }
 
 abstract AbstractEvent {
     time : Int
-    type : String
+    sport : String
 }
 
 class CardEvent {

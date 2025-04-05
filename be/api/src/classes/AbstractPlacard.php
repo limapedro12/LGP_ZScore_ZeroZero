@@ -4,13 +4,13 @@ abstract class AbstractPlacard {
     protected $firstTeam;
     protected $secondTeam;
     protected $isFinished;
-    protected $type;
+    protected $sport;
 
-    public function __construct(?AbstractTeam $firstTeam = null, ?AbstractTeam $secondTeam = null, bool $isFinished = false, string $type = "") {
+    public function __construct(?AbstractTeam $firstTeam = null, ?AbstractTeam $secondTeam = null, bool $isFinished = false, string $sport = "") {
         $this->firstTeam = $firstTeam;
         $this->secondTeam = $secondTeam;
         $this->isFinished = $isFinished;
-        $this->type = $type;
+        $this->sport = $sport;
     }
 
     public function loadFromDatabase($conn, $id) {}
@@ -49,12 +49,12 @@ abstract class AbstractPlacard {
         $this->isFinished = $isFinished;
     }
 
-    public function getType() {
-        return $this->type;
+    public function getsport() {
+        return $this->sport;
     }
 
-    public function setType($type) {
-        $this->type = $type;
+    public function setSport($sport) {
+        $this->sport = $sport;
     }
 }
 ?>

@@ -13,7 +13,7 @@ class FutsalPlacard extends AbstractPlacard {
     private $isTimeStopped;
 
     public function __construct(?FutsalTeam $firstTeam = null, ?FutsalTeam $secondTeam = null, bool $isFinished = false, int $currentGoalsFirstTeam = 0, int $currentGoalsSecondTeam = 0, int $numberFoulsFirst = 0, int $numberFoulsSecond = 0, int $availableTimeOutsFirst = 0, int $availableTimeOutsSecond = 0, bool $isTimeOut = false, bool $isTimeStopped = false) {
-        parent::__construct($firstTeam, $secondTeam, $isFinished, $type = "Futsal");
+        parent::__construct($firstTeam, $secondTeam, $isFinished, $sport = "Futsal");
         $this->currentGoalsFirstTeam = $currentGoalsFirstTeam;
         $this->currentGoalsSecondTeam = $currentGoalsSecondTeam;
         $this->numberFoulsFirst = $numberFoulsFirst;

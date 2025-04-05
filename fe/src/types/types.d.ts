@@ -16,7 +16,7 @@ export interface AbstractTeam {
     name: string;
     logoURL: string;
     players: AbstractPlayer[];
-    type: string;
+    sport: string;
 }
 
 export interface AbstractPlayer {
@@ -25,7 +25,7 @@ export interface AbstractPlayer {
     position: string;
     number: number;
     team: AbstractTeam | null;
-    type: string;
+    sport: string;
 }
 
 export interface AbstractPlacard {
@@ -33,7 +33,7 @@ export interface AbstractPlacard {
     firstTeam: AbstractTeam | null;
     secondTeam: AbstractTeam | null;
     isFinished: boolean;
-    type: string;
+    sport: string;
 }
 
 export interface VolleyballTeam extends AbstractTeam {}

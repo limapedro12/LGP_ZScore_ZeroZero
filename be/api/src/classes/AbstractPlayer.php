@@ -5,15 +5,15 @@ abstract class AbstractPlayer {
     protected $position;
     protected $number;
     protected $team;
-    protected $type;
+    protected $sport;
 
-    public function __construct(int $id = 0, string $name = "", string $position = "", int $number = 0, ?AbstractTeam $team = null, string $type = "") {
+    public function __construct(int $id = 0, string $name = "", string $position = "", int $number = 0, ?AbstractTeam $team = null, string $sport = "") {
         $this->id = $id;
         $this->name = $name;
         $this->position = $position;
         $this->number = $number;
         $this->team = $team;
-        $this->type = $type;
+        $this->sport = $sport;
     }
 
     public function loadFromDatabase($conn, $id) {}
@@ -52,12 +52,12 @@ abstract class AbstractPlayer {
         $this->number = $number;
     }
 
-    public function getType() {
-        return $this->type;
+    public function getSport() {
+        return $this->sport;
     }
 
-    public function setType($type) {
-        $this->type = $type;
+    public function setSport($sport) {
+        $this->sport = $sport;
     }
 
     public function getTeam() {
