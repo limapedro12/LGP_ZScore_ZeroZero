@@ -16,5 +16,45 @@ abstract class AbstractPlacard {
     public function loadFromDatabase($pdo, $id) {}
 
     public function saveToDatabase($pdo) {}
+
+    public function getId() {
+        return $this->id;
+    }
+
+    public function setId($id) {
+        $this->id = $id;
+    }
+
+    public function getFirstTeamId() {
+        return $this->firstTeamId;
+    }
+
+    public function setFirstTeamId($firstTeamId) {
+        $this->firstTeamId = $firstTeamId;
+    }
+
+    public function getSecondTeamId() {
+        return $this->secondTeamId;
+    }
+
+    public function setSecondTeamId($secondTeamId) {
+        $this->secondTeamId = $secondTeamId;
+    }
+
+    public function getIsFinished() {
+        return $this->isFinished;
+    }
+
+    public function setIsFinished($isFinished) {
+        $this->isFinished = $isFinished;
+    }
+
+    public function getType() {
+        return $this->type;
+    }
+
+    public function setType($type) {
+        $this->type = $type;
+    }
 }
 ?>
