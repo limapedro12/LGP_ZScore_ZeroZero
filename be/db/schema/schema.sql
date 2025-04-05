@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS AbstractPlacard (
     FOREIGN KEY (secondTeamId) REFERENCES AbstractTeam(id)
 );
 
-CREATE TABLE IF NOT EXISTS VoleibolPlacard (
+CREATE TABLE IF NOT EXISTS VolleyballPlacard (
     abstractPlacardId INT PRIMARY KEY,
     currentSet INT NULL,
     availableTimeOutsFirst INT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS VolleyballSetResult (
     setNumber INT NOT NULL,
     pointsFirstTeam INT NOT NULL,
     pointsSecondTeam INT NOT NULL,
-    FOREIGN KEY (placardId) REFERENCES VoleibolPlacard(id) ON DELETE CASCADE
+    FOREIGN KEY (placardId) REFERENCES VolleyballPlacard(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS FutsalPlacard (
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS AbstractTeam (
     type VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS VoleibolTeam (
+CREATE TABLE IF NOT EXISTS VolleyballTeam (
     id INT PRIMARY KEY,
     abstractTeamId INT NOT NULL,
     FOREIGN KEY (abstractTeamId) REFERENCES AbstractTeam(id)
@@ -68,12 +68,12 @@ CREATE TABLE IF NOT EXISTS AbstractPlayer (
     FOREIGN KEY (teamId) REFERENCES AbstractTeam(id)
 );
 
-CREATE TABLE IF NOT EXISTS VoleibolPlayer (
+CREATE TABLE IF NOT EXISTS VolleyballPlayer (
     id INT PRIMARY KEY,
     abstractPlayerId INT NOT NULL,
     teamId INT NOT NULL,
     FOREIGN KEY (abstractPlayerId) REFERENCES AbstractPlayer(id),
-    FOREIGN KEY (teamId) REFERENCES VoleibolTeam(id)
+    FOREIGN KEY (teamId) REFERENCES VolleyballTeam(id)
 );
 
 CREATE TABLE IF NOT EXISTS FutsalPlayer (
