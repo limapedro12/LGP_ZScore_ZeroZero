@@ -68,22 +68,6 @@ CREATE TABLE IF NOT EXISTS AbstractPlayer (
     FOREIGN KEY (teamId) REFERENCES AbstractTeam(id)
 );
 
-CREATE TABLE IF NOT EXISTS VoleibolPlayer (
-    id INT PRIMARY KEY,
-    abstractPlayerId INT NOT NULL,
-    teamId INT NOT NULL,
-    FOREIGN KEY (abstractPlayerId) REFERENCES AbstractPlayer(id),
-    FOREIGN KEY (teamId) REFERENCES VoleibolTeam(id)
-);
-
-CREATE TABLE IF NOT EXISTS FutsalPlayer (
-    id INT PRIMARY KEY,
-    abstractPlayerId INT NOT NULL,
-    teamId INT NOT NULL,
-    FOREIGN KEY (abstractPlayerId) REFERENCES AbstractPlayer(id),
-    FOREIGN KEY (teamId) REFERENCES FutsalTeam(id)
-);
-
 CREATE TABLE IF NOT EXISTS AbstractEvent (
     id INT PRIMARY KEY,
     time INT NOT NULL,
