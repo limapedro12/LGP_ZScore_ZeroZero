@@ -50,7 +50,7 @@ class ApiManager {
         });
     };
 
-    updateScore = (team_id: number, points: number) => {
+    updateScore = (teamId: number, points: number) => {
         const url = `${BASE_URL}${ENDPOINTS.UPDATE_SCORE}`;
         return fetch(url, {
             method: 'POST',
@@ -58,7 +58,7 @@ class ApiManager {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ team_id, points }),
+            body: JSON.stringify({ teamId, points }),
         });
     };
 }

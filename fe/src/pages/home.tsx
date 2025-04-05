@@ -97,7 +97,7 @@ const HomePage: React.FC = () => {
             setScoreMessage(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
-    
+
     const handleRemovePoint = async () => {
         try {
             const response = await apiManager.updateScore(1, -1);

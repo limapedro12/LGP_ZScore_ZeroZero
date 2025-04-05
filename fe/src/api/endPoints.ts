@@ -1,5 +1,5 @@
 const ENDPOINTS = {
-    UPDATE_SCORE: 'http://localhost:8000/updateScore.php',
+    UPDATE_SCORE: () => '/score/updateScore',
     START_TIMER: () => '/timer/timer?action=start',
     STOP_TIMER: () => '/timer/timer?action=pause',
     GET_TIMER: () => '/timer/timer?action=status',
