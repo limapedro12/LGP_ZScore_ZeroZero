@@ -33,7 +33,6 @@ entity FutsalPlacard {
     currentGoalsSecondTeam : Int
     numberFoulsFirst : Int
     numberFoulsSecond : Int
-    currentTime : Int
     availableTimeOutsFirst : Int
     availableTimeOutsSecond : Int
     isTimeOut : Boolean

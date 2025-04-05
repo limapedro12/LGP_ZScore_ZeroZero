@@ -24,7 +24,6 @@ class FutsalPlacard {
     secondTeam : FutsalTeam
     currentRes : Pair<Int, Int>
     numberFouls : Pair<Int, Int>
-    currentTime : Int
     availableTimeOuts : Pair<Int, Int>
     isTimeOut : Boolean
     isTimeStopped : Boolean
