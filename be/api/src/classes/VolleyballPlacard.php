@@ -1,5 +1,6 @@
 <?php
 require_once 'AbstractPlacard.php';
+require_once 'VolleyballTeam.php';
 
 class VolleyballPlacard extends AbstractPlacard {
     private $currentSet;
@@ -8,7 +9,7 @@ class VolleyballPlacard extends AbstractPlacard {
     private $isTimeOut;
     private $setRes = []; // Array of set results [setNumber] => [pointsFirst, pointsSecond])
 
-    public function __construct($firstTeam = null, $secondTeam = null, $isFinished = false, $currentSet = 0, $availableTimeOutsFirst = 0, $availableTimeOutsSecond = 0, $isTimeOut = false) {
+    public function __construct(?VolleyballTeam $firstTeam = null, ?VolleyballTeam $secondTeam = null, bool $isFinished = false, int $currentSet = 0, int $availableTimeOutsFirst = 0, int $availableTimeOutsSecond = 0, bool $isTimeOut = false) {
         parent::__construct($firstTeam, $secondTeam, $isFinished, $type = "Volleyball");
         $this->currentSet = $currentSet;
         $this->availableTimeOutsFirst = $availableTimeOutsFirst;

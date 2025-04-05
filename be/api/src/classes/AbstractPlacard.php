@@ -6,7 +6,7 @@ abstract class AbstractPlacard {
     protected $isFinished;
     protected $type;
 
-    public function __construct($firstTeam = null, $secondTeam = null, $isFinished = false, $type = "") {
+    public function __construct(?AbstractTeam $firstTeam = null, ?AbstractTeam $secondTeam = null, bool $isFinished = false, string $type = "") {
         $this->firstTeam = $firstTeam;
         $this->secondTeam = $secondTeam;
         $this->isFinished = $isFinished;

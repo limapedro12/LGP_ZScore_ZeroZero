@@ -7,7 +7,7 @@ abstract class AbstractPlayer {
     protected $team;
     protected $type;
 
-    public function __construct($id = 0, $name = "", $position = "", $number = 0, $team = null, $type = "") {
+    public function __construct(int $id = 0, string $name = "", string $position = "", int $number = 0, ?AbstractTeam $team = null, string $type = "") {
         $this->id = $id;
         $this->name = $name;
         $this->position = $position;

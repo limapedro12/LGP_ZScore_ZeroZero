@@ -1,5 +1,6 @@
 <?php
 require_once 'AbstractPlacard.php';
+require_once 'FutsalTeam.php';
 
 class FutsalPlacard extends AbstractPlacard {
     private $currentGoalsFirstTeam;
@@ -11,7 +12,7 @@ class FutsalPlacard extends AbstractPlacard {
     private $isTimeOut;
     private $isTimeStopped;
 
-    public function __construct($firstTeam = null, $secondTeam = null, $isFinished = false, $currentGoalsFirstTeam = 0, $currentGoalsSecondTeam = 0, $numberFoulsFirst = 0, $numberFoulsSecond = 0, $availableTimeOutsFirst = 0, $availableTimeOutsSecond = 0, $isTimeOut = false, $isTimeStopped = false) {
+    public function __construct(?FutsalTeam $firstTeam = null, ?FutsalTeam $secondTeam = null, bool $isFinished = false, int $currentGoalsFirstTeam = 0, int $currentGoalsSecondTeam = 0, int $numberFoulsFirst = 0, int $numberFoulsSecond = 0, int $availableTimeOutsFirst = 0, int $availableTimeOutsSecond = 0, bool $isTimeOut = false, bool $isTimeStopped = false) {
         parent::__construct($firstTeam, $secondTeam, $isFinished, $type = "Futsal");
         $this->currentGoalsFirstTeam = $currentGoalsFirstTeam;
         $this->currentGoalsSecondTeam = $currentGoalsSecondTeam;

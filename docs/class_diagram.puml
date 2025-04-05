@@ -1,0 +1,102 @@
+@startuml
+title ZScore Class Diagram (for TS and PHP)
+
+abstract AbstractPlacard {
+    firstTeam : AbstractTeam
+    secondTeam : AbstractTeam
+    logEvents : List<AbstractEvent>
+    isFinished : Boolean
+    type : String
+}
+
+class VolleyballPlacard {
+    firstTeam : VolleyballTeam
+    secondTeam : VolleyballTeam
+    setRes : List<Pair<Int, Int>>
+    currentSet : Int
+    currentSetRes : Pair<Int, Int>
+    availableTimeOuts : Pair<Int, Int>
+    isTimeOut : Boolean
+    type = "Volleyball"
+}
+class FutsalPlacard {
+    firstTeam : FutsalTeam
+    secondTeam : FutsalTeam
+    currentRes : Pair<Int, Int>
+    numberFouls : Pair<Int, Int>
+    availableTimeOuts : Pair<Int, Int>
+    isTimeOut : Boolean
+    isTimeStopped : Boolean
+    type = "Futsal"
+}
+
+abstract AbstractTeam {
+    players : Set<AbstractPlayer>
+    type : String
+    name : String
+    logoURL : String
+}
+
+class VolleyballTeam {
+    type = "Volleyball"
+}
+class FutsalTeam {
+    type = "Futsal"
+}
+
+abstract AbstractPlayer {
+    name : String
+    position : String
+    number : Int
+    type : String
+    team : AbstractTeam
+}
+
+class VolleyballPlayer {
+    type = "Volleyball"
+}
+class FutsalPlayer {
+    type = "Futsal"
+}
+
+abstract AbstractEvent {
+    time : Int
+    type : String
+}
+
+class CardEvent {
+    player : AbstractPlayer
+    cardColor : String
+}
+
+class PointEvent {
+    player : AbstractPlayer
+}
+
+class SubstitutionEvent {
+    playerIn : AbstractPlayer
+    playerOut : AbstractPlayer
+}
+
+AbstractPlacard <|.. VolleyballPlacard
+AbstractPlacard <|.. FutsalPlacard
+
+AbstractTeam <|.. VolleyballTeam
+AbstractTeam <|.. FutsalTeam
+
+AbstractPlayer <|.. VolleyballPlayer
+AbstractPlayer <|.. FutsalPlayer
+
+AbstractEvent <|.. CardEvent
+AbstractEvent <|.. PointEvent
+AbstractEvent <|.. SubstitutionEvent
+
+VolleyballPlacard ..> VolleyballTeam : "creates"
+FutsalPlacard ..> FutsalTeam : "creates"
+
+AbstractPlacard -right- AbstractEvent : "has"
+
+VolleyballTeam -- VolleyballPlayer : "has"
+FutsalTeam -- FutsalPlayer : "has"
+
+@enduml

@@ -6,7 +6,7 @@ abstract class AbstractTeam {
     protected $name;
     protected $logoURL;
 
-    public function __construct($id = 0, $name = "", $logoURL = "", $players = [], $type = "") {
+    public function __construct(int $id = 0, string $name = "", string $logoURL = "", array $players = [], string $type = "") {
         $this->id = $id;
         $this->name = $name;
         $this->logoURL = $logoURL;

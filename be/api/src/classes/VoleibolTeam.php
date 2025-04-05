@@ -2,7 +2,7 @@
 require_once 'AbstractTeam.php';
 
 class VolleyballTeam extends AbstractTeam {
-    public function __construct($id = 0, $name = "", $logoURL = "", $players = []) {
+    public function __construct(int $id = 0, string $name = "", string $logoURL = "", array $players = []) {
         parent::__construct($id, $players, $name, $logoURL, $type = "Volleyball");
     }
 
