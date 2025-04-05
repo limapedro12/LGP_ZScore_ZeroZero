@@ -8,8 +8,8 @@ class VolleyballPlacard extends AbstractPlacard {
     private $isTimeOut;
     private $setRes = []; // Array of set results [setNumber] => [pointsFirst, pointsSecond])
 
-    public function __construct($firstTeamId = 0, $secondTeamId = 0, $isFinished = false, $currentSet = 0, $availableTimeOutsFirst = 0, $availableTimeOutsSecond = 0, $isTimeOut = false) {
-        parent::__construct($firstTeamId, $secondTeamId, $isFinished, $type = "Volleyball");
+    public function __construct($firstTeam = null, $secondTeam = null, $isFinished = false, $currentSet = 0, $availableTimeOutsFirst = 0, $availableTimeOutsSecond = 0, $isTimeOut = false) {
+        parent::__construct($firstTeam, $secondTeam, $isFinished, $type = "Volleyball");
         $this->currentSet = $currentSet;
         $this->availableTimeOutsFirst = $availableTimeOutsFirst;
         $this->availableTimeOutsSecond = $availableTimeOutsSecond;

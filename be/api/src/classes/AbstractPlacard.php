@@ -1,14 +1,14 @@
 <?php
 abstract class AbstractPlacard {
     protected $id;
-    protected $firstTeamId;
-    protected $secondTeamId;
+    protected $firstTeam;
+    protected $secondTeam;
     protected $isFinished;
     protected $type;
 
-    public function __construct($firstTeamId = 0, $secondTeamId = 0, $isFinished = false, $type = "") {
-        $this->firstTeamId = $firstTeamId;
-        $this->secondTeamId = $secondTeamId;
+    public function __construct($firstTeam = null, $secondTeam = null, $isFinished = false, $type = "") {
+        $this->firstTeam = $firstTeam;
+        $this->secondTeam = $secondTeam;
         $this->isFinished = $isFinished;
         $this->type = $type;
     }
