@@ -16,6 +16,10 @@ abstract class AbstractPlayer {
         $this->type = $type;
     }
 
+    public function loadFromDatabase($pdo, $id) {}
+
+    public function saveToDatabase($pdo) {}
+
     public function getId() {
         return $this->id;
     }
