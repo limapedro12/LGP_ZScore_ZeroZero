@@ -1,9 +1,9 @@
 <?php
 require_once 'AbstractPlayer.php';
 
-class VoleibolPlayer extends AbstractPlayer {
+class VolleyballPlayer extends AbstractPlayer {
     public function __construct($id = 0, $name = "", $position = "", $number = 0, $team = null) {
-        parent::__construct($id, $name, $position, $number, $team, $type = "Voleibol");
+        parent::__construct($id, $name, $position, $number, $team, $type = "Volleyball");
     }
 }
 ?>
