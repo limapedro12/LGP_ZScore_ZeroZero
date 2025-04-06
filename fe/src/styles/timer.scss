@@ -3,9 +3,19 @@
 .timer {
     font-family: config.$font-secondary;
     color: config.$text-color;
-
-    .timer-display {
-        text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    .period {
+        font-size: 3rem;
         font-weight: bold;
+        line-height: 1;
+    }
+    
+    .time {
+        font-size: 4rem;
+        font-weight: bold;
+        line-height: 1;
     }
 }

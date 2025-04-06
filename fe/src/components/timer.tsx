@@ -3,6 +3,17 @@ import { useParams } from 'react-router-dom';
 import apiManager from '../api/apiManager';
 import '../styles/timer.scss';
 
+
+const gameTypesFormat = (gameType: string, period: number): string => {
+    const gameTypeLower = gameType.toLowerCase();
+    switch (gameTypeLower) {
+        case 'basketball':
+            return `${period}Q`;
+        default:
+            return `${period}P`;
+    }
+};
+
 /**
  * Function to format time in MM:SS format
  * @param seconds - The number of seconds to format
@@ -32,31 +43,37 @@ const Timer: React.FC = () => {
      * gameId - The ID of the game
      */
     const [elapsedTime, setElapsedTime] = useState(0);
+    const [period, setPeriod] = useState(0);
     const [gameId, setGameId] = useState<string>('default');
+    const [gameType, setGameType] = useState<string>('default');
 
     // Extract gameId from URL parameters
-    const { gameId: urlGameId } = useParams<{ gameId: string }>();
+    const { gameId: urlGameId, gameType: urlGameType } = useParams<{ gameId: string, gameType: string }>();
 
     // Update gameId when URL parameter changes
     useEffect(() => {
         if (urlGameId) {
             setGameId(urlGameId);
         }
-    }, [urlGameId]);
+
+        if (urlGameType) {
+            setGameType(urlGameType);
+        }
+    }, [urlGameId, urlGameType]);
 
     // Fetch timer status from the API
     const fetchTimerStatus = React.useCallback(async () => {
         try {
-            const response = await apiManager.getTimerStatus(gameId);
+            const response = await apiManager.getTimerStatus(gameId, gameType);
             const data = await response.json();
-
-            if (data.elapsed_time !== undefined) {
-                setElapsedTime(data.elapsed_time);
+            if (data.remaining_time !== undefined && data.period !== undefined) {
+                setElapsedTime(data.remaining_time);
+                setPeriod(data.period);
             }
         } catch (error) {
             console.error('Error fetching timer status:', error);
         }
-    }, [gameId]);
+    }, [gameId, gameType]);
 
     // Periodically fetch timer status
     useEffect(() => {
@@ -68,9 +85,12 @@ const Timer: React.FC = () => {
 
     return (
         <div className="timer">
-            <h1>
+            <div className="period">
+                {gameTypesFormat(gameType, period)}
+            </div>
+            <div className="time">
                 {formatTime(elapsedTime)}
-            </h1>
+            </div>
         </div>
     );
 };

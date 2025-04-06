@@ -7,8 +7,8 @@ const BASE_URL = `${config.API_HOSTNAME}`;
  * API Manager that handles all API requests
  */
 class ApiManager {
-    startTimer = (gameId: string) => {
-        const url = `${BASE_URL}${ENDPOINTS.START_TIMER(gameId)}`;
+    startTimer = (gameId: string, gameType: string) => {
+        const url = `${BASE_URL}${ENDPOINTS.START_TIMER(gameId, gameType)}`;
         return fetch(url, {
             method: 'POST',
             headers: {
@@ -17,8 +17,8 @@ class ApiManager {
         });
     };
 
-    stopTimer = (gameId: string) => {
-        const url = `${BASE_URL}${ENDPOINTS.STOP_TIMER(gameId)}`;
+    stopTimer = (gameId: string, gameType: string) => {
+        const url = `${BASE_URL}${ENDPOINTS.STOP_TIMER(gameId, gameType)}`;
         return fetch(url, {
             method: 'POST',
             headers: {
@@ -27,8 +27,8 @@ class ApiManager {
         });
     };
 
-    getTimerStatus = (gameId: string) => {
-        const url = `${BASE_URL}${ENDPOINTS.GET_TIMER(gameId)}`;
+    getTimerStatus = (gameId: string, gameType: string) => {
+        const url = `${BASE_URL}${ENDPOINTS.GET_TIMER(gameId, gameType)}`;
         return fetch(url, {
             method: 'GET',
             headers: {
@@ -37,8 +37,8 @@ class ApiManager {
         });
     };
 
-    resetTimer = (gameId: string) => {
-        const url = `${BASE_URL}${ENDPOINTS.RESET_TIMER(gameId)}`;
+    resetTimer = (gameId: string, gameType: string) => {
+        const url = `${BASE_URL}${ENDPOINTS.RESET_TIMER(gameId, gameType)}`;
         return fetch(url, {
             method: 'POST',
             headers: {
