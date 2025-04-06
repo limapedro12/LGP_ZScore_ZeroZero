@@ -76,7 +76,7 @@ if(is_null($gameType) || !array_key_exists($gameType, $gameConfigs)) {
 }
 
 // Validate action is one of the allowed values
-$allowedActions = ['start', 'pause', 'reset', 'status'];
+$allowedActions = ['start', 'pause', 'reset', 'status', 'adjust', 'set'];
 if (!in_array($action, $allowedActions)) {
     echo json_encode(["error" => "Invalid action. Must be one of: " . implode(', ', $allowedActions)]);
     exit;
@@ -177,6 +177,77 @@ switch ($action) {
             "remaining_time" => $gameConfig['periodDuration'],
             "period" => 1,
             "total_periods" => $gameConfig['periods']
+        ];
+        break;
+
+    case 'adjust':
+        $seconds = isset($_GET['seconds']) ? intval($_GET['seconds']) : 0;
+        $wasRunning = ($timerData['status'] === 'running');
+        
+        // Pause the timer if it's running
+        if ($wasRunning) {
+            $redis->set($remainingTimeKey, $timerData['remaining_time']);
+            $redis->set($timerStatusKey, 'paused');
+        }
+        
+        // Make the adjustment
+        $currentRemaining = $timerData['remaining_time'];
+        $newRemaining = min($gameConfig['periodDuration'], max(0, $currentRemaining + $seconds));
+        $redis->set($remainingTimeKey, $newRemaining);
+        
+        // Restart if it was running
+        if ($wasRunning) {
+            $redis->set($startTimeKey, $currentTime);
+            $redis->set($timerStatusKey, 'running');
+        }
+        
+        $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
+        
+        $response = [
+            "message" => "Timer adjusted",
+            "status" => $timerData['status'],
+            "remaining_time" => $timerData['remaining_time'],
+            "period" => $timerData['period'],
+            "total_periods" => $timerData['total_periods']
+        ];
+        break;
+
+    case 'set':
+        $newTime = isset($_GET['time']) ? intval($_GET['time']) : 0;
+        $newPeriod = isset($_GET['period']) ? intval($_GET['period']) : $timerData['period'];
+        $wasRunning = ($timerData['status'] === 'running');
+        
+        // Pause the timer if it's running
+        if ($wasRunning) {
+            $redis->set($timerStatusKey, 'paused');
+        }
+        
+        // Validate period
+        if ($newPeriod < 1 || $newPeriod > $gameConfig['periods']) {
+            $response = ["error" => "Invalid period value"];
+            break;
+        }
+        
+        // Apply bounds to the time value
+        $boundedTime = min($gameConfig['periodDuration'], max(0, $newTime));
+        $redis->set($remainingTimeKey, $boundedTime);
+        $redis->set($periodKey, $newPeriod);
+        
+        // Restart if it was running
+        if ($wasRunning) {
+            $redis->set($startTimeKey, $currentTime);
+            $redis->set($timerStatusKey, 'running');
+        }
+        
+        // Get updated timer data
+        $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
+        
+        $response = [
+            "message" => "Timer manually set",
+            "status" => $timerData['status'],
+            "remaining_time" => $timerData['remaining_time'],
+            "period" => $newPeriod,
+            "total_periods" => $timerData['total_periods']
         ];
         break;
         

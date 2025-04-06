@@ -46,6 +46,26 @@ class ApiManager {
             },
         });
     };
+
+    adjustTimer = (gameId: string, gameType: string, seconds: number) => {
+        const url = `${BASE_URL}${ENDPOINTS.ADJUST_TIMER(gameId, gameType, seconds)}`;
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+    };
+
+    setTimer = (gameId: string, gameType: string, time: number, period: number) => {
+        const url = `${BASE_URL}${ENDPOINTS.SET_TIMER(gameId, gameType, time, period)}`;
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+    };
 }
 
 // Export a singleton instance
