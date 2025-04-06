@@ -1,0 +1,125 @@
+@startuml
+title ZScore SQL Diagram
+
+entity AbstractPlacard {
+    id : Int
+    firstTeamId : Int (AbstractTeam)
+    secondTeamId : Int (AbstractTeam)
+    isFinished : Boolean
+    sport : String
+}
+
+entity VolleyballPlacard {
+    id : Int
+    abstractPlacardId : Int (AbstractPlacard)
+    currentSet : Int
+    availableTimeOutsFirst : Int
+    availableTimeOutsSecond : Int
+    isTimeOut : Boolean
+}
+
+entity VolleyballSetResult {
+    id : Int
+    placardId : Int (VolleyballPlacard)
+    setNumber : Int
+    pointsFirst : Int
+    pointsSecond : Int
+}
+
+entity FutsalPlacard {
+    id : Int
+    abstractPlacardId : Int (AbstractPlacard)
+    currentGoalsFirstTeam : Int
+    currentGoalsSecondTeam : Int
+    numberFoulsFirst : Int
+    numberFoulsSecond : Int
+    availableTimeOutsFirst : Int
+    availableTimeOutsSecond : Int
+    isTimeOut : Boolean
+    isTimeStopped : Boolean
+}
+
+entity AbstractTeam {
+    id : Int
+    logoURL : String
+    name : String
+    sport : String
+}
+
+entity VolleyballTeam {
+    id : Int
+    abstractTeamId : Int (AbstractTeam)
+}
+
+entity FutsalTeam {
+    id : Int
+    abstractTeamId : Int (AbstractTeam)
+}
+
+entity AbstractPlayer {
+    id : Int
+    name : String
+    position : String
+    number : Int
+    teamId : Int (AbstractTeam)
+    sport : String
+}
+
+entity VolleyballPlayer {
+    id : Int
+    abstractPlayerId : Int (AbstractPlayer)
+    teamId : Int (VolleyballTeam)
+}
+
+entity FutsalPlayer {
+    id : Int
+    abstractPlayerId : Int (AbstractPlayer)
+    teamId : Int (FutsalTeam)
+}
+
+entity AbstractEvent {
+    id : Int
+    time : Int
+    sport : String
+    placardId : Int (AbstractPlacard)
+}
+
+entity CardEvent {
+    id : Int
+    abstractEventId : Int (AbstractEvent)
+    playerId : Int (AbstractPlayer)
+    cardColor : String
+}
+
+entity PointEvent {
+    id : Int
+    abstractEventId : Int (AbstractEvent)
+    playerId : Int (AbstractPlayer)
+}
+
+entity SubstitutionEvent {
+    id : Int
+    abstractEventId : Int (AbstractEvent)
+    playerInId : Int (AbstractPlayer)
+    playerOutId : Int (AbstractPlayer)
+}
+
+AbstractPlacard "1"--"*" AbstractEvent : "has"
+AbstractPlacard "1"--"1" AbstractTeam : "firstTeam"
+AbstractPlacard "1"--"1" AbstractTeam : "secondTeam"
+
+VolleyballPlacard "1"-up-"1" AbstractPlacard : "inherits"
+FutsalPlacard "1"-up-"1" AbstractPlacard : "inherits"
+
+AbstractTeam "1"-up-"*" AbstractPlayer : "has"
+VolleyballTeam "1"-up-"1" AbstractTeam : "inherits"
+FutsalTeam "1"-up-"1" AbstractTeam : "inherits"
+
+VolleyballPlayer "1"-up-"1" AbstractPlayer : "inherits"
+FutsalPlayer "1"-up-"1" AbstractPlayer : "inherits"
+
+AbstractEvent "1"-down-"1" CardEvent : "inherits"
+AbstractEvent "1"-down-"1" PointEvent : "inherits"
+AbstractEvent "1"-down-"1" SubstitutionEvent : "inherits"
+
+@enduml
