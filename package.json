@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-bootstrap": "^2.10.9"
+  }
+}
