@@ -50,15 +50,27 @@ class ApiManager {
         });
     };
 
-    updateScore = (teamId: number, points: number) => {
-        const url = `${BASE_URL}${ENDPOINTS.UPDATE_SCORE()}`;
+    addPoint = (teamId: number) => {
+        const url = `${BASE_URL}${ENDPOINTS.ADD_POINT()}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ teamId, points }),
+            body: JSON.stringify({ teamId }),
+        });
+    };
+
+    removePoint = (teamId: number) => {
+        const url = `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`;
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ teamId }),
         });
     };
 }

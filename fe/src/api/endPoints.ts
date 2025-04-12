@@ -1,5 +1,6 @@
 const ENDPOINTS = {
-    UPDATE_SCORE: () => '/score/updateScore',
+    ADD_POINT: () => '/score/updateScore?action=add',
+    REMOVE_POINT: () => '/score/updateScore?action=remove',
     START_TIMER: () => '/timer/timer?action=start',
     STOP_TIMER: () => '/timer/timer?action=pause',
     GET_TIMER: () => '/timer/timer?action=status',

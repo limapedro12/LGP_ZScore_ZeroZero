@@ -13,6 +13,13 @@ const HomePage: React.FC = () => {
     const [timerStatus, setTimerStatus] = useState<string>('');
     const [score, setScore] = useState<number>(0);
     const [scoreMessage, setScoreMessage] = useState<string>('');
+    const [selectedTeamId, setSelectedTeamId] = useState<number>(1); // valor default
+    const teams = [
+        { id: 1, name: 'Futsal Team' },
+        { id: 2, name: 'Volleyball Team' },
+    // só para testar, depois pode buscar-se à api
+    ];
+
 
     const handleStartTimer = async () => {
         try {
@@ -85,7 +92,7 @@ const HomePage: React.FC = () => {
     // ----- Score Control Section -----
     const handleAddPoint = async () => {
         try {
-            const response = await apiManager.updateScore(1, 1);
+            const response = await apiManager.addPoint(selectedTeamId);
             const data = await response.json();
             if (data.success) {
                 setScore((prevScore) => prevScore + 1);
@@ -100,7 +107,7 @@ const HomePage: React.FC = () => {
 
     const handleRemovePoint = async () => {
         try {
-            const response = await apiManager.updateScore(1, -1);
+            const response = await apiManager.removePoint(selectedTeamId);
             const data = await response.json();
             if (data.success) {
                 setScore((prevScore) => prevScore - 1);
@@ -163,6 +170,25 @@ const HomePage: React.FC = () => {
                 {/* New Score Control Section */}
                 <div className="mb-4">
                     <h3>Score Control</h3>
+
+                    {/* Team Selection Dropdown */}
+                    <div className="mb-3">
+                        <label htmlFor="teamSelect">Select Team:</label>
+                        <select
+                            id="teamSelect"
+                            className="form-select"
+                            value={selectedTeamId}
+                            onChange={(e) => setSelectedTeamId(parseInt(e.target.value, 10))}
+                        >
+                            {teams.map((team) => (
+                                <option key={team.id} value={team.id}>
+                                    {team.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Buttons to Add or Remove Points */}
                     <div className="d-flex gap-2 mb-3">
                         <Button variant="success" onClick={handleAddPoint}>
                             +1 Point
@@ -171,6 +197,8 @@ const HomePage: React.FC = () => {
                             -1 Point
                         </Button>
                     </div>
+
+                    {/* Current Score Display */}
                     <Card className="mt-2">
                         <Card.Body>
                             <h4>
@@ -187,6 +215,7 @@ const HomePage: React.FC = () => {
                         </Card.Body>
                     </Card>
                 </div>
+
                 <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" className="mb-3">
                     <Tab eventKey="home" title="Home">
                         Tab content for Home
