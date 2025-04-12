@@ -13,13 +13,7 @@ const HomePage: React.FC = () => {
     const [timerStatus, setTimerStatus] = useState<string>('');
     const [score, setScore] = useState<number>(0);
     const [scoreMessage, setScoreMessage] = useState<string>('');
-    const [selectedTeamId, setSelectedTeamId] = useState<number>(1); // valor default
-    const teams = [
-        { id: 1, name: 'Futsal Team' },
-        { id: 2, name: 'Volleyball Team' },
-    // só para testar, depois pode buscar-se à api
-    ];
-
+    const [selectedTeamId] = useState<number>(1); // valor default
 
     const handleStartTimer = async () => {
         try {
@@ -170,24 +164,6 @@ const HomePage: React.FC = () => {
                 {/* New Score Control Section */}
                 <div className="mb-4">
                     <h3>Score Control</h3>
-
-                    {/* Team Selection Dropdown */}
-                    <div className="mb-3">
-                        <label htmlFor="teamSelect">Select Team:</label>
-                        <select
-                            id="teamSelect"
-                            className="form-select"
-                            value={selectedTeamId}
-                            onChange={(e) => setSelectedTeamId(parseInt(e.target.value, 10))}
-                        >
-                            {teams.map((team) => (
-                                <option key={team.id} value={team.id}>
-                                    {team.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
                     {/* Buttons to Add or Remove Points */}
                     <div className="d-flex gap-2 mb-3">
                         <Button variant="success" onClick={handleAddPoint}>

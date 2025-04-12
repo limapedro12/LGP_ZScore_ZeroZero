@@ -50,7 +50,7 @@ class ApiManager {
         });
     };
 
-    addPoint = (teamId: number) => {
+    addPoint = (abstractTeamId: number) => {
         const url = `${BASE_URL}${ENDPOINTS.ADD_POINT()}`;
         return fetch(url, {
             method: 'POST',
@@ -58,11 +58,11 @@ class ApiManager {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ teamId }),
+            body: JSON.stringify({ abstractTeamId }),
         });
     };
 
-    removePoint = (teamId: number) => {
+    removePoint = (abstractTeamId: number) => {
         const url = `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`;
         return fetch(url, {
             method: 'POST',
@@ -70,7 +70,7 @@ class ApiManager {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ teamId }),
+            body: JSON.stringify({ abstractTeamId }),
         });
     };
 }
