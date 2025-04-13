@@ -50,29 +50,30 @@ class ApiManager {
         });
     };
 
-    addPoint = (abstractTeamId: number) => {
-        const url = `${BASE_URL}${ENDPOINTS.ADD_POINT()}`;
+    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
+        const url = `${BASE_URL}${ENDPOINTS.ADD_POINT()}`; // deve conter ?action=add
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ abstractTeamId }),
+            body: JSON.stringify({ abstractTeamId, placardId, gameType }),
         });
     };
 
-    removePoint = (abstractTeamId: number) => {
-        const url = `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`;
+    removePoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
+        const url = `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`; // deve conter ?action=remove
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ abstractTeamId }),
+            body: JSON.stringify({ abstractTeamId, placardId, gameType }),
         });
     };
+
 }
 
 // Export a singleton instance

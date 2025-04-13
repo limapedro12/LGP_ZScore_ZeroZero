@@ -13,7 +13,9 @@ const HomePage: React.FC = () => {
     const [timerStatus, setTimerStatus] = useState<string>('');
     const [score, setScore] = useState<number>(0);
     const [scoreMessage, setScoreMessage] = useState<string>('');
-    const [selectedTeamId] = useState<number>(1); // valor default
+    const [selectedTeamId] = useState<number>(1);
+    const placardId = 1; // exemplo fixo por agora
+    const gameType = 'futsal'; // ou 'volleyball'
 
     const handleStartTimer = async () => {
         try {
@@ -86,7 +88,7 @@ const HomePage: React.FC = () => {
     // ----- Score Control Section -----
     const handleAddPoint = async () => {
         try {
-            const response = await apiManager.addPoint(selectedTeamId);
+            const response = await apiManager.addPoint(selectedTeamId, placardId, gameType);
             const data = await response.json();
             if (data.success) {
                 setScore((prevScore) => prevScore + 1);
@@ -101,11 +103,11 @@ const HomePage: React.FC = () => {
 
     const handleRemovePoint = async () => {
         try {
-            const response = await apiManager.removePoint(selectedTeamId);
+            const response = await apiManager.removePoint(selectedTeamId, placardId, gameType);
             const data = await response.json();
             if (data.success) {
                 setScore((prevScore) => prevScore - 1);
-                setScoreMessage('Point removed successfully.');
+                setScoreMessage('Point added successfully.');
             } else {
                 setScoreMessage(`Error: ${data.message}`);
             }
