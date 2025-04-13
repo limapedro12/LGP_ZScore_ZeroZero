@@ -27,8 +27,20 @@ $placardId = $data['placardId'] ?? null;
 $gameType = $data['gameType'] ?? null; // "futsal" ou "volleyball"
 $action = $_GET['action'] ?? null;
 
-if (!$abstractTeamId || !$action || !$placardId || !$gameType) {
-    echo json_encode(["success" => false, "message" => "Missing required parameters"]);
+if (!$gameType) {
+    echo json_encode(["success" => false, "message" => "error in gameType"]);
+    exit;
+}
+if (!$abstractTeamId) {
+    echo json_encode(["success" => false, "message" => "error in abstractTeamId"]);
+    exit;
+}
+if (!!$action) {
+    echo json_encode(["success" => false, "message" => "error in action"]);
+    exit;
+}
+if (!$placardId) {
+    echo json_encode(["success" => false, "message" => "error in placardId"]);
     exit;
 }
 
