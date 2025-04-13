@@ -8,22 +8,32 @@ const BASE_URL = `${config.API_HOSTNAME}`;
  */
 class ApiManager {
     startTimer = (gameId: string, gameType: string) => {
-        const url = `${BASE_URL}${ENDPOINTS.START_TIMER(gameId, gameType)}`;
+        const url = `${BASE_URL}${ENDPOINTS.START_TIMER()}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                action: 'start',
+                gameId,
+                gameType,
+            }),
         });
     };
 
     stopTimer = (gameId: string, gameType: string) => {
-        const url = `${BASE_URL}${ENDPOINTS.STOP_TIMER(gameId, gameType)}`;
+        const url = `${BASE_URL}${ENDPOINTS.STOP_TIMER()}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                action: 'pause',
+                gameId,
+                gameType,
+            }),
         });
     };
 
@@ -38,32 +48,50 @@ class ApiManager {
     };
 
     resetTimer = (gameId: string, gameType: string) => {
-        const url = `${BASE_URL}${ENDPOINTS.RESET_TIMER(gameId, gameType)}`;
+        const url = `${BASE_URL}${ENDPOINTS.RESET_TIMER()}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                action: 'reset',
+                gameId,
+                gameType,
+            }),
         });
     };
 
     adjustTimer = (gameId: string, gameType: string, seconds: number) => {
-        const url = `${BASE_URL}${ENDPOINTS.ADJUST_TIMER(gameId, gameType, seconds)}`;
+        const url = `${BASE_URL}${ENDPOINTS.ADJUST_TIMER()}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                action: 'adjust',
+                gameId,
+                gameType,
+                seconds,
+            }),
         });
     };
 
     setTimer = (gameId: string, gameType: string, time: number, period: number) => {
-        const url = `${BASE_URL}${ENDPOINTS.SET_TIMER(gameId, gameType, time, period)}`;
+        const url = `${BASE_URL}${ENDPOINTS.SET_TIMER()}`;
         return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                action: 'set',
+                gameId,
+                gameType,
+                time,
+                period,
+            }),
         });
     };
 }

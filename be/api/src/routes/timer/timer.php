@@ -1,19 +1,18 @@
 <?php
-require_once __DIR__ . '/../../connRedis.php';
+require_once __DIR__ . '/../../utils/connRedis.php';
+require_once __DIR__ . '/../../config/gameConfig.php';
+
 
 header('Content-Type: application/json');
+$jsonBody = null;
 
+if($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = file_get_contents('php://input');
+    if ($input) {
+        $jsonBody = json_decode($input, true);
+    }
+}
 
-$gameConfigs = [
-    'futsal' => [
-        'periods' => 2,
-        'periodDuration' => 60*20
-    ],
-    'basketball' => [
-        'periods' => 4,
-        'periodDuration' => 10 * 60
-    ],
-];
 
 // Helper functions
 function getTimerData($redis, $placardId, $currentTime, $gameConfig) {
@@ -62,9 +61,10 @@ function getTimerData($redis, $placardId, $currentTime, $gameConfig) {
 }
 
 // Input validation
-$placardId = $_GET['gameId'] ?? null;
-$gameType = $_GET['gameType'] ?? 'futsal';
-$action = $_GET['action'] ?? null;
+$placardId = $_GET['gameId'] ?? $jsonBody['gameId'] ?? null;
+$gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
+$action = $_GET['action'] ?? $jsonBody['action'] ?? null;
+
 
 if(is_null($placardId)) {
     echo json_encode(["error" => "Missing gameId"]);
@@ -76,15 +76,15 @@ if(is_null($action)) {
     exit;
 }
 
-if(is_null($gameType) || !array_key_exists($gameType, $gameConfigs)) {
-    echo json_encode(["error" => "Invalid gameType. Must be one of: " . implode(', ', array_keys($gameConfigs))]);
+if(is_null($gameType)) {
+    echo json_encode(["error" => $gameType]);
     exit;
 }
 
 // Validate action is one of the allowed values
 $allowedActions = ['start', 'pause', 'reset', 'status', 'adjust', 'set'];
 if (!in_array($action, $allowedActions)) {
-    echo json_encode(["error" => "Invalid action. Must be one of: " . implode(', ', $allowedActions)]);
+    echo json_encode(["error" => "Invalid action"]);
     exit;
 }
 
@@ -99,6 +99,14 @@ try {
     exit;
 }
 
+try {
+    $gameConfigManager = new GameConfig();
+    $gameConfig = $gameConfigManager->getConfig($gameType);
+} catch (Exception $e) {
+    echo json_encode(["error" => "Game configuration error: " . $e->getMessage()]);
+    exit;
+}
+
 // Define Redis keys
 $startTimeKey = "game:$placardId:start_time";
 $remainingTimeKey = "game:$placardId:remaining_time";
@@ -106,7 +114,6 @@ $timerStatusKey = "game:$placardId:status";
 $periodKey = "game:$placardId:period";
 
 $currentTime = time();
-$gameConfig = $gameConfigs[$gameType];
 
 try {
     $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
