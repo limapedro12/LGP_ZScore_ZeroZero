@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../utils/connRedis.php';
+require_once __DIR__ . '/../../utils/timerData.php';
 require_once __DIR__ . '/../../config/gameConfig.php';
 
 
@@ -13,54 +14,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-
-// Helper functions
-function getTimerData($redis, $placardId, $currentTime, $gameConfig) {
-    try{
-        $prefix = "game:$placardId:";
-        $status = $redis->get($prefix . 'status') ?: 'paused';
-        $startTime = (int)$redis->get($prefix . 'start_time') ?: 0;
-        $storedRemaining = (int)$redis->get($prefix . 'remaining_time');
-        $period = (int)$redis->get($prefix . 'period') ?: 1;
-        
-        // Initialize remaining time if not set yet
-        if ($storedRemaining === 0 && $redis->get($prefix . 'remaining_time') === false) {
-            $storedRemaining = $gameConfig['periodDuration'];
-        }
-        
-        $remainingTime = ($status === 'running' && $startTime > 0) 
-            ? $storedRemaining - ($currentTime - $startTime)
-            : $storedRemaining;
-        
-        // Auto-pause if timer reaches 0
-        if ($remainingTime <= 0 && $status === 'running') {
-            $remainingTime = 0;
-            $redis->set($prefix . 'status', 'paused');
-            $redis->set($prefix . 'remaining_time', 0);
-            $status = 'paused';
-            
-            // If not the last period, prepare for next period
-            if ($period < $gameConfig['periods']) {
-                $redis->set($prefix . 'period', $period + 1);
-                $redis->set($prefix . 'remaining_time', $gameConfig['periodDuration']);
-            }
-        }
-            
-        return [
-            'status' => $status,
-            'start_time' => $startTime,
-            'remaining_time' => max(0, $remainingTime),
-            'period' => $period,
-            'total_periods' => $gameConfig['periods']
-        ];
-    } catch (Exception $e) {
-        return [
-            'error' => "Failed to get timer data: " . $e->getMessage()
-        ];
-    }
-}
-
-// Input validation
 $placardId = $_GET['gameId'] ?? $jsonBody['gameId'] ?? null;
 $gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
 $action = $_GET['action'] ?? $jsonBody['action'] ?? null;
@@ -81,14 +34,12 @@ if(is_null($gameType)) {
     exit;
 }
 
-// Validate action is one of the allowed values
 $allowedActions = ['start', 'pause', 'reset', 'status', 'adjust', 'set'];
 if (!in_array($action, $allowedActions)) {
     echo json_encode(["error" => "Invalid action"]);
     exit;
 }
 
-// Connect to Redis
 try {
     $redis = connectRedis();
     if (!$redis) {
@@ -107,7 +58,6 @@ try {
     exit;
 }
 
-// Define Redis keys
 $startTimeKey = "game:$placardId:start_time";
 $remainingTimeKey = "game:$placardId:remaining_time";
 $timerStatusKey = "game:$placardId:status";
@@ -118,12 +68,9 @@ $currentTime = time();
 try {
     $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
 
-    // Process actions
     switch ($action) {
         case 'start':
-            if($timerData['status'] !== 'running') {
-                // Only set the period duration if it's a new game or reset
-                
+            if($timerData['status'] !== 'running') {                
                 try{
                     if ($redis->get($remainingTimeKey) === false) {
                         $redis->set($remainingTimeKey, $gameConfig['periodDuration']);
@@ -217,21 +164,18 @@ try {
         case 'adjust':
 
             try{
-                $seconds = isset($_GET['seconds']) ? intval($_GET['seconds']) : 0;
+                $seconds = isset($jsonBody['seconds']) ? intval($jsonBody['seconds']) : 0;
                 $wasRunning = ($timerData['status'] === 'running');
                 
-                // Pause the timer if it's running
                 if ($wasRunning) {
                     $redis->set($remainingTimeKey, $timerData['remaining_time']);
                     $redis->set($timerStatusKey, 'paused');
                 }
                 
-                // Make the adjustment
                 $currentRemaining = $timerData['remaining_time'];
                 $newRemaining = min($gameConfig['periodDuration'], max(0, $currentRemaining + $seconds));
                 $redis->set($remainingTimeKey, $newRemaining);
                 
-                // Restart if it was running
                 if ($wasRunning) {
                     $redis->set($startTimeKey, $currentTime);
                     $redis->set($timerStatusKey, 'running');
@@ -254,33 +198,28 @@ try {
         case 'set':
 
             try{
-                $newTime = isset($_GET['time']) ? intval($_GET['time']) : 0;
-                $newPeriod = isset($_GET['period']) ? intval($_GET['period']) : $timerData['period'];
+                $newTime = isset($jsonBody['time']) ? intval($jsonBody['time']) : 0;
+                $newPeriod = isset($jsonBody['period']) ? intval($jsonBody['period']) : $timerData['period'];
                 $wasRunning = ($timerData['status'] === 'running');
                 
-                // Pause the timer if it's running
                 if ($wasRunning) {
                     $redis->set($timerStatusKey, 'paused');
                 }
                 
-                // Validate period
                 if ($newPeriod < 1 || $newPeriod > $gameConfig['periods']) {
                     $response = ["error" => "Invalid period value"];
                     break;
                 }
                 
-                // Apply bounds to the time value
                 $boundedTime = min($gameConfig['periodDuration'], max(0, $newTime));
                 $redis->set($remainingTimeKey, $boundedTime);
                 $redis->set($periodKey, $newPeriod);
                 
-                // Restart if it was running
                 if ($wasRunning) {
                     $redis->set($startTimeKey, $currentTime);
                     $redis->set($timerStatusKey, 'running');
                 }
                 
-                // Get updated timer data
                 $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
                 
                 $response = [
@@ -303,6 +242,5 @@ try {
     $response = ["error" => "An error occurred: " . $e->getMessage()];
 }
 
-// Return response
 echo json_encode($response);
 ?>

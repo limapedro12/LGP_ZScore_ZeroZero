@@ -1,19 +1,18 @@
 <?php
 
 /**
- * Connect to Redis server using a persistent connection
- * 
- * @param float $timeout Connection timeout in seconds
- * @return Redis|false Returns Redis object on success, false on failure
+ * Establishes a persistent connection to Redis server
+ *
+ * @param float $timeout Maximum time in seconds to wait for connection (default: 2.0)
+ * @return Redis|false Returns Redis connection object on success, false on failure
  */
 function connectRedis($timeout = 2.0) {
-    // Use environment variables with defaults
     $host = getenv('REDIS_HOST');
     $port = getenv('REDIS_PORT');
     try {
         $redis = new Redis();
         
-        // Use persistent connection with a unique persistent ID
+        // Use persistent connection
         if (!$redis->pconnect($host, $port, $timeout, 'lgp_timer_persistent')) {
             error_log("Failed to connect to Redis at $host:$port");
             return false;
