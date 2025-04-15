@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import config from './config/config';
 import HomePage from './pages/home';
-
+import ScoreBoard from './pages/scoreBoard';
 
 /**
  * AppRouter component
@@ -15,6 +15,7 @@ const AppRouter = () => (
     <BrowserRouter basename={`${config.APP_BASE_ROUTE || ''}`}>
         <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/scoreboard/:gameType/:gameId" element={<ScoreBoard />} />
         </Routes>
     </BrowserRouter>
 );
