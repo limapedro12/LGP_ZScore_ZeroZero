@@ -48,59 +48,6 @@ class ApiManager {
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
-        });
-    };
-
-    getTimerStatus = () => {
-        const url = `${BASE_URL}${ENDPOINTS.GET_TIMER()}`;
-        return fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-        });
-    };
-
-    resetTimer = () => {
-        const url = `${BASE_URL}${ENDPOINTS.RESET_TIMER()}`;
-        return fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-        });
-    };
-
-    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
-        const url = `${BASE_URL}${ENDPOINTS.ADD_POINT()}`; // deve conter ?action=add
-        return fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ abstractTeamId, placardId, gameType }),
-        });
-    };
-
-    removePoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
-        const url = `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`; // deve conter ?action=remove
-        return fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ abstractTeamId, placardId, gameType }),
-        });
-    };
-
-}
-
-// Export a singleton instance
         };
         if (method === 'POST') {
             options.body = JSON.stringify({
@@ -174,6 +121,30 @@ class ApiManager {
      */
     setTimer = (gameId: string, gameType: string, time: number, period: number) =>
         this.timerRequest('set', { gameId, gameType, time, period });
+
+    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
+        const url = `${BASE_URL}${ENDPOINTS.ADD_POINT()}`; // deve conter ?action=add
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ abstractTeamId, placardId, gameType }),
+        });
+    };
+
+    removePoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
+        const url = `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`; // deve conter ?action=remove
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ abstractTeamId, placardId, gameType }),
+        });
+    };
 }
 
 const apiManager = new ApiManager();

@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Ligação à base de dados com variáveis de ambiente ou valores padrão
 $host = getenv("DB_HOST") ?: "mariadb";
 $user = getenv("DB_USERNAME") ?: "user";
-$password = getenv("DB_PASSWORD") ?: "zscoreUserPassword";
+$password = getenv("DB_PASSWORD");
 $dbname = getenv("DB_NAME") ?: "zscoredb";
 
 $conn = new mysqli($host, $user, $password, $dbname);
@@ -81,13 +81,8 @@ if ($gameType === 'futsal') {
     $stmt->execute();
 
 } elseif ($gameType === 'volleyball') {
-    // Aqui assumes que há uma tabela VolleyballSetResult com:
-    // - setId
-    // - placardId
-    // - is_current (bool)
-    // - pointsFirstTeam / pointsSecondTeam
-
-    $querySet = "SELECT setId, firstTeamId, secondTeamId FROM VolleyballPlacard WHERE placardId = ?";
+    // Buscar o currentSet do placard
+    $querySet = "SELECT currentSet, firstTeamId, secondTeamId FROM VolleyballPlacard WHERE placardId = ?";
     $stmt = $conn->prepare($querySet);
     $stmt->bind_param("i", $placardId);
     $stmt->execute();
@@ -99,18 +94,21 @@ if ($gameType === 'futsal') {
         exit;
     }
 
-    $currentSetQuery = "SELECT id FROM VolleyballSetResult WHERE placardId = ? AND is_current = 1";
+    // Buscar o VolleyballSetResult correspondente ao currentSet
+    $currentSet = $placardData['currentSet'];
+    $currentSetQuery = "SELECT id FROM VolleyballSetResult WHERE placardId = ? AND setNumber = ?";
     $stmt = $conn->prepare($currentSetQuery);
-    $stmt->bind_param("i", $placardId);
+    $stmt->bind_param("ii", $placardId, $currentSet);
     $stmt->execute();
     $result = $stmt->get_result();
     $set = $result->fetch_assoc();
 
     if (!$set) {
-        echo json_encode(["success" => false, "message" => "No current set found"]);
+        echo json_encode(["success" => false, "message" => "No set found for the current set number"]);
         exit;
     }
 
+    // Determinar a coluna a ser atualizada
     $column = null;
     if ((int)$abstractTeamId === (int)$placardData['firstTeamId']) {
         $column = 'pointsFirstTeam';
@@ -121,6 +119,7 @@ if ($gameType === 'futsal') {
         exit;
     }
 
+    // Atualizar os pontos no VolleyballSetResult
     $sql = "UPDATE VolleyballSetResult SET $column = $column + ? WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ii", $delta, $set['id']);
