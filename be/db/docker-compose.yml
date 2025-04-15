@@ -1,7 +1,7 @@
 services:
   zscore-mariadb:
     build: .
-    container_name: zscore-mariadb
+    container_name: zscore-mariaDB
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOTPASSWORD}
