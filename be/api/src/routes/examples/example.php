@@ -1,19 +1,38 @@
 <?php
-// Query to fetch data from the `placards` table instead of users
-$sql = "SELECT id, title, description FROM placards";
-$result = $conn->query($sql);
+require_once __DIR__ . '/../../index.php';
 
-// Check if the query was successful
-if (!$result) {
-    die(json_encode(["error" => "Query failed: " . $conn->error]));
+function testConection() {
+    global $conn, $dbname;
+    
+    $tables = [];
+    
+    // Check if connection is successful
+    if ($conn) {
+        $result = "Connected to " . $dbname;
+        
+        // Get all tables in database
+        $query = "SHOW TABLES";
+        $tablesResult = $conn->query($query);
+        
+        if ($tablesResult) {
+            while ($row = $tablesResult->fetch_array(MYSQLI_NUM)) {
+                $tables[] = $row[0];
+            }
+        }
+        
+        return [
+            'status' => $result,
+            'tables' => $tables
+        ];
+    } else {
+        return [
+            'status' => 'Connection failed',
+            'tables' => []
+        ];
+    }
 }
 
-// Fetch data and store it in an array
-$placards = [];
-while ($row = $result->fetch_assoc()) {
-    $placards[] = $row;
-}
-
-// Return the data as JSON
-echo json_encode(["placards" => $placards]);
+// Example usage
+$result = testConection();
+echo json_encode($result);
 ?>
