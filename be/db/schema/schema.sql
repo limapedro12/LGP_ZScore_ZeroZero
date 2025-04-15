@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS VolleyballSetResult (
     setNumber INT NOT NULL,
     pointsFirstTeam INT NOT NULL,
     pointsSecondTeam INT NOT NULL,
-    FOREIGN KEY (placardId) REFERENCES VolleyballPlacard(id) ON DELETE CASCADE
+    FOREIGN KEY (placardId) REFERENCES VolleyballPlacard(abstractPlacardId) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS FutsalPlacard (
