@@ -1,4 +1,9 @@
+/**
+ * This file contains the API endpoints for the application.
+ */
+
 const ENDPOINTS = {
+    TIMER: () => '/timer/timer',
     ADD_POINT: () => '/score/updateScore?action=add',
     REMOVE_POINT: () => '/score/updateScore?action=remove',
     START_TIMER: () => '/timer/timer?action=start',
