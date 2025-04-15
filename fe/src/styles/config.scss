@@ -9,3 +9,9 @@ $text-color: #ffffff;
 
 $font-primary: 'Roboto', sans-serif;
 $font-secondary: 'Inter', sans-serif;
+
+body, html {
+    min-height: 100vh;
+    min-width: 400px;
+    width: 100%;
+}
