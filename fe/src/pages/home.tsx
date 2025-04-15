@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
@@ -8,6 +8,7 @@ import Tabs from 'react-bootstrap/Tabs';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import apiManager from '../api/apiManager';
+import { latestPollingData, startPolling, stopPolling } from '../services/polling';
 
 /**
  * Home page component
@@ -86,6 +87,19 @@ const HomePage: React.FC = () => {
             setTimerStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     };
+    const [latestData, setLatestData] = useState<number>(0);
+    useEffect(() => {
+        startPolling('http://localhost:8080/polling/polling', 5000, latestData, setLatestData);
+
+        const interval = setInterval(() => {
+            setLatestData(latestPollingData);
+        }, 5000);
+
+        return () => {
+            stopPolling();
+            clearInterval(interval);
+        };
+    }, []);
 
     return (
         <>
@@ -140,9 +154,13 @@ const HomePage: React.FC = () => {
                         Tab content for Contact
                     </Tab>
                 </Tabs>
+                <p>
+                    {latestData.toString()}
+                </p>
             </Container>
         </>
     );
+
 };
 
 export default HomePage;

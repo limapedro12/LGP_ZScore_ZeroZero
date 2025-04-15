@@ -1,37 +1,27 @@
-/**
- * Polls the backend for updates at a specified interval.
- * @param url The backend endpoint to poll.
- * @param interval The polling interval in milliseconds.
- * @param callback A function to handle the response data.
- */
-export function startPolling(
-  url: string,
-  interval: number,
-  callback: (data: any) => void
-): () => void {
-  let polling = true;
+export let latestPollingData = 0;
+let isPolling = true;
 
-  const poll = async () => {
-      while (polling) {
-          try {
-              const response = await fetch(url);
-              if (response.ok) {
-                  const data = await response.json();
-                  callback(data);
-              } else {
-                  console.error('Polling failed:', response.statusText);
-              }
-          } catch (error) {
-              console.error('Polling error:', error);
-          }
-          await new Promise((resolve) => setTimeout(resolve, interval));
-      }
-  };
+export async function startPolling(
+    url: string,
+    interval: number,
+): Promise<void> {
+    console.log('alala');
+    while (isPolling) {
+        const fullUrl = `${url}?number=${latestPollingData}`;
+        const response = await fetch(fullUrl);
+        if (response.ok) {
+            const data = await response.json();
+            latestPollingData = data.result;
+        }
+        console.log('Polling:', latestPollingData);
+        await sleep(interval);
+    }
+}
 
-  poll();
+async function sleep(miliseconds: number) {
+    await new Promise((resolve) => setTimeout(resolve, miliseconds));
+}
 
-  // Return a function to stop polling
-  return () => {
-      polling = false;
-  };
+export function stopPolling(): void {
+    isPolling = false;
 }
