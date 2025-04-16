@@ -5,7 +5,7 @@ abstract class AbstractEvent {
     protected $sport;
     protected $placard;
 
-    public function __construct($time = null, string $sport = null, ?AbstractPlacard $placard = null) {
+    public function __construct(?string $time = null, ?string $sport = null, ?AbstractPlacard $placard = null) {
         $this->time = $time;
         $this->sport = $sport;
         $this->placard = $placard;
