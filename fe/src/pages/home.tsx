@@ -1,11 +1,11 @@
-import React, { useState } from 'react'; // remover
-// import React from 'react';
+import React, { useState } from 'react'; // REMOVER
+// import React from 'react'; // COLOCAR
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import apiManager from '../api/apiManager'; // remover
-import { Button, Card, Tab, Tabs } from 'react-bootstrap'; // remover
+import apiManager from '../api/apiManager'; // REMOVER
+import { Button, Card, Tab, Tabs } from 'react-bootstrap'; // REMOVER
 
 /**
  * Home page component
@@ -14,6 +14,8 @@ import { Button, Card, Tab, Tabs } from 'react-bootstrap'; // remover
  *
  * @returns {React.FC} Home page component
  */
+
+// COLOCAR O QUE ESTÁ COMENTADO ABAIXO:
 // const HomePage: React.FC = () => (
 //     <>
 //         <Navbar expand="lg" className="bg-body-tertiary">
@@ -37,6 +39,8 @@ import { Button, Card, Tab, Tabs } from 'react-bootstrap'; // remover
 //         </Navbar>
 //     </>
 // );
+
+// REMOVER TUDO ISTO ABAIXO:
 const HomePage: React.FC = () => {
     const [score, setScore] = useState<number>(0);
     const [scoreMessage, setScoreMessage] = useState<string>('');
@@ -144,5 +148,5 @@ const HomePage: React.FC = () => {
         </>
     );
 };
-
+// REMOVER ATÉ ESTA LINHA
 export default HomePage;

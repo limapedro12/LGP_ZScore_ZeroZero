@@ -13,4 +13,3 @@ const ENDPOINTS = {
 };
 
 export default ENDPOINTS;
-export const UPDATE_SCORE_URL = 'http://localhost:8000/api/score/updatescore.php';
