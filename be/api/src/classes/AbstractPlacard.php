@@ -27,20 +27,20 @@ abstract class AbstractPlacard {
         $this->id = $id;
     }
 
-    public function getFirstTeamId() {
-        return $this->firstTeamId;
+    public function getFirstTeam() {
+        return $this->firstTeam;
     }
 
-    public function setFirstTeamId($firstTeamId) {
-        $this->firstTeamId = $firstTeamId;
+    public function setFirstTeam($firstTeam) {
+        $this->firstTeam = $firstTeam;
     }
 
-    public function getSecondTeamId() {
-        return $this->secondTeamId;
+    public function getSecondTeam() {
+        return $this->secondTeam;
     }
 
-    public function setSecondTeamId($secondTeamId) {
-        $this->secondTeamId = $secondTeamId;
+    public function setSecondTeam($secondTeam) {
+        $this->secondTeam = $secondTeam;
     }
 
     public function getIsFinished() {
