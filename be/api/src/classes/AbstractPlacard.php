@@ -5,12 +5,14 @@ abstract class AbstractPlacard {
     protected $secondTeam;
     protected $isFinished;
     protected $sport;
+    protected $events;
 
     public function __construct(?AbstractTeam $firstTeam = null, ?AbstractTeam $secondTeam = null, bool $isFinished = false, string $sport = "") {
         $this->firstTeam = $firstTeam;
         $this->secondTeam = $secondTeam;
         $this->isFinished = $isFinished;
         $this->sport = $sport;
+        $this->events = [];
     }
 
     public function loadFromDatabase($conn, $id) {}
@@ -55,6 +57,14 @@ abstract class AbstractPlacard {
 
     public function setSport($sport) {
         $this->sport = $sport;
+    }
+
+    public function getEvents() {
+        return $this->events;
+    }
+
+    public function addEvent(?AbstractEvent $event) {
+        $this->events[] = $event;
     }
 }
 ?>
