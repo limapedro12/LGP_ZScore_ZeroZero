@@ -22,9 +22,13 @@ $gameType = $params['gameType'] ?? null;
 $action = $params['action'] ?? null;
 $team = $params['team'] ?? null;
 
-// For adjust action, team is required
 if ($action === 'adjust' && empty($team)) {
     echo json_encode(["error" => "Team parameter is required for adjust action"]);
+    exit;
+}
+
+if (!empty($team) && !in_array($team, ['home', 'away'])) {
+    echo json_encode(["error" => "Team parameter must be 'home' or 'away'"]);
     exit;
 }
 

@@ -27,6 +27,11 @@ if ($action !== 'status' && empty($team)) {
     exit;
 }
 
+if (!empty($team) && !in_array($team, ['home', 'away'])) {
+    echo json_encode(["error" => "Team parameter must be 'home' or 'away'"]);
+    exit;
+}
+
 // Connect to Redis
 $redis = RedistUtils::connect();
 if (!$redis) {

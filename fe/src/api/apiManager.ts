@@ -120,19 +120,18 @@ class ApiManager {
         this.makeRequest<TimerResponse>('timer', 'set', { placardId, gameType, time, period });
 
     // Timeout Timer-specific methods
-    startTimeout = (placardId: string, gameType: string, team: 'home' | 'away') =>
+    startTimeoutTimer = (placardId: string, gameType: string, team: 'home' | 'away') =>
         this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'start', { placardId, gameType, team });
 
-    pauseTimeout = (placardId: string, gameType: string, team: 'home' | 'away') =>
+    pauseTimeoutTimer = (placardId: string, gameType: string, team: 'home' | 'away') =>
         this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'pause', { placardId, gameType, team });
 
-    resetTimeout = (placardId: string, gameType: string, team: 'home' | 'away') =>
+    resetTimeoutTimer = (placardId: string, gameType: string, team: 'home' | 'away') =>
         this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'reset', { placardId, gameType, team });
 
-    getTimeoutStatus = (placardId: string, gameType: string) =>
+    getTimeoutTimerStatus = (placardId: string, gameType: string) =>
         this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'status', { placardId, gameType }, 'GET');
 
-    // Timeouts management methods
     getTimeoutsCount = (placardId: string, gameType: string) =>
         this.makeRequest<TimeoutsResponse>('timeout', 'status', { placardId, gameType }, 'GET');
 
