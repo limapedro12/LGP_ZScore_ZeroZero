@@ -4,6 +4,7 @@
 
 const ENDPOINTS = {
     TIMER: () => '/timer/timer',
+    SUBSTITUTIONS: () => '/events/substitutions',
 };
 
 export default ENDPOINTS;
