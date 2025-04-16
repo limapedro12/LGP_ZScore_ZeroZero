@@ -1,18 +1,20 @@
 <?php
 require_once __DIR__ . '/../../utils/redisUtils.php';
 require_once __DIR__ . '/../../config/gameConfig.php';
-require_once __DIR__ . '/../../utils/timerUtils.php';
+require_once __DIR__ . '/../../utils/requestUtils.php';
+
 
 
 header('Content-Type: application/json');
 
 
-$params = TimerUtils::getRequestParams();
+$params = RequestUtils::getRequestParams();
+
 $requiredParams = ['placardId', 'gameType', 'action'];
 $allowedActions = ['start', 'pause', 'reset', 'status', 'adjust', 'set'];
 
 
-$validationError = TimerUtils::validateParams($params, $requiredParams, $allowedActions);
+$validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
     echo json_encode($validationError);
     exit;
@@ -33,7 +35,7 @@ try{
     $gameConfig = $gameConfigManager->getConfig($gameType);
     
     // Get Redis keys
-    $keys = TimerUtils::getRedisKeys($placardId);
+    $keys = RequestUtils::getRedisKeys($placardId, 'timer');
 
     $startTimeKey = $keys['start_time'];
     $remainingTimeKey = $keys['remaining_time'];
@@ -141,7 +143,11 @@ try{
         case 'adjust':
 
             try{
-                $seconds = isset($jsonBody['seconds']) ? intval($jsonBody['seconds']) : 0;
+                $seconds = isset($params['seconds']) ? intval($params['seconds']) : null;
+                if($seconds === null) {
+                    $response = ["error" => "Missing seconds parameter"];
+                    break;
+                }
                 $wasRunning = ($timerData['status'] === 'running');
                 
                 if ($wasRunning) {
@@ -175,8 +181,14 @@ try{
         case 'set':
 
             try{
-                $newTime = isset($jsonBody['time']) ? intval($jsonBody['time']) : 0;
-                $newPeriod = isset($jsonBody['period']) ? intval($jsonBody['period']) : $timerData['period'];
+                $newTime = isset($params['time']) ? intval($params['time']) : null;
+                $newPeriod = isset($params['period']) ? intval($params['period']) : $timerData['period'];
+
+                if($newTime === null) {
+                    $response = ["error" => "Missing time parameter"];
+                    break;
+                }
+
                 $wasRunning = ($timerData['status'] === 'running');
                 
                 if ($wasRunning) {

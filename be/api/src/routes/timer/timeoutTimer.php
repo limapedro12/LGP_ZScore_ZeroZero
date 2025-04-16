@@ -1,16 +1,17 @@
 <?php
 require_once __DIR__ . '/../../utils/redisUtils.php';
-require_once __DIR__ . '/../../utils/timerUtils.php';
+require_once __DIR__ . '/../../utils/requestUtils.php';
 require_once __DIR__ . '/../../config/gameConfig.php';
 
 header('Content-Type: application/json');
 
 // Get and validate request parameters
-$params = TimerUtils::getRequestParams();
-$requiredParams = ['placardId', 'gameType', 'action', 'team'];
+$params = RequestUtils::getRequestParams();
+
+$requiredParams = ['placardId', 'gameType', 'action'];
 $allowedActions = ['start', 'pause', 'reset', 'status'];
 
-$validationError = TimerUtils::validateParams($params, $requiredParams, $allowedActions);
+$validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
     echo json_encode($validationError);
     exit;
@@ -20,6 +21,11 @@ $placardId = $params['placardId'] ?? null;
 $gameType = $params['gameType'] ?? null;
 $action = $params['action'] ?? null;
 $team = $params['team'] ?? null;
+
+if ($action !== 'status' && empty($team)) {
+    echo json_encode(["error" => "Team parameter is required for this action"]);
+    exit;
+}
 
 // Connect to Redis
 $redis = RedistUtils::connect();
@@ -34,7 +40,7 @@ try {
     
     $timeoutDuration = $gameConfig['timeoutDuration'] ?? 60;
     
-    $keys = TimerUtils::getRedisKeys($placardId, 'timeout');
+    $keys = RequestUtils::getRedisKeys($placardId, 'timeout');
     $startTimeKey = $keys['start_time'];
     $remainingTimeKey = $keys['remaining_time'];
     $statusKey = $keys['status'];
@@ -85,7 +91,6 @@ try {
                 "status" => "running",
                 "team" => $team,
                 "remaining_time" => $timeoutDuration,
-                "timeouts_used" => $timeoutsUsed + 1
             ];
             break;
             
@@ -110,7 +115,6 @@ try {
             break;
             
         case 'reset':
-            // End the current timeout
             $redis->set($startTimeKey, 0);
             $redis->set($remainingTimeKey, 0);
             $redis->set($statusKey, 'inactive');
@@ -134,7 +138,6 @@ try {
                 "remaining_time" => $remainingTime,
                 "home_timeouts_used" => $homeTimeoutsUsed,
                 "away_timeouts_used" => $awayTimeoutsUsed,
-                "total_timeouts_per_team" => $totalTimeoutsPerTeam,
             ];
             break;
         default:
