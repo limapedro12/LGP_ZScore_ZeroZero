@@ -1,9 +1,21 @@
+version: '3.8'
 
 services:
   php:
-    build: .
-    container_name: api_polling
-    ports:
-      - "8080:80"
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - ./src:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    volumes:
+      - ./redis-data:/data
+    ports:
+      - "6379:6379"
