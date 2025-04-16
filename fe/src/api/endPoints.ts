@@ -1,8 +1,9 @@
+/**
+ * This file contains the API endpoints for the application.
+ */
+
 const ENDPOINTS = {
-    START_TIMER: () => '/timer/timer?action=start',
-    STOP_TIMER: () => '/timer/timer?action=pause',
-    GET_TIMER: () => '/timer/timer?action=status',
-    RESET_TIMER: () => '/timer/timer?action=reset',
+    TIMER: () => '/timer/timer',
 };
 
 export default ENDPOINTS;
