@@ -10,6 +10,12 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      APP_KEY: ${APP_KEY}
+      API_URL: ${API_URL}
+      ## Test Environment Variables
+      LOG_USER: ${LOG_USER}
+      PASS: ${PASS}
+      ###
     volumes:
       - ./src:/var/www/html
     networks:
