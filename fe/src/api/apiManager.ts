@@ -122,29 +122,32 @@ class ApiManager {
     setTimer = (gameId: string, gameType: string, time: number, period: number) =>
         this.timerRequest('set', { gameId, gameType, time, period });
 
-    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
-        const url = `${BASE_URL}${ENDPOINTS.ADD_POINT()}`; // deve conter ?action=add
-        return fetch(url, {
+    /**
+     * Generic method to handle point-related requests
+     *
+     * @param {string} action - The action to perform ('add' or 'remove')
+     * @param {object} params - Parameters for the point request
+     * @returns {Promise<Response>} - Fetch response
+     */
+    pointRequest = (action: 'add' | 'remove', params: { abstractTeamId: number; placardId: number; gameType: string }) => {
+        const url = action === 'add' ? `${BASE_URL}${ENDPOINTS.ADD_POINT()}` : `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`;
+        const options: RequestInit = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify({ abstractTeamId, placardId, gameType }),
-        });
+            body: JSON.stringify(params),
+        };
+
+        return fetch(url, options);
     };
 
-    removePoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
-        const url = `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`; // deve conter ?action=remove
-        return fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ abstractTeamId, placardId, gameType }),
-        });
-    };
+    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') =>
+        this.pointRequest('add', { abstractTeamId, placardId, gameType });
+
+    removePoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') =>
+        this.pointRequest('remove', { abstractTeamId, placardId, gameType });
 }
 
 const apiManager = new ApiManager();
