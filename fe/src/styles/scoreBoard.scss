@@ -1,0 +1,9 @@
+@use "./config.scss";
+
+.scoreboard-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: config.$background-color;
+}

@@ -1,7 +1,8 @@
 services:
-  mariadb:
-    image: mariadb:latest
-    container_name: mariadb
+  zscore-mariadb:
+    build: .
+    container_name: zscore-mariaDB
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOTPASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -9,25 +10,6 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
-    volumes:
-      - ./volume:/var/lib/mysql
-    networks:
-      - backend_network
-
-  php-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - mariadb
-    environment:
-      DB_HOST: mariadb
-      DB_ROOT_PASSWORD: ${DB_ROOTPASSWORD}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      PHP_MAX_RETRIES: 10
-      PHP_RETRY_DELAY: 3
     networks:
       - backend_network
 

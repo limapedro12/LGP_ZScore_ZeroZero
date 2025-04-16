@@ -1,0 +1,11 @@
+@use "bootstrap/scss/bootstrap";
+
+// Colors
+$background-color: #2C3E50;
+$text-color: #ffffff;
+
+// Typography
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto:wght@400;700&display=swap');
+
+$font-primary: 'Roboto', sans-serif;
+$font-secondary: 'Inter', sans-serif;
