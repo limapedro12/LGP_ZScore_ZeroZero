@@ -1,9 +1,14 @@
 /**
- * Function to format time in MM:SS format
+ * Function to format time in MM:SS format or return only seconds
  * @param seconds - The number of seconds to format
- * @returns {string} - The formatted time string in MM:SS format
+ * @param onlySeconds - Whether to return only seconds (default: false)
+ * @returns {string} - The formatted time string in MM:SS format or seconds
  */
-export const formatTime = (seconds: number): string => {
+export const formatTime = (seconds: number, onlySeconds = false): string => {
+    if (onlySeconds) {
+        return seconds.toString();
+    }
+
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
 

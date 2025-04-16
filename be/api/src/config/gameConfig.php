@@ -3,11 +3,17 @@ class GameConfig {
     private $configs = [
         'futsal' => [
             'periods' => 2,
-            'periodDuration' => 60*20
+            'periodDuration' => 60*20,
+            'timeoutDuration' => 60,
+            'timeoutsPerTeam' => 1,
+            'timeoutsPerPeriod' => 1,
         ],
         'basketball' => [
             'periods' => 4,
-            'periodDuration' => 10 * 60
+            'periodDuration' => 10 * 60,
+            'timeoutDuration' => 60,
+            'timeoutsPerTeam' => 6,
+            'timeoutsPerPeriod' => 2,
         ],
     ];
     
