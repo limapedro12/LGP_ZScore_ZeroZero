@@ -3,12 +3,13 @@ require_once __DIR__ . '/../../utils/redisUtils.php';
 require_once __DIR__ . '/../../utils/requestUtils.php';
 require_once __DIR__ . '/../../classes/AbstractEvent.php'; 
 require_once __DIR__ . '/../../classes/CardEvent.php';
+require_once __DIR__ . '/../../config/gameConfig.php';
 
 header('Content-Type: application/json');
 
 $params = RequestUtils::getRequestParams();
 
-$requiredParams = ['placardId', 'action'];
+$requiredParams = ['placardId', 'sport', 'action'];
 $allowedActions = ['add', 'remove', 'get'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
@@ -19,6 +20,7 @@ if ($validationError) {
 
 $placardId = $params['placardId'] ?? null;
 $action = $params['action'] ?? null;
+$sport = $params['sport'] ?? null;
 
 $redis = RedistUtils::connect();
 if (!$redis) {
@@ -34,14 +36,23 @@ try {
     $gameCardsKey = $keys['game_cards']; 
     $eventCounterKey = $keys['event_counter'];
 
+    $gameConfig = new GameConfig();
+    $gameConfig = $gameConfig->getConfig($sport);
+
     switch ($action) {
         case 'add':
             $playerId = $params['playerId'] ?? null;
-            $cardColor = $params['cardColor'] ?? null;
+            $cardType = $params['cardType'] ?? null;
+
+            //check if the cardType is valid according to the sport
+            if(!$cardType || !in_array($cardType, $gameConfig['cards'])) {
+                $response = ["error" => "Invalid card type"];
+                break;
+            }
             $timestamp = $params['timestamp'] ?? null;
 
-            if (!$playerId || !$cardColor || !$timestamp) {
-                $response = ["error" => "Missing playerId, cardColor or timestamp for add action"];
+            if (!$playerId || !$cardType || !$timestamp) {
+                $response = ["error" => "Missing playerId, cardType or timestamp for add action"];
                 break;
             }
 
@@ -52,7 +63,7 @@ try {
                 'eventId' => $eventId,
                 'placardId' => $placardId,
                 'playerId' => $playerId,
-                'cardColor' => $cardColor,
+                'cardType' => $cardType,
                 'timestamp' => $timestamp
             ];
 

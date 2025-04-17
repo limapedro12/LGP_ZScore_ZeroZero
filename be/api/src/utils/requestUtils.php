@@ -31,10 +31,10 @@ class RequestUtils {
             return ["error" => "Invalid action"];
         }
 
-        if (isset($params['gameType'])) {
+        if (isset($params['sport'])) {
             try {
                 $gameConfigManager = new GameConfig();
-                $gameConfigManager->getConfig($params['gameType']);
+                $gameConfigManager->getConfig($params['sport']);
             } catch (Exception $e) {
                 return ["error" => $e->getMessage()];
             }
