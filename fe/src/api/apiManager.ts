@@ -9,7 +9,7 @@ type EndpointKeyType = keyof typeof ENDPOINTS;
 
 interface RequestParams {
     placardId: string;
-    gameType: string;
+    sport: string;
     [key: string]: string | number;
 }
 
@@ -32,7 +32,6 @@ interface TimeoutTimerResponse {
     error?: string;
 }
 
-// Complete timeouts management response interface
 interface TimeoutsResponse {
     message?: string;
     home_timeouts_used?: number;
@@ -47,13 +46,9 @@ interface TimeoutsResponse {
     error?: string;
 }
 
-/**
- * API Manager that handles all API requests
- */
+
 class ApiManager {
-    /**
-     * Generic request method that can be used for any endpoint
-     */
+
     makeRequest = async <T>(
         endpoint: EndpointType,
         action: ActionType,
@@ -69,9 +64,9 @@ class ApiManager {
             const queryParams = new URLSearchParams({
                 action,
                 placardId: params.placardId,
-                gameType: params.gameType,
+                sport: params.sport,
                 ...Object.fromEntries(
-                    Object.entries(params).filter(([key]) => !['placardId', 'gameType'].includes(key))
+                    Object.entries(params).filter(([key]) => !['placardId', 'sport'].includes(key))
                 ),
             });
             url = `${url}?${queryParams.toString()}`;
@@ -100,49 +95,47 @@ class ApiManager {
         return response.json();
     };
 
-    // Timer-specific methods
-    startTimer = (placardId: string, gameType: string) =>
-        this.makeRequest<TimerResponse>('timer', 'start', { placardId, gameType });
+    startTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'start', { placardId, sport });
 
-    stopTimer = (placardId: string, gameType: string) =>
-        this.makeRequest<TimerResponse>('timer', 'pause', { placardId, gameType });
+    stopTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'pause', { placardId, sport });
 
-    getTimerStatus = (placardId: string, gameType: string) =>
-        this.makeRequest<TimerResponse>('timer', 'status', { placardId, gameType }, 'GET');
+    getTimerStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'status', { placardId, sport }, 'GET');
 
-    resetTimer = (placardId: string, gameType: string) =>
-        this.makeRequest<TimerResponse>('timer', 'reset', { placardId, gameType });
+    resetTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'reset', { placardId, sport });
 
-    adjustTimer = (placardId: string, gameType: string, seconds: number) =>
-        this.makeRequest<TimerResponse>('timer', 'adjust', { placardId, gameType, seconds });
+    adjustTimer = (placardId: string, sport: string, seconds: number) =>
+        this.makeRequest<TimerResponse>('timer', 'adjust', { placardId, sport, seconds });
 
-    setTimer = (placardId: string, gameType: string, time: number, period: number) =>
-        this.makeRequest<TimerResponse>('timer', 'set', { placardId, gameType, time, period });
+    setTimer = (placardId: string, sport: string, time: number, period: number) =>
+        this.makeRequest<TimerResponse>('timer', 'set', { placardId, sport, time, period });
 
-    // Timeout Timer-specific methods
-    startTimeoutTimer = (placardId: string, gameType: string, team: 'home' | 'away') =>
-        this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'start', { placardId, gameType, team });
+    startTimeoutTimer = (placardId: string, sport: string, team: 'home' | 'away') =>
+        this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'start', { placardId, sport, team });
 
-    pauseTimeoutTimer = (placardId: string, gameType: string, team: 'home' | 'away') =>
-        this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'pause', { placardId, gameType, team });
+    pauseTimeoutTimer = (placardId: string, sport: string, team: 'home' | 'away') =>
+        this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'pause', { placardId, sport, team });
 
-    resetTimeoutTimer = (placardId: string, gameType: string, team: 'home' | 'away') =>
-        this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'reset', { placardId, gameType, team });
+    resetTimeoutTimer = (placardId: string, sport: string, team: 'home' | 'away') =>
+        this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'reset', { placardId, sport, team });
 
-    getTimeoutTimerStatus = (placardId: string, gameType: string) =>
-        this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'status', { placardId, gameType }, 'GET');
+    getTimeoutTimerStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutTimerResponse>('timeoutTimer', 'status', { placardId, sport }, 'GET');
 
-    getTimeoutsCount = (placardId: string, gameType: string) =>
-        this.makeRequest<TimeoutsResponse>('timeout', 'status', { placardId, gameType }, 'GET');
+    getTimeoutsCount = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutsResponse>('timeout', 'status', { placardId, sport }, 'GET');
 
-    resetTeamTimeouts = (placardId: string, gameType: string, team: 'home' | 'away') =>
-        this.makeRequest<TimeoutsResponse>('timeout', 'reset', { placardId, gameType, team });
+    resetTeamTimeouts = (placardId: string, sport: string, team: 'home' | 'away') =>
+        this.makeRequest<TimeoutsResponse>('timeout', 'reset', { placardId, sport, team });
 
-    resetAllTimeouts = (placardId: string, gameType: string) =>
-        this.makeRequest<TimeoutsResponse>('timeout', 'reset', { placardId, gameType });
+    resetAllTimeouts = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutsResponse>('timeout', 'reset', { placardId, sport });
 
-    adjustTimeouts = (placardId: string, gameType: string, team: 'home' | 'away', value: number) =>
-        this.makeRequest<TimeoutsResponse>('timeout', 'adjust', { placardId, gameType, team, value });
+    adjustTimeouts = (placardId: string, sport: string, team: 'home' | 'away', value: number) =>
+        this.makeRequest<TimeoutsResponse>('timeout', 'adjust', { placardId, sport, team, value });
 }
 
 const apiManager = new ApiManager();

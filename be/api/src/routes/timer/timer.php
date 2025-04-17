@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 
 $params = RequestUtils::getRequestParams();
 
-$requiredParams = ['placardId', 'gameType', 'action'];
+$requiredParams = ['placardId', 'sport', 'action'];
 $allowedActions = ['start', 'pause', 'reset', 'status', 'adjust', 'set'];
 
 
@@ -21,7 +21,7 @@ if ($validationError) {
 }
 
 $placardId = $params['placardId'] ?? null;
-$gameType = $params['gameType'] ?? null;
+$sport = $params['sport'] ?? null;
 $action = $params['action'] ?? null;
 
 $redis = RedistUtils::connect();
@@ -32,7 +32,7 @@ if (!$redis) {
 
 try{
     $gameConfigManager = new GameConfig();
-    $gameConfig = $gameConfigManager->getConfig($gameType);
+    $gameConfig = $gameConfigManager->getConfig($sport);
     
     // Get Redis keys
     $keys = RequestUtils::getRedisKeys($placardId, 'timer');

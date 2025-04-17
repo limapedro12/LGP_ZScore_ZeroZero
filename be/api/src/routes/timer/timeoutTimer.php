@@ -8,7 +8,7 @@ header('Content-Type: application/json');
 // Get and validate request parameters
 $params = RequestUtils::getRequestParams();
 
-$requiredParams = ['placardId', 'gameType', 'action'];
+$requiredParams = ['placardId', 'sport', 'action'];
 $allowedActions = ['start', 'pause', 'reset', 'status'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
@@ -18,7 +18,7 @@ if ($validationError) {
 }
 
 $placardId = $params['placardId'] ?? null;
-$gameType = $params['gameType'] ?? null;
+$sport = $params['sport'] ?? null;
 $action = $params['action'] ?? null;
 $team = $params['team'] ?? null;
 
@@ -41,7 +41,7 @@ if (!$redis) {
 
 try {
     $gameConfigManager = new GameConfig();
-    $gameConfig = $gameConfigManager->getConfig($gameType);
+    $gameConfig = $gameConfigManager->getConfig($sport);
     
     $timeoutDuration = $gameConfig['timeoutDuration'] ?? 60;
     

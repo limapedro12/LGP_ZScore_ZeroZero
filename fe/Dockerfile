@@ -1,4 +1,4 @@
-FROM node:19-alpine
+FROM node:23-alpine
 
 RUN mkdir -p /usr/src/
 WORKDIR /usr/src/

@@ -5,7 +5,7 @@ class GameConfig {
             'periods' => 2,
             'periodDuration' => 60*20,
             'timeoutDuration' => 60,
-            'timeoutsPerTeam' => 1,
+            'timeoutsPerTeam' => 5,
             'timeoutsPerPeriod' => 1,
         ],
         'basketball' => [
@@ -17,10 +17,10 @@ class GameConfig {
         ],
     ];
     
-    public function getConfig($gameType) {
-        if (isset($this->configs[strtolower($gameType)])) {
-            return $this->configs[strtolower($gameType)];
+    public function getConfig($sport) {
+        if (isset($this->configs[strtolower($sport)])) {
+            return $this->configs[strtolower($sport)];
         }
-        throw new Exception("Unknown game type: $gameType");
+        throw new Exception("Unknown game type: $sport");
     }
 }

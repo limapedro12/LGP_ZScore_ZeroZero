@@ -9,19 +9,19 @@ const TimeoutTimer: React.FC = () => {
     const [elapsedTime, setElapsedTime] = useState(0);
     const [status, setStatus] = useState('default');
     const [gameId, setGameId] = useState<string>('default');
-    const [gameType, setGameType] = useState<string>('default');
+    const [sport, setsport] = useState<string>('default');
     const [team, setTeam] = useState<string>('');
 
-    const { gameId: urlGameId, gameType: urlGameType } = useParams<{ gameId: string, gameType: string }>();
+    const { gameId: urlGameId, sport: urlsport } = useParams<{ gameId: string, sport: string }>();
 
     useEffect(() => {
         if (urlGameId) setGameId(urlGameId);
-        if (urlGameType) setGameType(urlGameType);
-    }, [urlGameId, urlGameType]);
+        if (urlsport) setsport(urlsport);
+    }, [urlGameId, urlsport]);
 
     const fetchTimerStatus = React.useCallback(async () => {
         try {
-            const response = await apiManager.getTimeoutTimerStatus(gameId, gameType);
+            const response = await apiManager.getTimeoutTimerStatus(gameId, sport);
             const data = await response;
             if (data.remaining_time !== undefined) {
                 setElapsedTime(data.remaining_time);
@@ -31,7 +31,7 @@ const TimeoutTimer: React.FC = () => {
         } catch (error) {
             console.error('Error fetching timer status:', error);
         }
-    }, [gameId, gameType]);
+    }, [gameId, sport]);
 
     useEffect(() => {
         fetchTimerStatus();
