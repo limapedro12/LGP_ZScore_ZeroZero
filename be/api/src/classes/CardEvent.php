@@ -5,7 +5,7 @@ class CardEvent extends AbstractEvent {
     private $player;
     private $cardColor;
 
-    public function __construct($time = null, string $sport = null, ?AbstractPlacard $placard = null, ?AbstractPlayer $player = null, string $cardColor = null) {
+    public function __construct($time = null, ?string $sport = null, ?AbstractPlacard $placard = null, ?AbstractPlayer $player = null, string $cardColor = null) {
         parent::__construct($time, $sport, $placard);
         $this->player = $player;
         $this->cardColor = $cardColor;

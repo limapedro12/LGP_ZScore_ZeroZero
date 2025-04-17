@@ -63,6 +63,12 @@ class RequestUtils {
                     "home_timeout" => $prefix . 'home_timeout',
                     "away_timeout" => $prefix . 'away_timeout',
                 ];
+            case 'cards':
+                return [
+                    'game_cards' => $prefix . 'cards',
+                    'event_counter' => $prefix . 'eventcounter',
+                    'card_event' => 'cardevent:'
+                ];
         }
     }
 
