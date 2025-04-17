@@ -18,34 +18,23 @@ if (!$apiurl) {
 }
 
 function sendPostRequest($url, array $data) {
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_POST, true);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, [
-        'Content-Type: multipart/form-data',
-        'Accept: */*',
-        'Accept-Encoding: gzip, deflate, br',
-        'Content-Length: ' . strlen(http_build_query($data)),
-    ]);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
-    curl_setopt($curl, CURLOPT_HEADER, true);
-    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+    $content = http_build_query($data);
+    $header = "Content-type: application/x-www-form-urlencoded\r\n";
 
-    $response = curl_exec($curl);
-    if (curl_errno($curl)) {
-        $error_msg = curl_error($curl);
-        curl_close($curl);
-        return ['error' => true, 'message' => $error_msg];
-    }
-
-    curl_close($curl);
-    
-    return $response;
+    $options = array(
+        'http' => array(
+            'header' => $header,
+            'method' => 'POST',
+            'content' => $content
+        )
+    );
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+    return $result;
 }
 
-function login($username, $password, $appkey, $apiurl) {
-    $url = $apiurl . 'authUser/Appkey/' . $appkey;
+function login($apiurl, $appkey, $username, $password) {
+    $url = $apiurl . 'authUser/AppKey/' . $appkey;
     $data = [
         'username' => $username,
         'password' => $password
@@ -59,6 +48,6 @@ function login($username, $password, $appkey, $apiurl) {
 
 
 // Example usage
-$result = login($username, $password, $appkey, $apiurl);
+$result = login($apiurl, $appkey, $username, $password);
 echo json_encode($result);
 ?>
