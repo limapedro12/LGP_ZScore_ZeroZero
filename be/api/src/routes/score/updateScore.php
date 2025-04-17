@@ -1,4 +1,9 @@
 <?php
+header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
+
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -6,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Ligação à base de dados com variáveis de ambiente ou valores padrão
+// Database connection
 $host = getenv("DB_HOST") ?: "mariadb";
 $user = getenv("DB_USERNAME") ?: "user";
 $password = getenv("DB_PASSWORD");
@@ -14,17 +19,18 @@ $dbname = getenv("DB_NAME") ?: "zscoredb";
 
 $conn = new mysqli($host, $user, $password, $dbname);
 
-// Verifica ligação
 if ($conn->connect_error) {
     die(json_encode(["success" => false, "message" => "Connection failed: " . $conn->connect_error]));
 }
+
+error_log("Connected to database: " . $dbname);
 
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
 
 $abstractTeamId = $data['abstractTeamId'] ?? null;
 $placardId = $data['placardId'] ?? null;
-$gameType = $data['gameType'] ?? null; // "futsal" ou "volleyball"
+$gameType = $data['gameType'] ?? null; // "futsal" or "volleyball"
 $action = $_GET['action'] ?? null;
 
 if (!$gameType) {
@@ -35,7 +41,7 @@ if (!$abstractTeamId) {
     echo json_encode(["success" => false, "message" => "error in abstractTeamId"]);
     exit;
 }
-if (!!$action) {
+if ($action !== 'add' && $action !== 'remove') {
     echo json_encode(["success" => false, "message" => "error in action"]);
     exit;
 }
@@ -44,17 +50,18 @@ if (!$placardId) {
     exit;
 }
 
-$delta = $action === 'add' ? 1 : ($action === 'remove' ? -1 : 0);
-if ($delta === 0) {
-    echo json_encode(["success" => false, "message" => "Invalid action"]);
-    exit;
-}
-
-$conn = getDBConnection(); // função da tua config para obter a conexão
+$delta = $action === 'add' ? 1 : -1;
 
 if ($gameType === 'futsal') {
-    $queryTeam = "SELECT firstTeamId, secondTeamId FROM FutsalPlacard WHERE placardId = ?";
+    $queryTeam = "SELECT ap.firstTeamId, ap.secondTeamId 
+                  FROM FutsalPlacard fp
+                  JOIN AbstractPlacard ap ON fp.abstractPlacardId = ap.id
+                  WHERE fp.abstractPlacardId = ?";
     $stmt = $conn->prepare($queryTeam);
+    if (!$stmt) {
+        echo json_encode(["success" => false, "message" => "Database error: " . $conn->error]);
+        exit;
+    }
     $stmt->bind_param("i", $placardId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -81,8 +88,10 @@ if ($gameType === 'futsal') {
     $stmt->execute();
 
 } elseif ($gameType === 'volleyball') {
-    // Buscar o currentSet do placard
-    $querySet = "SELECT currentSet, firstTeamId, secondTeamId FROM VolleyballPlacard WHERE placardId = ?";
+    $querySet = "SELECT ap.firstTeamId, ap.secondTeamId, vp.currentSet 
+                 FROM VolleyballPlacard vp
+                 JOIN AbstractPlacard ap ON vp.abstractPlacardId = ap.id
+                 WHERE vp.abstractPlacardId = ?";
     $stmt = $conn->prepare($querySet);
     $stmt->bind_param("i", $placardId);
     $stmt->execute();
@@ -94,7 +103,6 @@ if ($gameType === 'futsal') {
         exit;
     }
 
-    // Buscar o VolleyballSetResult correspondente ao currentSet
     $currentSet = $placardData['currentSet'];
     $currentSetQuery = "SELECT id FROM VolleyballSetResult WHERE placardId = ? AND setNumber = ?";
     $stmt = $conn->prepare($currentSetQuery);
@@ -108,7 +116,6 @@ if ($gameType === 'futsal') {
         exit;
     }
 
-    // Determinar a coluna a ser atualizada
     $column = null;
     if ((int)$abstractTeamId === (int)$placardData['firstTeamId']) {
         $column = 'pointsFirstTeam';
@@ -119,7 +126,6 @@ if ($gameType === 'futsal') {
         exit;
     }
 
-    // Atualizar os pontos no VolleyballSetResult
     $sql = "UPDATE VolleyballSetResult SET $column = $column + ? WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ii", $delta, $set['id']);

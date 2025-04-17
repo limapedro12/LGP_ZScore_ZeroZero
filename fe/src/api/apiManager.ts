@@ -142,8 +142,10 @@ class ApiManager {
         return fetch(url, options);
     };
 
-    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') =>
-        this.pointRequest('add', { abstractTeamId, placardId, gameType });
+    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
+        console.log('GameType being sent:', gameType); // Debug
+        return this.pointRequest('add', { abstractTeamId, placardId, gameType });
+    };
 
     removePoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') =>
         this.pointRequest('remove', { abstractTeamId, placardId, gameType });
