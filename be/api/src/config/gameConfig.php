@@ -3,11 +3,19 @@ class GameConfig {
     private $configs = [
         'futsal' => [
             'periods' => 2,
-            'periodDuration' => 60*20
+            'periodDuration' => 60*20,
+            'substitutionsPerTeam' => 0, // unlimited
+
         ],
         'basketball' => [
             'periods' => 4,
-            'periodDuration' => 10 * 60
+            'periodDuration' => 10 * 60,
+            'substitutionsPerTeam' => 0, // unlimited
+        ],
+        'volleyball' => [
+            'periods' => 5,
+            // 'periodDuration' => 25 * 60, //there is no period duration, it is first to get to 25 or to win by 2 point difference after 25,
+            'substitutionsPerTeam' => 6, // 6 per set
         ],
     ];
     
