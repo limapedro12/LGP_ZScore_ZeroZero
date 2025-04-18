@@ -150,19 +150,6 @@ try {
     
     switch ($action) {
         case 'start':
-            $timeoutUpdate = updateTeamTimeouts($team);
-            
-            if ($timeoutUpdate['maxReached']) {
-                $response = [
-                    "error" => "Maximum timeouts reached for " . $team . " team"
-                ];
-                break;
-            } else if ($timeoutUpdate['minReached']) {
-                $response = [
-                    "error" => "Timeouts cannot be negative for " . $team . " team"
-                ];
-                break;
-            }
 
             if ($status === 'running') {
                 $response = [
@@ -180,6 +167,20 @@ try {
                     "status" => "running",
                     "team" => $activeTeam,
                     "remaining_time" => $remainingTime
+                ];
+                break;
+            }
+
+            $timeoutUpdate = updateTeamTimeouts($team);
+            
+            if ($timeoutUpdate['maxReached']) {
+                $response = [
+                    "error" => "Maximum timeouts reached for " . $team . " team"
+                ];
+                break;
+            } else if ($timeoutUpdate['minReached']) {
+                $response = [
+                    "error" => "Timeouts cannot be negative for " . $team . " team"
                 ];
                 break;
             }
