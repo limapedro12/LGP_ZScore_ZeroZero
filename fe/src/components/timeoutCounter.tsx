@@ -22,10 +22,17 @@ const TimeoutCounter: React.FC = () => {
             const data = response;
             if (data.events !== undefined) {
                 const lastTimeout = data.events[0];
-                const homeTimeouts = Number(lastTimeout.homeTimeoutsUsed) || 0;
-                const awayTimeouts = Number(lastTimeout.awayTimeoutsUsed) || 0;
-                setTeamsTimeouts({ home: homeTimeouts, away: awayTimeouts });
-                setMaxTimeouts(Number(lastTimeout.totalTimeoutsPerTeam) || 0);
+                if (!lastTimeout) {
+                    const homeTimeouts = Number(data.homeTimeoutsUsed) || 0;
+                    const awayTimeouts = Number(data.awayTimeoutsUsed) || 0;
+                    setTeamsTimeouts({ home: homeTimeouts, away: awayTimeouts });
+                    setMaxTimeouts(Number(data.totalTimeoutsPerTeam) || 0);
+                } else {
+                    const homeTimeouts = Number(lastTimeout.homeTimeoutsUsed) || 0;
+                    const awayTimeouts = Number(lastTimeout.awayTimeoutsUsed) || 0;
+                    setTeamsTimeouts({ home: homeTimeouts, away: awayTimeouts });
+                    setMaxTimeouts(Number(lastTimeout.totalTimeoutsPerTeam) || 0);
+                }
             }
         } catch (error) {
             console.error('Error fetching timer status:', error);
@@ -34,7 +41,7 @@ const TimeoutCounter: React.FC = () => {
 
     useEffect(() => {
         fetchTeamsTimeouts();
-        const intervalId = setInterval(fetchTeamsTimeouts, 1000);
+        const intervalId = setInterval(fetchTeamsTimeouts, 5000);
 
         return () => clearInterval(intervalId);
     }, [placardId, fetchTeamsTimeouts]);

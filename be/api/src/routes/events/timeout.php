@@ -117,20 +117,16 @@ try {
         $timeoutsUsedKey = $team === 'home' ? $homeTimeoutsUsedKey : $awayTimeoutsUsedKey;
         $currentTimeoutsUsed = intval($redis->get($timeoutsUsedKey) ?: 0);
         $newTimeoutsUsed = $currentTimeoutsUsed + $amount;
-        
-        if ($newTimeoutsUsed < 0) {
-            $newTimeoutsUsed = 0;
-        } elseif ($newTimeoutsUsed > $totalTimeoutsPerTeam) {
-            $newTimeoutsUsed = $totalTimeoutsPerTeam;
-        }
+    
         
         $homeTimeouts = $team === 'home' ? $newTimeoutsUsed : intval($redis->get($homeTimeoutsUsedKey) ?: 0);
         $awayTimeouts = $team === 'away' ? $newTimeoutsUsed : intval($redis->get($awayTimeoutsUsedKey) ?: 0);
-        
+
         return [
             'homeTimeouts' => $homeTimeouts,
             'awayTimeouts' => $awayTimeouts,
-            'maxReached' => $newTimeoutsUsed > $totalTimeoutsPerTeam
+            'maxReached' => $newTimeoutsUsed > $totalTimeoutsPerTeam,
+            "minReached" => $newTimeoutsUsed < 0
         ];
     }
 
@@ -161,6 +157,11 @@ try {
                     "error" => "Maximum timeouts reached for " . $team . " team"
                 ];
                 break;
+            } else if ($timeoutUpdate['minReached']) {
+                $response = [
+                    "error" => "Timeouts cannot be negative for " . $team . " team"
+                ];
+                break;
             }
 
             if ($status === 'running') {
@@ -168,6 +169,16 @@ try {
                     "message" => "Timeout already in progress for " . $team . " team",
                     "status" => $status,
                     "team" => $team,
+                    "remaining_time" => $remainingTime
+                ];
+                break;
+            } else if ($status === 'paused') {
+                $redis->set($statusKey, 'running');
+                $redis->set($startTimeKey, $currentTime);
+                $response = [
+                    "message" => "Timeout resumed",
+                    "status" => "running",
+                    "team" => $activeTeam,
                     "remaining_time" => $remainingTime
                 ];
                 break;
@@ -244,9 +255,14 @@ try {
         
             $timeoutUpdate = updateTeamTimeouts($team, $amount);
 
-            if($timeoutUpdate['maxReached']) {
+            if ($timeoutUpdate['maxReached']) {
                 $response = [
                     "error" => "Maximum timeouts reached for " . $team . " team"
+                ];
+                break;
+            } else if ($timeoutUpdate['minReached']) {
+                $response = [
+                    "error" => "Timeouts cannot be negative for " . $team . " team"
                 ];
                 break;
             }
@@ -278,6 +294,16 @@ try {
             usort($timeoutEvents, function($a, $b) {
                 return intval($b['eventId']) - intval($a['eventId']);
             });
+
+            if($timeoutEvents === []) {
+                $response = [
+                    "events" => $timeoutEvents,
+                    "homeTimeoutsUsed" => 0,
+                    "awayTimeoutsUsed" => 0,
+                    "totalTimeoutsPerTeam" => $totalTimeoutsPerTeam
+                ];
+                break;
+            }
             
             $response = [
                 "events" => $timeoutEvents

@@ -33,6 +33,9 @@ interface TimeoutResponse {
         team: TeamType;
         remaining_time: number;
     };
+    homeTimeoutsUsed?: number;
+    awayTimeoutsUsed?: number;
+    totalTimeoutsPerTeam?: number;
     event?: {
         eventId: number;
         placardId: string;
