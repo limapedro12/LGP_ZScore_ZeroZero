@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/../../utils/connRedis.php';
-require_once __DIR__ . '/../../config/GameConfig.php'; 
+require_once __DIR__ . '/../../config/gameConfig.php'; 
 
 header('Content-Type: application/json');
 
@@ -59,7 +59,7 @@ $gameId = trim($jsonBody['gameId'] ?? '');
 $gameType = trim($jsonBody['gameType'] ?? '');
 
 try {
-    $gameConfigManager = new GameConfig();
+    $gameConfigManager = new gameConfig();
     $currentPeriodKey = "game:{$gameId}:period";
 
     switch ($action) {
