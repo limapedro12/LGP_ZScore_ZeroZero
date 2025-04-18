@@ -1,0 +1,48 @@
+@use "./config.scss";
+
+.arrow {
+    width: 0;
+    height: 0;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    
+    &-left {
+        border-right: 25px solid config.$secondary-text-color;
+        left: 20px;
+    }
+    
+    &-right {
+        border-left: 25px solid config.$secondary-text-color;
+        right: 20px;
+    }
+    
+    &--white {
+        &.arrow-left {
+            border-right-color: white;
+        }
+        &.arrow-right {
+            border-left-color: white;
+        }
+    }
+    
+    &--relative {
+        position: relative;
+        top: auto;
+        transform: none;
+    }
+    
+    &--small {
+        border-top-width: 10px;
+        border-bottom-width: 10px;
+        
+        &.arrow-left {
+            border-right-width: 15px;
+        }
+        &.arrow-right {
+            border-left-width: 15px;
+        }
+    }
+}

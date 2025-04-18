@@ -130,7 +130,7 @@ try {
         return [
             'homeTimeouts' => $homeTimeouts,
             'awayTimeouts' => $awayTimeouts,
-            'maxReached' => $newTimeoutsUsed >= $totalTimeoutsPerTeam
+            'maxReached' => $newTimeoutsUsed > $totalTimeoutsPerTeam
         ];
     }
 
