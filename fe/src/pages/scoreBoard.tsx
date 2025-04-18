@@ -1,5 +1,6 @@
 import React from 'react';
 import Timer from '../components/timer';
+import Substitution from '../components/substitution';
 import '../styles/scoreBoard.scss';
 
 /**
@@ -10,6 +11,7 @@ import '../styles/scoreBoard.scss';
 const ScoreBoard = () => (
     <div className="scoreboard-container">
         <Timer />
+        <Substitution />
     </div>
 );
 

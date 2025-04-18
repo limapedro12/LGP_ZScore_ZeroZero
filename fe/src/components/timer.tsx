@@ -25,7 +25,7 @@ const Timer: React.FC = () => {
     const fetchTimerStatus = React.useCallback(async () => {
         try {
             const response = await apiManager.getTimerStatus(gameId, gameType);
-            const data = await response.json();
+            const data = await response;
             if (data.remaining_time !== undefined && data.period !== undefined) {
                 setElapsedTime(data.remaining_time);
                 setPeriod(data.period);

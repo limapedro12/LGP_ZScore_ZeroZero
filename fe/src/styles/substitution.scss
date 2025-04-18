@@ -1,0 +1,60 @@
+@use "./config.scss";
+
+.substitution-box {
+    display: flex;
+    align-items: center;
+    background-color: #2b3a4b;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+    font-family: sans-serif;
+    width: fit-content;
+  
+    .team-logo {
+      margin-right: 12px;
+      img {
+        height: 40px;
+        width: 40px;
+        object-fit: contain;
+      }
+    }
+  
+    .player-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+  
+      .player-out, .player-in {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+  
+        .player-name {
+          font-size: 14px;
+          font-weight: 500;
+        }
+  
+        .jersey {
+          background-color: black;
+          border-radius: 3px;
+          padding: 2px 6px;
+          font-size: 12px;
+          font-weight: bold;
+  
+          .shirt {
+            color: white;
+          }
+        }
+  
+        .arrow {
+          font-size: 16px;
+          &.red {
+            color: red;
+          }
+          &.green {
+            color: #00cc66;
+          }
+        }
+      }
+    }
+  }

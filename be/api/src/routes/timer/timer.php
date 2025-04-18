@@ -14,7 +14,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$placardId = $_GET['gameId'] ?? $jsonBody['gameId'] ?? null;
+$placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null;
 $gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
 $action = $_GET['action'] ?? $jsonBody['action'] ?? null;
 

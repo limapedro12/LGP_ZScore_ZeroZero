@@ -13,12 +13,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
         $jsonBody = json_decode($input, true);
     }
 }
-else {
-    $response['message'] = 'Invalid request method. Only POST is allowed.';
-    http_response_code(405);
-    echo json_encode($response);
-    exit;
-}
+// else {
+//     $response['message'] = 'Invalid request method. Only POST is allowed.';
+//     http_response_code(405);
+//     echo json_encode($response);
+//     exit;
+// }
 
 try {
     $redis = connectRedis();
@@ -33,17 +33,17 @@ try {
     exit;
 }
 
-$action = $jsonBody['action'] ?? null;
-$allowedActions = ['create', 'update', 'delete'];
+$action = $_GET['action'] ?? $jsonBody['action'] ?? null;
+$allowedActions = ['create', 'update', 'delete', 'status'];
 
 if (is_null($action) || !in_array($action, $allowedActions)) {
-    $response['message'] = 'Missing or invalid action parameter. Allowed actions: ' . implode(', ', $allowedActions);
+    $response['message'] = 'Missing or invalid action parameter (Curr:' . $action . '). Allowed actions: ' . implode(', ', $allowedActions);
     http_response_code(400);
     echo json_encode($response);
     exit;
 }
 
-$placardId = $_GET['gameId'] ?? $jsonBody['gameId'] ?? null;
+$placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null;
 $gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
 $teamNumber = $_GET['teamNumber'] ?? $jsonBody['teamNumber'] ?? null;
 $playerIn = $_GET['playerIn'] ?? $jsonBody['playerIn'] ?? null;
@@ -58,40 +58,71 @@ if (is_null($gameType)) {
     echo json_encode(["error" => "Missing gameType"]);
     exit;
 }
-if (is_null($teamNumber)) {
-    echo json_encode(["error" => "Missing teamNumber"]);
+if ((is_null($teamNumber) || ($teamNumber !== "1" && $teamNumber !== "2")) && ($action !== "status")) {
+    echo json_encode(["error" => "Missing valid teamNumber"]);
     exit;
 }
-if (is_null($playerIn) && $action !== "delete") {
+if (is_null($playerIn) && ($action !== "delete" && $action !== "status")) {
     echo json_encode(["error" => "Missing playerIn"]);
     exit;
 }
-if (is_null($playerOut) && $action !== "delete") {
+if (is_null($playerOut) && ($action !== "delete" && $action !== "status")) {
     echo json_encode(["error"=> "Missing playerOut"]);
     exit;
 }
-if (is_null($substitutionId) && $action !== 'create') {
+if (is_null($substitutionId) && ($action !== "create" && $action !== "status")) {
     echo json_encode(["error"=> "Missing substitutionId"]);
     exit;
 }
 
 
-$prefixKey = "game:$placardId:team$teamNumber"; 
+$prefixKey = "game:$placardId:team:$teamNumber:";
+$substitutionSetKey = $prefixKey . "substitution_set";
+$substitutionIdKey = $prefixKey . "substitution:$substitutionId"; 
 try {
-    $ingamePlayers = getIngamePlayers($redis, $placardId, $teamNumber);
-    if ($ingamePlayers["error"] != null){
-        $response = ["error"=> $ingamePlayers["error"]];
-        echo json_encode($response);
-        exit;
+    $gameConfig = new GameConfig();
+    $gameConfig = $gameConfig->getConfig($gameType);
+
+    if ($action !== "status") {
+        $ingamePlayers = getIngamePlayers($redis, $placardId, $gameType, $teamNumber);
+        if (array_key_exists("error", $ingamePlayers)){
+            $response = ["error"=> $ingamePlayers["error"]];
+            echo json_encode($response);
+            exit;
+        }
+        $ingamePlayers = $ingamePlayers["players"];
     }
-    $ingamePlayers = $ingamePlayers["players"];
 
     switch ($action){
-        case 'create':
-            if ($ingamePlayers["error"] != null){
-                $response = ["error"=> $ingamePlayers["error"]];
+        case 'status':
+            $prefix1Key = "game:$placardId:team:1:";
+            $substitutions1 = $redis->lRange($prefix1Key . "substitution_set", 0, -1);
+            var_dump("subs1",$substitutions1);
+            $substitutionsInfo = [];
+            foreach ($substitutions1 as $itSubstitutionId) {
+                $substitutionInfo = json_decode($redis->get($prefix1Key . "substitution:$itSubstitutionId"), true);
+                if ($substitutionInfo !== null) {
+                    $substitutionsInfo[] = $substitutionInfo;
+                }
             }
-            else if ($ingamePlayers[$playerOut] == false){
+
+            $prefix2Key = "game:$placardId:team:2:";
+            $substitutions2 = $redis->lRange($prefix2Key . "substitution_set", 0, -1);
+            foreach ($substitutions2 as $itSubstitutionId) {
+                $substitutionInfo = json_decode($redis->get($prefix2Key . "substitution:$itSubstitutionId"), true);
+                if ($substitutionInfo !== null) {
+                    $substitutionsInfo[] = $substitutionInfo;
+                }
+            }
+
+            $response = [
+                "message"=> "Substitution status retrieved successfully",
+                "substitutions" => $substitutionsInfo,
+            ];
+            break;
+
+        case 'create':
+            if ($ingamePlayers[$playerOut] == false){
                 $response = ["error"=> "Player $playerOut is not in the game"];
             }
             else if ($ingamePlayers[$playerIn] == true) {
@@ -99,38 +130,41 @@ try {
             }
 
             else {
-                $currentSubstitutions = $redis->sMembers($prefixKey . "substitution_set");
-                if ($ingamePlayers[$playerOut] === false){
-                    $response = ["error"=> "No substitution found"];
+                $currentSubstitutions = $redis->lRange($substitutionSetKey, 0, -1);
+                if ($gameConfig["substitutionsPerTeam"] != 0 && sizeof($currentSubstitutions) >= $gameConfig["SubstitutionsPerTeam"]) {
+                    $response = ["error"=> "Maximum number of substitutions reached"];
                     break;
                 }
-                $substitutionId = sizeof($currentSubstitutions) + 1;
+                $currentSubstitutionsId = array_map('intval', $currentSubstitutions);
+                $maxId = sizeof($currentSubstitutions) > 0 ? max($currentSubstitutionsId) : 0;
+                $newSubstitutionId =  (string) ($maxId + 1);
 
                 $ingamePlayers[$playerIn] = true;
                 $ingamePlayers[$playerOut] = false;
 
                 $substitutionInfo = [
-                    "substitutionId" => $substitutionId,
+                    "substitutionId" => $newSubstitutionId,
+                    "teamNumber" => $teamNumber,
                     "playerInId" => $playerIn,
                     "playerOutId" => $playerOut,
                 ];
 
-                $redis->hMSet($prefixKey . "substitutions:$substitutionId", $substitutionInfo);
-                $redis->sAdd($prefixKey . "substitution_set", $substitutionId);
+                $newSubstitutionIdKey = $prefixKey . "substitution:$newSubstitutionId";
+                $redis->set($newSubstitutionIdKey,json_encode($substitutionInfo));
+                var_dump("newSubstitutionId", $newSubstitutionId, "subSetKey", $substitutionSetKey,"---");
+                $redis->rPush($substitutionSetKey, $newSubstitutionId);
 
                 $response = [
                     "message"=> "Substitution created successfully",
-                    "substitutionId"=> $substitutionId,
+                    "substitutionId"=> $newSubstitutionId,
                     "ingamePlayers" => $ingamePlayers
                 ];
             }
             break;
         case 'update':
             try {
-
-                $key = $prefixKey . "substitution:$substitutionId";
-                $oldSubstitution = $redis->hGetAll( $key);
-                if ($oldSubstitution === false) {
+                $oldSubstitution = json_decode($redis->get($substitutionIdKey),true);
+                if ($oldSubstitution === null) {
                     $response = ["error"=> "Substitution with ID $substitutionId not found"];
                     break;
                 }
@@ -150,14 +184,16 @@ try {
                 $ingamePlayers[$oldSubstitution["playerOutId"]] = true;
                 $ingamePlayers[$playerOut] = false;
 
-                $redis->hMSet($key, [
+                $redis->set($substitutionIdKey, json_encode([
                     "substitutionId" => $substitutionId,
+                    "teamNumber" => $teamNumber,
                     "playerInId" => $playerIn,
                     "playerOutId" => $playerOut,
-                ]);
+                ]));
 
                 $response = [
                     "message"=> "Substitution updated successfully",
+                    "substitutionId"=> $substitutionId,
                     "ingamePlayers" => $ingamePlayers,
                 ];
                 
@@ -167,22 +203,22 @@ try {
             break;
         case 'delete':
             try {
-
-                $key = $prefixKey ."substitution:$substitutionId";
-                $oldSubstitution = $redis->hGetAll( $key);
-                if ($oldSubstitution === false) {
+                $oldSubstitution = json_decode($redis->get($substitutionIdKey),true);
+                if ($oldSubstitution === null) {
                     $response = ["error"=> "Substitution with ID $substitutionId not found"];
                     break;
                 }
-
+                
                 $ingamePlayers[$oldSubstitution["playerInId"]] = false;
                 $ingamePlayers[$oldSubstitution["playerOutId"]] = true;
-
-                $redis->del($key);
-                $redis->sRem($prefixKey . "substitution_set", $substitutionId);
+                
+                $redis->del($substitutionIdKey);
+                var_dump("substitutionId", $substitutionId, "subSetKey", $substitutionSetKey, "---");
+                $redis->lRem($substitutionSetKey, 0, (string) $substitutionId);
 
                 $response = [
-                    "message"=> "Substitution updated successfully",
+                    "message"=> "Substitution deleted successfully",
+                    "substitutionId"=> $substitutionId,
                     "ingamePlayers" => $ingamePlayers,
                 ];
                 
