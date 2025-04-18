@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../utils/requestUtils.php';
 require_once __DIR__ . '/../../classes/AbstractEvent.php'; 
 require_once __DIR__ . '/../../classes/CardEvent.php';
 require_once __DIR__ . '/../../config/gameConfig.php';
+require_once __DIR__ . '/../../utils/cardValidationUtils.php';
 
 header('Content-Type: application/json');
 
@@ -53,6 +54,11 @@ try {
 
             if (!$playerId || !$cardType || !$timestamp) {
                 $response = ["error" => "Missing playerId, cardType or timestamp for add action"];
+                break;
+            }
+
+            if(!CardValidationUtils::canAssignCard($redis, $placardId, $sport, (int)$playerId, $cardType)) {
+                $response = ["error" => "Cannot assign card to player according to game rules!"];
                 break;
             }
 
