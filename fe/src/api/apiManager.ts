@@ -153,3 +153,23 @@ class ApiManager {
 
 const apiManager = new ApiManager();
 export default apiManager;
+
+export async function updateScore(action: 'add' | 'remove', placardId: string, abstractTeamId: number, gameType: 'futsal' | 'volleyball') {
+    const response = await fetch(`http://localhost:8080/score/updateScore?action=${action}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            placardId,
+            abstractTeamId,
+            gameType,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update score: ${response.statusText}`);
+    }
+
+    return response.json();
+}
