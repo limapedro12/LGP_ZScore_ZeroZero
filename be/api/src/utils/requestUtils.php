@@ -61,9 +61,11 @@ class RequestUtils {
                     'timeout_event' => $prefix . 'timeout_event:',
                     'home_timeouts_used' => $prefix . 'home_timeouts_used',
                     'away_timeouts_used' => $prefix . 'away_timeouts_used',
+
                     'start_time' => $prefix . 'timeout_start_time',
                     'remaining_time' => $prefix . 'timeout_remaining_time',
                     'status' => $prefix . 'timeout_status',
+                    'team' => $prefix . 'timeout_team',
                 ];
         }
     }

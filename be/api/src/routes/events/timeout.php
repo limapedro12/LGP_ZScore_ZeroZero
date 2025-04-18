@@ -8,7 +8,7 @@ header('Content-Type: application/json');
 $params = RequestUtils::getRequestParams();
 
 $requiredParams = ['placardId', 'sport', 'action'];
-$allowedActions = ['get', 'reset', 'adjust'];
+$allowedActions = ['get', 'reset', 'adjust', 'start', 'pause', 'status'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -21,7 +21,7 @@ $sport = $params['sport'] ?? null;
 $action = $params['action'] ?? null;
 $team = $params['team'] ?? null;
 
-if (($action === 'adjust') && empty($team)) {
+if ((($action === 'adjust') || ($action === 'start')) && empty($team)) {
     echo json_encode(["error" => "Team parameter is required for adjust action"]);
     exit;
 }
@@ -45,16 +45,194 @@ try {
 
     $keys = RequestUtils::getRedisKeys($placardId, 'timeout');
 
+    //-TIMEOUT EVENTS VARIABLES --------------------------//
+    $gameConfigManager = new GameConfig();
+    $gameConfig = $gameConfigManager->getConfig($sport);
+    $totalTimeoutsPerTeam = $gameConfig['timeoutsPerTeam'];
     $gameTimeoutsKey = $keys['game_timeouts'];
     $eventCounterKey = $keys['event_counter'];
     $homeTimeoutsUsedKey = $keys['home_timeouts_used'];
     $awayTimeoutsUsedKey = $keys['away_timeouts_used'];
+    //---------------------------------------------//
 
-    $gameConfigManager = new GameConfig();
-    $gameConfig = $gameConfigManager->getConfig($sport);
-    $totalTimeoutsPerTeam = $gameConfig['timeoutsPerTeam'];
+
+    //-TIMEOUTCLOCK VARIABLES ----------------------//
+    $timeoutDuration = $gameConfig['timeoutDuration']?? null;
+
+    if (empty($timeoutDuration)) {
+        $response = ["error" => "Timeout duration not set in game configuration"];
+        echo json_encode($response);
+        exit;
+    }
+
+    $startTimeKey = $keys['start_time'];
+    $remainingTimeKey = $keys['remaining_time'];
+    $statusKey = $keys['status'];
+    $activeTeamKey = $keys['team'];
+
+    $activeTeam = $redis->get($activeTeamKey) ?: null;
+
+    //---------------------------------------------//
+
+
+    function createTimeoutEvent($homeTimeoutsUsed, $awayTimeoutsUsed, $team = null) {
+        global $redis, $keys, $placardId, $totalTimeoutsPerTeam;
+
+        $eventId = $redis->incr($keys['event_counter']);
+        $timeoutEventKeys = $keys['timeout_event'] . $eventId;
+        
+        $timeoutData = [
+            'eventId' => $eventId,
+            'placardId' => $placardId,
+            'team' => $team,
+            'homeTimeoutsUsed' => $homeTimeoutsUsed,
+            'awayTimeoutsUsed' => $awayTimeoutsUsed,
+            'totalTimeoutsPerTeam' => $totalTimeoutsPerTeam
+        ];
+        
+        $redis->multi();
+        $redis->set($keys['home_timeouts_used'], $homeTimeoutsUsed);
+        $redis->set($keys['away_timeouts_used'], $awayTimeoutsUsed);
+        $redis->hMSet($timeoutEventKeys, $timeoutData);
+        $redis->zAdd($keys['game_timeouts'], $eventId, $timeoutEventKeys);
+        $result = $redis->exec();
+        
+        if ($result) {
+            return [
+                "success" => true,
+                "message" => "Timeout event added successfully",
+                "event" => $timeoutData
+            ];
+        } else {
+            return [
+                "success" => false,
+                "error" => "Failed to add timeout event"
+            ];
+        }
+    }
+
+    function updateTeamTimeouts($team, $amount = 1) {
+        global $redis, $homeTimeoutsUsedKey, $awayTimeoutsUsedKey, $totalTimeoutsPerTeam;
+        
+        $timeoutsUsedKey = $team === 'home' ? $homeTimeoutsUsedKey : $awayTimeoutsUsedKey;
+        $currentTimeoutsUsed = intval($redis->get($timeoutsUsedKey) ?: 0);
+        $newTimeoutsUsed = $currentTimeoutsUsed + $amount;
+        
+        if ($newTimeoutsUsed < 0) {
+            $newTimeoutsUsed = 0;
+        } elseif ($newTimeoutsUsed > $totalTimeoutsPerTeam) {
+            $newTimeoutsUsed = $totalTimeoutsPerTeam;
+        }
+        
+        $homeTimeouts = $team === 'home' ? $newTimeoutsUsed : intval($redis->get($homeTimeoutsUsedKey) ?: 0);
+        $awayTimeouts = $team === 'away' ? $newTimeoutsUsed : intval($redis->get($awayTimeoutsUsedKey) ?: 0);
+        
+        return [
+            'homeTimeouts' => $homeTimeouts,
+            'awayTimeouts' => $awayTimeouts,
+            'maxReached' => $newTimeoutsUsed >= $totalTimeoutsPerTeam
+        ];
+    }
+
+    $status = $redis->get($statusKey) ?: 'inactive';
+    $startTime = (int)$redis->get($startTimeKey) ?: 0;
+    $storedRemainingTime = (int)$redis->get($remainingTimeKey) ?: 0;
+
+    $currentTime = time();
+    $remainingTime = $storedRemainingTime;
+    if ($status === 'running' && $startTime > 0) {
+        $elapsedTime = $currentTime - $startTime;
+        $remainingTime = max(0, $storedRemainingTime - $elapsedTime);
+        
+        if ($remainingTime <= 0) {
+            $redis->set($statusKey, 'inactive');
+            $redis->set($remainingTimeKey, 0);
+            $status = 'inactive';
+            $remainingTime = 0;
+        }
+    }
     
     switch ($action) {
+        case 'start':
+            $timeoutUpdate = updateTeamTimeouts($team);
+            
+            if ($timeoutUpdate['maxReached']) {
+                $response = [
+                    "error" => "Maximum timeouts reached for " . $team . " team"
+                ];
+                break;
+            }
+
+            if ($status === 'running') {
+                $response = [
+                    "message" => "Timeout already in progress for " . $team . " team",
+                    "status" => $status,
+                    "team" => $team,
+                    "remaining_time" => $remainingTime
+                ];
+                break;
+            }
+
+            $timerKeys = RequestUtils::getRedisKeys($placardId, 'timer');
+            $timerStatus = $redis->get($timerKeys['status']) ?: 'paused';
+            
+            if ($timerStatus === 'running') {
+                $timerStartTime = (int)$redis->get($timerKeys['start_time']) ?: 0;
+                $timerStoredRemaining = (int)$redis->get($timerKeys['remaining_time']);
+                $timerRemainingTime = max(0, $timerStoredRemaining - ($currentTime - $timerStartTime));
+                
+                $redis->set($timerKeys['remaining_time'], $timerRemainingTime);
+                $redis->set($timerKeys['status'], 'paused');
+            }
+
+            $redis->set($startTimeKey, $currentTime);
+            $redis->set($remainingTimeKey, $timeoutDuration);
+            $redis->set($statusKey, 'running');
+            $redis->set($activeTeamKey, $team);
+            
+            $result = createTimeoutEvent($timeoutUpdate['homeTimeouts'], $timeoutUpdate['awayTimeouts'], $team);
+            
+            if ($result["success"]) {
+                $response = [
+                    "message" => $result["message"],
+                    "timer" => [
+                        "status" => "running",
+                        "team" => $team,
+                        "remaining_time" => $timeoutDuration
+                    ],
+                    "event" => $result["event"]
+                ];
+            } else {
+                $response = ["error" => $result["error"]];
+            }
+            
+            break;
+
+        case 'pause':
+            if ($status !== 'running') {
+                $response = [
+                    "message" => "No timeout currently running",
+                    "status" => $status
+                ];
+                break;
+            }
+            
+            $redis->set($statusKey, 'paused');
+            $redis->set($remainingTimeKey, $remainingTime);
+            $response = [
+                "message" => "Timeout paused",
+                "status" => "paused",
+                "team" => $team,
+                "remaining_time" => $remainingTime
+            ];
+            break;
+        case 'status':
+            $response = [
+                "status" => $status,
+                "team" => $activeTeam,
+                "remaining_time" => $remainingTime,
+            ];
+            break;
         case 'adjust':
             $amount = $params['amount'] ?? null;
         
@@ -64,45 +242,27 @@ try {
             }
             $amount = intval($amount);
         
-            $timeoutsUsedKey = $team === 'home' ? $homeTimeoutsUsedKey : $awayTimeoutsUsedKey;
-            $currentTimeoutsUsed = intval($redis->get($timeoutsUsedKey) ?: 0);
-            $newTimeoutsUsed = $currentTimeoutsUsed + $amount;
-        
-            if ($newTimeoutsUsed < 0) {
-                $newTimeoutsUsed = 0;
-            } elseif ($newTimeoutsUsed > $totalTimeoutsPerTeam) {
-                $newTimeoutsUsed = $totalTimeoutsPerTeam;
+            $timeoutUpdate = updateTeamTimeouts($team, $amount);
+
+            if($timeoutUpdate['maxReached']) {
+                $response = [
+                    "error" => "Maximum timeouts reached for " . $team . " team"
+                ];
+                break;
             }
             
-            $actualAmount = $newTimeoutsUsed - $currentTimeoutsUsed;
-        
-            $eventId = $redis->incr($eventCounterKey);
-            $timeoutEventKeys = $keys['timeout_event'] . $eventId;
-        
-            $timeoutData = [
-                'eventId' => $eventId,
-                'placardId' => $placardId,
-                'team' => $team,
-                'homeTimeoutsUsed' => (strtolower($team) === 'home' ? $newTimeoutsUsed : intval($redis->get($homeTimeoutsUsedKey) ?: 0)),
-                'awayTimeoutsUsed' => (strtolower($team) === 'away' ? $newTimeoutsUsed : intval($redis->get($awayTimeoutsUsedKey) ?: 0)),
-                'totalTimeoutsPerTeam' => $totalTimeoutsPerTeam
-            ];
-        
-            $redis->multi();
-            $redis->set($timeoutsUsedKey, $newTimeoutsUsed);
-            $redis->hMSet($timeoutEventKeys, $timeoutData);
-            $redis->zAdd($gameTimeoutsKey, $eventId, $timeoutEventKeys);
-            $result = $redis->exec();
-        
-            if ($result) {
+            $result = createTimeoutEvent($timeoutUpdate['homeTimeouts'], $timeoutUpdate['awayTimeouts'], $team);
+            
+            if ($result["success"]) {
                 $response = [
-                    "message" => "Timeout event added successfully",
-                    "event" => $timeoutData
+                    "message" => $result["message"],
+                    "event" => $result["event"]
                 ];
             } else {
-                $response = ["error" => "Failed to add timeout event"];
+                $response = ["error" => $result["error"]];
             }
             break;
+            
         case 'get':
             $timeoutEvents = [];
             $pattern = $keys['timeout_event'] . "*";
@@ -115,6 +275,10 @@ try {
                 }
             }
             
+            usort($timeoutEvents, function($a, $b) {
+                return intval($b['eventId']) - intval($a['eventId']);
+            });
+            
             $response = [
                 "events" => $timeoutEvents
             ];
@@ -122,6 +286,24 @@ try {
             
         case 'reset':
 
+            if ($status === 'running') {
+                $response = [
+                    "message" => "Timeout currently running for " . $activeTeam . " team",
+                    "status" => $status,
+                ];
+                break;
+            }
+
+            $result = createTimeoutEvent(0, 0, null);
+            
+            if ($result["success"]) {
+                $response = [
+                    "message" => "All timeouts reset to zero",
+                    "event" => $result["event"]
+                ];
+            } else {
+                $response = ["error" => $result["error"]];
+            }
             break;
             
         default:
