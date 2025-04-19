@@ -7,20 +7,20 @@
  * 
  * @param Redis $redis Redis connection
  * @param string $placardId Game identifier
- * @param int $teamNumber Team number (1 or 2)
+ * @param int $team Team number (1 or 2)
  * @param GameConfig $gameConfig Game configuration parameters
  * @return array Players and their status [(player : AbstractPlayer) => (ingame : bool)]
  */
-function getIngamePlayers($redis, $placardId, $gameType, $teamNumber) {
+function getIngamePlayers($redis, $placardId, $gameType, $team) {
     try {
-        $prefix = "game:$placardId:team:$teamNumber:";
+        $prefix = "game:$placardId:team:$team:";
         $initialLineupKey = $prefix . 'initial_lineup';
         $substitutionSetKey = $prefix . 'substitution_set';
         $ingamePlayers = json_decode($redis->get($initialLineupKey),true );
 
         // if ($ingamePlayers === null) { //correct, but need a stub for testing
         //     return [
-        //         'error' => "No players found for team $teamNumber in game $placardId"
+        //         'error' => "No players found for team $team in game $placardId"
         //     ];
         // }
         if ($ingamePlayers === null) {

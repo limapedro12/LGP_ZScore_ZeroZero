@@ -23,7 +23,10 @@ interface TimerResponse {
 }
 
 type Substitution = {
-    [key: string]: string;
+    substitutionId: string,
+    team: string,
+    playerInId: string,
+    playerOutId: string
 }
 
 /**
@@ -31,11 +34,12 @@ type Substitution = {
  * @property {string} [message] - Optional message from the API
  * @property {number} substitutionId - The unique identifier for the substitution
  * @property {Map<string, boolean>} ingamePlayers - Map of players currently in the game
+ * @property {Substitution[]} substitutions - Array of substitutions made
  * @property {string} [error] - Optional error message from the API
  */
 interface SubstitutionResponse{
     message?: string;
-    substitutionId?: number;
+    substitutionId?: string;
     ingamePlayers?: Map<string, boolean>;
     substitutions?: Substitution[];
     error?: string;

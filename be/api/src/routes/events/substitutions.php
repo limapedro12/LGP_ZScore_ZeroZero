@@ -32,7 +32,7 @@ if (is_null($action) || !in_array($action, $allowedActions)) {
 
 $placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null; //GET is used for the list action
 $gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
-$teamNumber = $_GET['teamNumber'] ?? $jsonBody['teamNumber'] ?? null;
+$team = $_GET['team'] ?? $jsonBody['team'] ?? null;
 $playerIn = $jsonBody['playerIn'] ?? null;
 $playerOut = $jsonBody['playerOut'] ?? null;
 $substitutionId = $jsonBody['substitutionId'] ?? null;
@@ -45,8 +45,8 @@ if (is_null($gameType)) {
     echo json_encode(["error" => "Missing gameType"]);
     exit;
 }
-if ((is_null($teamNumber) || ($teamNumber !== "1" && $teamNumber !== "2")) && ($action !== "list")) {
-    echo json_encode(["error" => "Missing valid teamNumber"]);
+if ((is_null($team) || ($team !== "home" && $team !== "away")) && ($action !== "list")) {
+    echo json_encode(["error" => "Missing valid team"]);
     exit;
 }
 if (is_null($playerIn) && ($action !== "delete" && $action !== "list")) {
@@ -75,7 +75,7 @@ try {
     exit;
 }
 
-$prefixKey = "game:$placardId:team:$teamNumber:";
+$prefixKey = "game:$placardId:team:$team:";
 $substitutionSetKey = $prefixKey . "substitution_set";
 $substitutionIdKey = $prefixKey . "substitution:$substitutionId"; 
 try {
@@ -83,7 +83,7 @@ try {
     $gameConfig = $gameConfig->getConfig($gameType);
 
     if ($action !== 'list') {
-        $ingamePlayers = getIngamePlayers($redis, $placardId, $gameType, $teamNumber);
+        $ingamePlayers = getIngamePlayers($redis, $placardId, $gameType, $team);
         if (array_key_exists("error", $ingamePlayers)){
             $response = ["error"=> $ingamePlayers["error"]];
             echo json_encode($response);
@@ -143,7 +143,7 @@ try {
 
                 $substitutionInfo = [
                     "substitutionId" => $newSubstitutionId,
-                    "teamNumber" => $teamNumber,
+                    "team" => $team,
                     "playerInId" => $playerIn,
                     "playerOutId" => $playerOut,
                 ];
@@ -185,7 +185,7 @@ try {
 
                 $redis->set($substitutionIdKey, json_encode([
                     "substitutionId" => $substitutionId,
-                    "teamNumber" => $teamNumber,
+                    "team" => $team,
                     "playerInId" => $playerIn,
                     "playerOutId" => $playerOut,
                 ]));

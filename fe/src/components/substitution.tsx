@@ -4,7 +4,10 @@ import apiManager from '../api/apiManager';
 import '../styles/timer.scss';
 
 type Substitution = {
-    [key: string]: string;
+    substitutionId: string,
+    team: string,
+    playerInId: string,
+    playerOutId: string
 }
 
 /**
@@ -71,7 +74,7 @@ const Substitution: React.FC = () => {
             {newSubstitutions.length > 0 && (
                 <div className="substitution-box">
                     <div className="team-logo">
-                        {newSubstitutions[0]['teamNumber']}
+                        {newSubstitutions[0]['team']}
                     </div>
                     <div className="player-info">
                         <div className="player-out">
