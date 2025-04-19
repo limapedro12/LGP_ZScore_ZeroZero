@@ -7,20 +7,28 @@ require_once __DIR__ . '/../../config/gameConfig.php';
 header('Content-Type: application/json');
 $jsonBody = null;
 
-$action = $_GET['action'] ?? $jsonBody['action'] ?? null;
 
-if($_SERVER['REQUEST_METHOD'] === 'POST' || ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET')) {
+if($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = file_get_contents('php://input');
     if ($input) {
         $jsonBody = json_decode($input, true);
     }
 }
-else {
+else if (!($_SERVER['REQUEST_METHOD'] === 'GET' && $_GET['action'] === 'list')) {
     $response['message'] = 'Invalid request method. Only POST is allowed. (GET for list substitutions)';
     http_response_code(405);
     echo json_encode($response);
     exit;
 }
+
+
+$action = $_GET['action'] ?? $jsonBody['action'] ?? null;
+$placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null; //GET is used for the list action
+$gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
+$team = $jsonBody['team'] ?? null;
+$playerIn = $jsonBody['playerIn'] ?? null;
+$playerOut = $jsonBody['playerOut'] ?? null;
+$substitutionId = $jsonBody['substitutionId'] ?? null;
 
 $allowedActions = ['create', 'edit', 'delete', 'list'];
 if (is_null($action) || !in_array($action, $allowedActions)) {
@@ -29,14 +37,6 @@ if (is_null($action) || !in_array($action, $allowedActions)) {
     echo json_encode($response);
     exit;
 }
-
-$placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null; //GET is used for the list action
-$gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
-$team = $jsonBody['team'] ?? null;
-$playerIn = $jsonBody['playerIn'] ?? null;
-$playerOut = $jsonBody['playerOut'] ?? null;
-$substitutionId = $jsonBody['substitutionId'] ?? null;
-
 if (is_null($placardId)) {
     echo json_encode(["error" => "Missing gameId"]);
     exit;
@@ -94,7 +94,7 @@ try {
 
     switch ($action){
         case 'list':
-            $prefix1Key = "game:$placardId:team:1:";
+            $prefix1Key = "game:$placardId:team:home:";
             $substitutions1 = $redis->lRange($prefix1Key . "substitution_set", 0, -1);
             var_dump("subs1",$substitutions1);
             $substitutionsInfo = [];
@@ -105,7 +105,7 @@ try {
                 }
             }
 
-            $prefix2Key = "game:$placardId:team:2:";
+            $prefix2Key = "game:$placardId:team:away:";
             $substitutions2 = $redis->lRange($prefix2Key . "substitution_set", 0, -1);
             foreach ($substitutions2 as $itSubstitutionId) {
                 $substitutionInfo = json_decode($redis->get($prefix2Key . "substitution:$itSubstitutionId"), true);

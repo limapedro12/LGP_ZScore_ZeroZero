@@ -56,6 +56,8 @@ const Substitution: React.FC = () => {
 
     useEffect(() => {
         const intervalId = setInterval(() => {
+            console.log('newSubs', newSubstitutions);
+            console.log('subs', substitutions);
             if (newSubstitutions.length > 0) {
                 const nextSubstitution = newSubstitutions[0];
                 setNewSubstitutions((prev : Substitution[]) => prev.slice(1));
@@ -70,17 +72,21 @@ const Substitution: React.FC = () => {
 
     return (
         <div className="substitution">
-            {/* newSubstitutions.length > 0 && */(
+            {newSubstitutions.length > 0 && (
                 <div className="substitution-box">
                     <img src="/teamLogo.png" alt="Team Logo" className="team-logo" />
                     <div className="player-names">
                         <div className="player-info">
                             <p className="player-name">John Leaver</p>
-                            <div className="tshirt-img">1</div>
+                            <div className="tshirt-img">
+                                {newSubstitutions[0].playerOutId}
+                            </div>
                         </div>
                         <div className="player-info">
                             <p className="player-name">Kid Entering</p>
-                            <div className="tshirt-img">2</div>
+                            <div className="tshirt-img">
+                                {newSubstitutions[0].playerInId}
+                            </div>
                         </div>
                     </div>
                     <img src="/substitutionTriangles.png" alt="Substitution Triangles" className="substitution-triangles" />
