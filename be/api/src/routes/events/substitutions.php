@@ -7,18 +7,60 @@ require_once __DIR__ . '/../../config/gameConfig.php';
 header('Content-Type: application/json');
 $jsonBody = null;
 
-if($_SERVER['REQUEST_METHOD'] === 'POST') {
+$action = $_GET['action'] ?? $jsonBody['action'] ?? null;
+
+if($_SERVER['REQUEST_METHOD'] === 'POST' || ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET')) {
     $input = file_get_contents('php://input');
     if ($input) {
         $jsonBody = json_decode($input, true);
     }
 }
-// else {
-//     $response['message'] = 'Invalid request method. Only POST is allowed.';
-//     http_response_code(405);
-//     echo json_encode($response);
-//     exit;
-// }
+else {
+    $response['message'] = 'Invalid request method. Only POST is allowed. (GET for list substitutions)';
+    http_response_code(405);
+    echo json_encode($response);
+    exit;
+}
+
+$allowedActions = ['create', 'edit', 'delete', 'list'];
+if (is_null($action) || !in_array($action, $allowedActions)) {
+    $response['message'] = 'Missing or invalid action parameter (Curr:' . $action . '). Allowed actions: ' . implode(', ', $allowedActions);
+    http_response_code(400);
+    echo json_encode($response);
+    exit;
+}
+
+$placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null; //GET is used for the list action
+$gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
+$teamNumber = $_GET['teamNumber'] ?? $jsonBody['teamNumber'] ?? null;
+$playerIn = $jsonBody['playerIn'] ?? null;
+$playerOut = $jsonBody['playerOut'] ?? null;
+$substitutionId = $jsonBody['substitutionId'] ?? null;
+
+if (is_null($placardId)) {
+    echo json_encode(["error" => "Missing gameId"]);
+    exit;
+}
+if (is_null($gameType)) {
+    echo json_encode(["error" => "Missing gameType"]);
+    exit;
+}
+if ((is_null($teamNumber) || ($teamNumber !== "1" && $teamNumber !== "2")) && ($action !== "list")) {
+    echo json_encode(["error" => "Missing valid teamNumber"]);
+    exit;
+}
+if (is_null($playerIn) && ($action !== "delete" && $action !== "list")) {
+    echo json_encode(["error" => "Missing playerIn"]);
+    exit;
+}
+if (is_null($playerOut) && ($action !== "delete" && $action !== "list")) {
+    echo json_encode(["error"=> "Missing playerOut"]);
+    exit;
+}
+if (is_null($substitutionId) && ($action !== "create" && $action !== "list")) {
+    echo json_encode(["error"=> "Missing substitutionId"]);
+    exit;
+}
 
 try {
     $redis = connectRedis();
@@ -33,49 +75,6 @@ try {
     exit;
 }
 
-$action = $_GET['action'] ?? $jsonBody['action'] ?? null;
-$allowedActions = ['create', 'update', 'delete', 'status'];
-
-if (is_null($action) || !in_array($action, $allowedActions)) {
-    $response['message'] = 'Missing or invalid action parameter (Curr:' . $action . '). Allowed actions: ' . implode(', ', $allowedActions);
-    http_response_code(400);
-    echo json_encode($response);
-    exit;
-}
-
-$placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null;
-$gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
-$teamNumber = $_GET['teamNumber'] ?? $jsonBody['teamNumber'] ?? null;
-$playerIn = $_GET['playerIn'] ?? $jsonBody['playerIn'] ?? null;
-$playerOut = $_GET['playerOut'] ?? $jsonBody['playerOut'] ?? null;
-$substitutionId = $_GET['substitutionId'] ?? $jsonBody['substitutionId'] ?? null;
-
-if (is_null($placardId)) {
-    echo json_encode(["error" => "Missing gameId"]);
-    exit;
-}
-if (is_null($gameType)) {
-    echo json_encode(["error" => "Missing gameType"]);
-    exit;
-}
-if ((is_null($teamNumber) || ($teamNumber !== "1" && $teamNumber !== "2")) && ($action !== "status")) {
-    echo json_encode(["error" => "Missing valid teamNumber"]);
-    exit;
-}
-if (is_null($playerIn) && ($action !== "delete" && $action !== "status")) {
-    echo json_encode(["error" => "Missing playerIn"]);
-    exit;
-}
-if (is_null($playerOut) && ($action !== "delete" && $action !== "status")) {
-    echo json_encode(["error"=> "Missing playerOut"]);
-    exit;
-}
-if (is_null($substitutionId) && ($action !== "create" && $action !== "status")) {
-    echo json_encode(["error"=> "Missing substitutionId"]);
-    exit;
-}
-
-
 $prefixKey = "game:$placardId:team:$teamNumber:";
 $substitutionSetKey = $prefixKey . "substitution_set";
 $substitutionIdKey = $prefixKey . "substitution:$substitutionId"; 
@@ -83,7 +82,7 @@ try {
     $gameConfig = new GameConfig();
     $gameConfig = $gameConfig->getConfig($gameType);
 
-    if ($action !== "status") {
+    if ($action !== 'list') {
         $ingamePlayers = getIngamePlayers($redis, $placardId, $gameType, $teamNumber);
         if (array_key_exists("error", $ingamePlayers)){
             $response = ["error"=> $ingamePlayers["error"]];
@@ -94,7 +93,7 @@ try {
     }
 
     switch ($action){
-        case 'status':
+        case 'list':
             $prefix1Key = "game:$placardId:team:1:";
             $substitutions1 = $redis->lRange($prefix1Key . "substitution_set", 0, -1);
             var_dump("subs1",$substitutions1);
@@ -161,7 +160,7 @@ try {
                 ];
             }
             break;
-        case 'update':
+        case 'edit':
             try {
                 $oldSubstitution = json_decode($redis->get($substitutionIdKey),true);
                 if ($oldSubstitution === null) {
