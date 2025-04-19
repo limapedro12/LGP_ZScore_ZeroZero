@@ -3,7 +3,7 @@ import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get';
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';
 type EndpointType = 'timer' | 'timeout';
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
@@ -136,6 +136,9 @@ class ApiManager {
 
     getTimeoutEvents = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'get', { placardId, sport }, 'GET');
+
+    getGameStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'gameStatus', { placardId, sport }, 'GET');
 
     resetTimeouts = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });

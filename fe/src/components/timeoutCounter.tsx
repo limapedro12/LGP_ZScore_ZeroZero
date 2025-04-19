@@ -17,22 +17,18 @@ const TimeoutCounter: React.FC = () => {
     }, [urlplacardId, urlsport]);
 
     const fetchTeamsTimeouts = React.useCallback(async () => {
+        if (placardId === 'default' || sport === 'default') {
+            return;
+        }
         try {
-            const response = await apiManager.getTimeoutEvents(placardId, sport);
+            const response = await apiManager.getGameStatus(placardId, sport);
             const data = response;
-            if (data.events !== undefined) {
-                const lastTimeout = data.events[0];
-                if (!lastTimeout) {
-                    const homeTimeouts = Number(data.homeTimeoutsUsed) || 0;
-                    const awayTimeouts = Number(data.awayTimeoutsUsed) || 0;
-                    setTeamsTimeouts({ home: homeTimeouts, away: awayTimeouts });
-                    setMaxTimeouts(Number(data.totalTimeoutsPerTeam) || 0);
-                } else {
-                    const homeTimeouts = Number(lastTimeout.homeTimeoutsUsed) || 0;
-                    const awayTimeouts = Number(lastTimeout.awayTimeoutsUsed) || 0;
-                    setTeamsTimeouts({ home: homeTimeouts, away: awayTimeouts });
-                    setMaxTimeouts(Number(lastTimeout.totalTimeoutsPerTeam) || 0);
-                }
+            console.log('TimeoutCounter data:', data);
+            if (data !== undefined) {
+                const homeTimeouts = Number(data.homeTimeoutsUsed) || 0;
+                const awayTimeouts = Number(data.awayTimeoutsUsed) || 0;
+                setTeamsTimeouts({ home: homeTimeouts, away: awayTimeouts });
+                setMaxTimeouts(Number(data.totalTimeoutsPerTeam) || 0);
             }
         } catch (error) {
             console.error('Error fetching timer status:', error);
