@@ -75,8 +75,8 @@ try {
     //---------------------------------------------//
 
 
-    function createTimeoutEvent($homeTimeoutsUsed, $awayTimeoutsUsed, $team = null) {
-        global $redis, $keys, $placardId, $totalTimeoutsPerTeam;
+    function createTimeoutEvent($homeTimeoutsUsed, $awayTimeoutsUsed, $team = null, $change = null ) {
+        global $redis, $keys, $placardId, $totalTimeoutsPerTeam, $action;
 
         $eventId = $redis->incr($keys['event_counter']);
         $timeoutEventKeys = $keys['timeout_event'] . $eventId;
@@ -87,7 +87,10 @@ try {
             'team' => $team,
             'homeTimeoutsUsed' => $homeTimeoutsUsed,
             'awayTimeoutsUsed' => $awayTimeoutsUsed,
-            'totalTimeoutsPerTeam' => $totalTimeoutsPerTeam
+            'totalTimeoutsPerTeam' => $totalTimeoutsPerTeam,
+            'action' => $action,
+            'timeouts_added' => $change,
+            "previous_value" => $team === 'home' ? $homeTimeoutsUsed - $change : $awayTimeoutsUsed - $change,
         ];
         
         $redis->multi();
@@ -166,7 +169,7 @@ try {
 
             if ($status === 'running') {
                 $response = [
-                    "message" => "Timeout already in progress for " . $team . " team",
+                    "message" => "Timeout already in progress for " . $activeTeam . " team",
                     "status" => $status,
                     "team" => $team,
                     "remaining_time" => $remainingTime
@@ -201,7 +204,7 @@ try {
             $redis->set($statusKey, 'running');
             $redis->set($activeTeamKey, $team);
             
-            $result = createTimeoutEvent($timeoutUpdate['homeTimeouts'], $timeoutUpdate['awayTimeouts'], $team);
+            $result = createTimeoutEvent($timeoutUpdate['homeTimeouts'], $timeoutUpdate['awayTimeouts'], $team, 1);
             
             if ($result["success"]) {
                 $response = [
@@ -267,7 +270,7 @@ try {
                 break;
             }
             
-            $result = createTimeoutEvent($timeoutUpdate['homeTimeouts'], $timeoutUpdate['awayTimeouts'], $team);
+            $result = createTimeoutEvent($timeoutUpdate['homeTimeouts'], $timeoutUpdate['awayTimeouts'], $team, $amount);
             
             if ($result["success"]) {
                 $response = [
