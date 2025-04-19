@@ -1,60 +1,56 @@
 @use "./config.scss";
 
 .substitution-box {
-    display: flex;
-    align-items: center;
-    background-color: #2b3a4b;
-    padding: 10px 15px;
-    border-radius: 8px;
-    color: white;
-    font-family: sans-serif;
-    width: fit-content;
-  
-    .team-logo {
-      margin-right: 12px;
-      img {
-        height: 40px;
-        width: 40px;
-        object-fit: contain;
-      }
-    }
-  
-    .player-info {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-  
-      .player-out, .player-in {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-  
-        .player-name {
-          font-size: 14px;
-          font-weight: 500;
-        }
-  
-        .jersey {
-          background-color: black;
-          border-radius: 3px;
-          padding: 2px 6px;
-          font-size: 12px;
-          font-weight: bold;
-  
-          .shirt {
-            color: white;
-          }
-        }
-  
-        .arrow {
-          font-size: 16px;
-          &.red {
-            color: red;
-          }
-          &.green {
-            color: #00cc66;
-          }
-        }
-      }
-    }
-  }
+  display: flex;
+  align-items: center;
+  background-color: #2d3f53; // dark blue background
+  padding: 10px 20px;
+  border-radius: 8px;
+  width: fit-content;
+  color: white;
+  font-family: Arial, sans-serif;
+  margin-top: 5em;
+}
+
+.team-logo {
+  height: 8em;
+  margin-right: 30px;
+}
+
+.player-names {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  margin: 2px 0;
+}
+
+.player-info p {
+  margin: 0 12px 0 0;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.tshirt-img {
+  position: relative;
+  width: 3em;
+  height: 3em;
+  background: url('/tshirt.png') no-repeat center center;
+  text-align: center;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.substitution-triangles {
+  height: 5em;
+  margin-left: auto;
+}

@@ -3,7 +3,7 @@ import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'create' | 'delete' | 'update';
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'create' | 'delete' | 'update' | 'list';
 type EndpointType = 'timer' | 'substitutions'; // Extendable for other endpoints
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -119,7 +119,7 @@ class ApiManager {
 
     // Substitution-specific methods
     getSubstitutionsStatus = (placardId: string, gameType: string) =>
-        this.makeRequest<SubstitutionResponse>('substitutions', 'status', { placardId, gameType }, 'GET');
+        this.makeRequest<SubstitutionResponse>('substitutions', 'list', { placardId, gameType }, 'GET');
 
     createSubstitution = (placardId: string, gameType: string, teamNumber: string,
         playerIn: string, playerOut: string) =>

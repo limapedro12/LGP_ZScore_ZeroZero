@@ -32,7 +32,7 @@ if (is_null($action) || !in_array($action, $allowedActions)) {
 
 $placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null; //GET is used for the list action
 $gameType = $_GET['gameType'] ?? $jsonBody['gameType'] ?? null;
-$team = $_GET['team'] ?? $jsonBody['team'] ?? null;
+$team = $jsonBody['team'] ?? null;
 $playerIn = $jsonBody['playerIn'] ?? null;
 $playerOut = $jsonBody['playerOut'] ?? null;
 $substitutionId = $jsonBody['substitutionId'] ?? null;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiManager from '../api/apiManager';
-import '../styles/timer.scss';
+import '../styles/substitution.scss';
 
 type Substitution = {
     substitutionId: string,
@@ -70,45 +70,22 @@ const Substitution: React.FC = () => {
 
     return (
         <div className="substitution">
-            {/* Flash section for new substitutions */}
-            {newSubstitutions.length > 0 && (
+            {/* newSubstitutions.length > 0 && */(
                 <div className="substitution-box">
-                    <div className="team-logo">
-                        {newSubstitutions[0]['team']}
-                    </div>
-                    <div className="player-info">
-                        <div className="player-out">
-                            <span className="player-name">Player In</span>
-                            <span className="jersey">
-                                <span className="shirt">
-                                    {newSubstitutions[0]['playerInId']}
-                                </span>
-                            </span>
-                            <span className="arrow red">&#9650;</span>
+                    <img src="/teamLogo.png" alt="Team Logo" className="team-logo" />
+                    <div className="player-names">
+                        <div className="player-info">
+                            <p className="player-name">John Leaver</p>
+                            <div className="tshirt-img">1</div>
                         </div>
-                        <div className="player-in">
-                            <span className="player-name">Player Out</span>
-                            <span className="jersey">
-                                <span className="shirt">
-                                    {newSubstitutions[0]['playerOutId']}
-                                </span>
-                            </span>
-                            <span className="arrow green">&#9660;</span>
+                        <div className="player-info">
+                            <p className="player-name">Kid Entering</p>
+                            <div className="tshirt-img">2</div>
                         </div>
                     </div>
+                    <img src="/substitutionTriangles.png" alt="Substitution Triangles" className="substitution-triangles" />
                 </div>
             )}
-
-            {/* Full list (if needed) */}
-            {/* <div className="all-substitutions" hidden>
-                <ul>
-                    {substitutions.map((sub, index) => (
-                        <li key={index}>
-                            {sub.time} - {sub.playerIn} entrou no lugar de {sub.playerOut}
-                        </li>
-                    ))}
-                </ul>
-            </div> */}
         </div>
     );
 };
