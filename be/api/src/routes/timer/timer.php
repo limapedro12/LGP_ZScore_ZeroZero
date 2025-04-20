@@ -41,7 +41,7 @@ try {
     $storedRemaining = (int)$redis->get($remainingTimeKey);
     $period = (int)$redis->get($periodKey) ?: 1;
     
-    if ($storedRemaining === 0 && $redis->get($remainingTimeKey) === false) {
+    if ($storedRemaining === 0) {
         $storedRemaining = $gameConfig['periodDuration'];
     }
     
@@ -76,19 +76,11 @@ try {
                 $status = 'running';
                 
                 $response = [
-                    "message" => "Timer started",
-                    "status" => "running",
-                    "remaining_time" => $remainingTime,
-                    "period" => $period,
-                    "total_periods" => $gameConfig['periods']
+                    "message" => "Timer started"
                 ];
             } else {
                 $response = [
-                    "message" => "Timer already running",
-                    "status" => "running",
-                    "remaining_time" => $remainingTime,
-                    "period" => $period,
-                    "total_periods" => $gameConfig['periods']
+                    "message" => "Timer already " . $status,
                 ];
             }
             break;
@@ -100,19 +92,11 @@ try {
                 $status = 'paused';
                 
                 $response = [
-                    "message" => "Timer paused",
-                    "status" => "paused",
-                    "remaining_time" => $remainingTime,
-                    "period" => $period,
-                    "total_periods" => $gameConfig['periods']
+                    "message" => "Timer " . $status
                 ];
             } else {
                 $response = [
-                    "message" => "Timer already paused",
-                    "status" => "paused",
-                    "remaining_time" => $remainingTime,
-                    "period" => $period,
-                    "total_periods" => $gameConfig['periods']
+                    "message" => "Timer already " . $status,
                 ];
             }
             break;
@@ -165,23 +149,25 @@ try {
             }
             
             $response = [
-                "message" => "Timer adjusted",
-                "status" => $wasRunning ? "running" : "paused",
-                "remaining_time" => $newRemaining,
-                "period" => $period,
-                "total_periods" => $gameConfig['periods']
+                "message" => "Timer adjusted by $seconds seconds",
+                "status" => $wasRunning ? "running" : "paused"
             ];
             break;
 
         case 'set':
             $newTime = isset($params['time']) ? intval($params['time']) : null;
             $newPeriod = isset($params['period']) ? intval($params['period']) : $period;
-
+        
             if ($newTime === null) {
                 $response = ["error" => "Missing time parameter"];
                 break;
             }
-
+            
+            if ($newTime <= 0) {
+                $response = ["error" => "Time must be a positive value"];
+                break;
+            }
+        
             $wasRunning = ($status === 'running');
             
             if ($wasRunning) {
@@ -193,7 +179,7 @@ try {
                 break;
             }
             
-            $boundedTime = min($gameConfig['periodDuration'], max(0, $newTime));
+            $boundedTime = min($gameConfig['periodDuration'], $newTime);
             $redis->set($remainingTimeKey, $boundedTime);
             $redis->set($periodKey, $newPeriod);
             
@@ -203,9 +189,8 @@ try {
             }
             
             $response = [
-                "message" => "Timer manually set",
+                "message" => "Timer manually set to $boundedTime seconds and period $newPeriod",
                 "status" => $wasRunning ? "running" : "paused",
-                "remaining_time" => $boundedTime,
                 "period" => $newPeriod,
                 "total_periods" => $gameConfig['periods']
             ];
