@@ -11,7 +11,7 @@ header('Content-Type: application/json');
 $params = RequestUtils::getRequestParams();
 
 $requiredParams = ['placardId', 'sport', 'action'];
-$allowedActions = ['add', 'remove', 'get'];
+$allowedActions = ['add', 'update', 'remove', 'get'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -50,14 +50,14 @@ try {
                 $response = ["error" => "Invalid card type"];
                 break;
             }
-            $timestamp = $params['timestamp'] ?? null;
+            $timestamp = RequestUtils::getGameTimePosition($placardId);
 
-            if (!$playerId || !$cardType || !$timestamp) {
+            if (!$playerId || !$cardType || ($timestamp === null)) {
                 $response = ["error" => "Missing playerId, cardType or timestamp for add action"];
                 break;
             }
 
-            if(!CardValidationUtils::canAssignCard($redis, $placardId, $sport, (int)$playerId, $cardType)) {
+            if(!CardValidationUtils::canAssignCard($redis, null, $placardId, $sport, (int)$playerId, $cardType)) {
                 $response = ["error" => "Cannot assign card to player according to game rules!"];
                 break;
             }
@@ -85,6 +85,86 @@ try {
                 ];
             } else {
                 $response = ["error" => "Failed to add card event"];
+            }
+            break;
+
+        case 'update':
+            $eventId = $params['eventId'] ?? null;
+            if (!$eventId) {
+                $response = ["error" => "Missing eventId for update action"];
+                break;
+            }
+
+            $cardEventKey = $keys['card_event'] . $eventId;
+
+            if (!$redis->exists($cardEventKey)) {
+                $response = ["error" => "Card event not found"];
+                break;
+            }
+
+            $currentCardData = $redis->hGetAll($cardEventKey);
+
+            $updatedData = [];
+            $isChanged = false;
+
+            if(isset($params['new_playerId'])){
+                //need to check if playerId exists, only possible when there is players data
+                if ($params['new_playerId'] != $currentCardData['playerId']) {
+                    $updatedData['playerId'] = $params['new_playerId'];
+                    $isChanged = true;
+                }
+            }
+
+            if(isset($params['new_cardType'])){
+                if(!in_array($params['new_cardType'], $gameConfig['cards'])) {
+                    $response = ["error" => "Invalid card type"];
+                    break;
+                }
+                $playerIdForValidation = $updatedData['playerId'] ?? $currentCardData['playerId'];
+                if(!CardValidationUtils::canAssignCard($redis, $eventId, $placardId, $sport, (int)$playerIdForValidation, $params['new_cardType'])) {
+                    $response = ["error" => "Cannot assign card to player according to game rules!"];
+                    break;
+                }
+                if ($params['new_cardType'] != $currentCardData['cardType']) {
+                    $updatedData['cardType'] = $params['new_cardType'];
+                    $isChanged = true;
+                }
+            }
+
+            if(isset($params['new_timestamp'])){
+                if ((string)$params['new_timestamp'] !== (string)$currentCardData['timestamp']) {
+                    $updatedData['timestamp'] = $params['new_timestamp'];
+                    $isChanged = true;
+                }
+            }
+
+            $providedUpdateParams = isset($params['new_playerId']) || isset($params['new_cardType']) || isset($params['new_timestamp']);
+
+            if (!$providedUpdateParams || !$isChanged) {
+                $response = ["error" => "No data to update or new values are the same as current values"];
+                break;
+            }
+
+            $updatedData['eventId'] = $eventId;
+            $updatedData['placardId'] = $placardId;
+            $updatedData['playerId'] = $updatedData['playerId'] ?? $currentCardData['playerId'];
+            $updatedData['cardType'] = $updatedData['cardType'] ?? $currentCardData['cardType'];
+            $updatedData['timestamp'] = $updatedData['timestamp'] ?? $currentCardData['timestamp'];
+
+            $timestampForZadd = $updatedData['timestamp'];
+
+            $redis->multi();
+            $redis->hMSet($cardEventKey, $updatedData);
+            $redis->zAdd($gameCardsKey, $timestampForZadd, $cardEventKey);
+            $result = $redis->exec();
+
+            if ($result) {
+                $response = [
+                    "message" => "Card event updated successfully",
+                    "event" => $updatedData
+                ];
+            } else {
+                $response = ["error" => "Failed to update card event"];
             }
             break;
 

@@ -72,4 +72,33 @@ class RequestUtils {
         }
     }
 
+    public static function getGameTimePosition($placardId) {
+        global $redis, $gameConfig;
+        
+        $timerKeys = self::getRedisKeys($placardId, 'timer');
+        
+        $pipeline = $redis->pipeline();
+        $pipeline->get($timerKeys['period']);
+        $pipeline->get($timerKeys['remaining_time']);
+        $pipeline->get($timerKeys['status']);
+        $pipeline->get($timerKeys['start_time']);
+        $results = $pipeline->exec();
+        
+        $period = (int)($results[0] ?: 1);
+        $remainingTime = (int)($results[1] ?: $gameConfig['periodDuration']);
+        $status = $results[2] ?: 'paused';
+        $startTime = (int)($results[3] ?: 0);
+        
+        if ($status === 'running' && $startTime > 0) {
+            $currentTime = time();
+            $elapsedSinceStart = $currentTime - $startTime;
+            $remainingTime = max(0, $remainingTime - $elapsedSinceStart);
+        }
+        
+        $elapsedInPeriod = $gameConfig['periodDuration'] - $remainingTime;
+        
+        $totalElapsed = (($period - 1) * $gameConfig['periodDuration']) + $elapsedInPeriod;
+        
+        return $totalElapsed;
+    }
 }

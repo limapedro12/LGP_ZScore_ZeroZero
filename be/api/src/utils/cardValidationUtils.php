@@ -50,15 +50,25 @@ class CardValidationUtils {
      * Checks if a specific card can be assigned to a player in a game based on sport rules.
      *
      * @param Redis $redis Redis connection instance.
+     * @param string $eventId The ID of the event.
      * @param string $placardId The ID of the game/placard.
      * @param string $sport The sport type ('futsal', 'volleyball', etc.).
      * @param int $playerId The ID of the player.
      * @param string $cardTypeToAssign The type of card to be assigned.
      * @return bool True if the card can be assigned, false otherwise.
      */
-    public static function canAssignCard($redis, $placardId, $sport, $playerId, $cardTypeToAssign): bool {
+    public static function canAssignCard($redis, $eventId, $placardId, $sport, $playerId, $cardTypeToAssign): bool {
         $allCards = self::getGameCards($redis, $placardId);
-        $playerCards = array_filter($allCards, fn($card) => isset($card['playerId']) && $card['playerId'] === $playerId);
+        $playerCards = array_filter($allCards, function($card) use ($playerId, $eventId) {
+            if (!isset($card['playerId']) || $card['playerId'] !== $playerId) {
+                return false;
+            }
+            // if an eventId is provided, do not compute the validation for that card. This is useful when updating a card.
+            if ($eventId !== null && isset($card['eventId']) && $card['eventId'] === $eventId) {
+                return false; 
+            }
+            return true;
+        });
 
         $sportLower = strtolower($sport);
 
