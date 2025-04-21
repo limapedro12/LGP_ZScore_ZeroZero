@@ -25,6 +25,23 @@ interface TimerParams {
 }
 
 /**
+ * Defines the possible score actions that can be sent to the API
+ */
+type ScoreAction = 'add' | 'remove' | 'get_score';
+
+/**
+ * Interface for score request parameters
+ * @property {number} abstractTeamId - The unique identifier for the team
+ * @property {number} placardId - The unique identifier for the game
+ * @property {string} gameType - The type of game (e.g., 'futsal', 'volleyball')
+ */
+interface ScoreParams {
+    abstractTeamId: number;
+    placardId: number;
+    gameType: 'futsal' | 'volleyball';
+}
+
+/**
  * API Manager that handles all API requests
  */
 class ApiManager {
@@ -122,54 +139,61 @@ class ApiManager {
     setTimer = (gameId: string, gameType: string, time: number, period: number) =>
         this.timerRequest('set', { gameId, gameType, time, period });
 
-    /**
-     * Generic method to handle point-related requests
-     *
-     * @param {string} action - The action to perform ('add' or 'remove')
-     * @param {object} params - Parameters for the point request
-     * @returns {Promise<Response>} - Fetch response
-     */
-    pointRequest = (action: 'add' | 'remove', params: { abstractTeamId: number; placardId: number; gameType: string }) => {
-        const url = action === 'add' ? `${BASE_URL}${ENDPOINTS.ADD_POINT()}` : `${BASE_URL}${ENDPOINTS.REMOVE_POINT()}`;
+    scoreRequest = (action: ScoreAction, params: ScoreParams, method: 'GET' | 'POST' = 'POST') => {
+        let url = `${BASE_URL}${ENDPOINTS.SCORE()}`;
+        if (method === 'GET') {
+            url =
+            `${url}?action=${action}&placardId=${params.placardId}&gameType=${params.gameType}&abstractTeamId=${params.abstractTeamId}`;
+        }
+
         const options: RequestInit = {
-            method: 'POST',
+            method,
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(params),
         };
+        if (method === 'POST') {
+            options.body = JSON.stringify({
+                action,
+                ...params,
+            });
+        }
 
         return fetch(url, options);
     };
 
-    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') => {
-        console.log('GameType being sent:', gameType); // Debug
-        return this.pointRequest('add', { abstractTeamId, placardId, gameType });
-    };
+    /**
+     * Adds a point to a specific team in a game
+     *
+     * @param {number} abstractTeamId - The team identifier
+     * @param {number} placardId - The game identifier
+     * @param {'futsal'|'volleyball'} gameType - The type of game
+     * @returns {Promise<Response>} - Fetch response promise
+     */
+    addPoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') =>
+        this.scoreRequest('add', { abstractTeamId, placardId, gameType });
 
+    /**
+     * Removes a point from a specific team in a game
+     *
+     * @param {number} abstractTeamId - The team identifier
+     * @param {number} placardId - The game identifier
+     * @param {'futsal'|'volleyball'} gameType - The type of game
+     * @returns {Promise<Response>} - Fetch response promise
+     */
     removePoint = (abstractTeamId: number, placardId: number, gameType: 'futsal' | 'volleyball') =>
-        this.pointRequest('remove', { abstractTeamId, placardId, gameType });
+        this.scoreRequest('remove', { abstractTeamId, placardId, gameType });
+
+    /**
+     * Gets the current score of a game
+     *
+     * @param {number} placardId - The game identifier
+     * @param {'futsal'|'volleyball'} gameType - The type of game
+     * @returns {Promise<Response>} - Fetch response promise containing the current score
+     */
+    getScore = (placardId: number, gameType: 'futsal' | 'volleyball') =>
+        this.scoreRequest('get_score', { abstractTeamId: 0, placardId, gameType }, 'GET');
 }
 
 const apiManager = new ApiManager();
 export default apiManager;
-
-export async function updateScore(action: 'add' | 'remove', placardId: string, abstractTeamId: number, gameType: 'futsal' | 'volleyball') {
-    const response = await fetch(`http://localhost:8080/score/updateScore?action=${action}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            placardId,
-            abstractTeamId,
-            gameType,
-        }),
-    });
-
-    if (!response.ok) {
-        throw new Error(`Failed to update score: ${response.statusText}`);
-    }
-
-    return response.json();
-}

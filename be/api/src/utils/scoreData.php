@@ -13,105 +13,61 @@
  * @param int $delta Change in score (+1 or -1)
  * @return array Updated score data or error message
  */
-function updateScoreData($redis, $placardId, $abstractTeamId, $gameType, $delta) {
-    try {
-        $prefix = "game:$placardId:";
-        $key = $gameType === 'futsal' ? $prefix . 'futsal' : $prefix . 'volleyball';
+function updateScoreData($redis, $placardId, int $abstractTeamId, string $gameType, int $delta): array {
+    $key = "game:$placardId:$gameType";
 
-        // Inicializar dados se não existirem
-        if (!$redis->exists($key)) {
-            if ($gameType === 'futsal') {
-                initializeFutsalData($redis, $placardId);
-            } elseif ($gameType === 'volleyball') {
-                initializeVolleyballData($redis, $placardId);
-            }
-        }
-
-        // Fetch game data from Redis
-        $gameData = $redis->hGetAll($key);
-        $firstTeamId = $gameData['firstTeamId'];
-        $secondTeamId = $gameData['secondTeamId'];
-
-        if ($gameType === 'volleyball') {
-            // Handle volleyball-specific logic
-            $currentSet = (int)$gameData['currentSet'];
-            $setKey = $prefix . "set:$currentSet";
-
-            if (!$redis->exists($setKey)) {
-                $redis->hMSet($setKey, [
-                    "pointsFirstTeam" => 0,
-                    "pointsSecondTeam" => 0
-                ]);
-            }
-
-            $setData = $redis->hGetAll($setKey);
-            $column = null;
-            $currentPoints = null;
-
-            if ((int)$abstractTeamId === (int)$firstTeamId) {
-                $column = 'pointsFirstTeam';
-                $currentPoints = (int)$setData[$column];
-            } elseif ((int)$abstractTeamId === (int)$secondTeamId) {
-                $column = 'pointsSecondTeam';
-                $currentPoints = (int)$setData[$column];
-            } else {
-                throw new Exception("Team not part of this volleyball placard.");
-            }
-
-            // Prevent points from going negative
-            if ($delta < 0 && $currentPoints <= 0) {
-                throw new Exception("Points cannot go below zero.");
-            }
-
-            // Update the score in Redis
-            $newPoints = $currentPoints + $delta;
-            $redis->hSet($setKey, $column, $newPoints);
-
-            return [
-                'success' => true,
-                'message' => "Score updated successfully",
-                'team' => $abstractTeamId,
-                'newPoints' => $newPoints,
-                'setNumber' => $currentSet
-            ];
-        } else {
-            // Handle futsal-specific logic
-            $column = null;
-            $currentPoints = null;
-
-            if ((int)$abstractTeamId === (int)$firstTeamId) {
-                $column = 'currentGoalsFirstTeam';
-                $currentPoints = (int)$gameData[$column];
-            } elseif ((int)$abstractTeamId === (int)$secondTeamId) {
-                $column = 'currentGoalsSecondTeam';
-                $currentPoints = (int)$gameData[$column];
-            } else {
-                throw new Exception("Team not part of this futsal placard.");
-            }
-
-            // Prevent points from going negative
-            if ($delta < 0 && $currentPoints <= 0) {
-                throw new Exception("Points cannot go below zero.");
-            }
-
-            // Update the score in Redis
-            $newPoints = $currentPoints + $delta;
-            $redis->hSet($key, $column, $newPoints);
-
-            return [
-                'success' => true,
-                'message' => "Score updated successfully",
-                'team' => $abstractTeamId,
-                'newPoints' => $newPoints
-            ];
-        }
-    } catch (Exception $e) {
-        return [
-            'success' => false,
-            'message' => "An error occurred: " . $e->getMessage()
-        ];
+    if (!$redis->exists($key)) {
+        return ['success' => false, 'message' => ucfirst($gameType) . " game data not found in Redis."];
     }
+
+    $gameData = $redis->hGetAll($key);
+    $firstTeamId = (int)$gameData['firstTeamId'];
+    $secondTeamId = (int)$gameData['secondTeamId'];
+
+    $column = null;
+    if ($abstractTeamId === $firstTeamId) {
+        $column = 'pointsFirstTeam';
+    } elseif ($abstractTeamId === $secondTeamId) {
+        $column = 'pointsSecondTeam';
+    } else {
+        return ['success' => false, 'message' => "Team not part of this game."];
+    }
+
+    $currentPoints = (int)$gameData[$column];
+    if ($delta < 0 && $currentPoints <= 0) {
+        return ['success' => false, 'message' => "Points cannot go below zero."];
+    }
+
+    $newPoints = $currentPoints + $delta;
+    $redis->hSet($key, $column, $newPoints);
+
+    return [
+        'success' => true,
+        'message' => "Score updated successfully.",
+        'team' => $abstractTeamId,
+        'newPoints' => $newPoints
+    ];
 }
+
+function getScoreData($redis, $placardId, string $gameType): array {
+    $key = "game:$placardId:$gameType";
+
+    if (!$redis->exists($key)) {
+        return ['success' => false, 'message' => ucfirst($gameType) . " game data not found in Redis."];
+    }
+
+    $gameData = $redis->hGetAll($key);
+
+    return [
+        'success' => true,
+        'data' => [
+            'pointsFirstTeam' => (int)$gameData['pointsFirstTeam'],
+            'pointsSecondTeam' => (int)$gameData['pointsSecondTeam']
+        ]
+    ];
+}
+
+//Para inicializar os dados de um jogo de futsal ou volley no Redis
 
 function initializeFutsalData($redis, $placardId) {
     $key = "game:$placardId:futsal";

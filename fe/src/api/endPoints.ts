@@ -10,6 +10,7 @@ const ENDPOINTS = {
     RESET_TIMER: () => '/timer/timer?action=reset',
     ADD_POINT: () => '/score/updateScore?action=add',
     REMOVE_POINT: () => '/score/updateScore?action=remove',
+    SCORE: () => '/score/updateScore?action=get_score',
 };
 
 export default ENDPOINTS;
