@@ -4,6 +4,8 @@
 
 const ENDPOINTS = {
     TIMER: () => '/timer/timer',
+    TIMEOUTTIMER: () => '/timer/timeoutTimer',
+    TIMEOUT: () => '/timeout/timeout',
 };
 
 export default ENDPOINTS;

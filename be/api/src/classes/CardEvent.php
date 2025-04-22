@@ -3,12 +3,12 @@ require_once 'AbstractEvent.php';
 
 class CardEvent extends AbstractEvent {
     private $player;
-    private $cardColor;
+    private $cardType;
 
-    public function __construct($time = null, string $sport = null, ?AbstractPlacard $placard = null, ?AbstractPlayer $player = null, string $cardColor = null) {
+    public function __construct($time = null, ?string $sport = null, ?AbstractPlacard $placard = null, ?AbstractPlayer $player = null, string $cardType = null) {
         parent::__construct($time, $sport, $placard);
         $this->player = $player;
-        $this->cardColor = $cardColor;
+        $this->cardType = $cardType;
     }
 
     public function loadFromDatabase($conn, $id = null) {}
@@ -23,12 +23,12 @@ class CardEvent extends AbstractEvent {
         $this->player = $player;
     }
 
-    public function getCardColor() {
-        return $this->cardColor;
+    public function getCardType() {
+        return $this->cardType;
     }
 
-    public function setCardColor($cardColor) {
-        $this->cardColor = $cardColor;
+    public function setCardType($cardType) {
+        $this->cardType = $cardType;
     }
 }
 ?>
