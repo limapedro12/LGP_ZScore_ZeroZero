@@ -5,15 +5,12 @@ export async function startPolling(
     url: string,
     interval: number,
 ): Promise<void> {
-    console.log('alala');
     while (isPolling) {
-        const fullUrl = `${url}?number=${latestPollingData}`;
-        const response = await fetch(fullUrl);
+        const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
             latestPollingData = data.result;
         }
-        console.log('Polling:', latestPollingData);
         await sleep(interval);
     }
 }

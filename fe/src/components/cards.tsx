@@ -9,7 +9,7 @@ import { latestPollingData, startPolling, stopPolling } from '../services/pollin
 const Cards: React.FC = () => {
     const [latestData, setLatestData] = useState<number>(0);
     useEffect(() => {
-        startPolling('http://localhost:8080/polling/polling', 5000);
+        startPolling('http://localhost:8080/polling_test/polling_test?number=20', 5000);
 
         const interval = setInterval(() => {
             setLatestData(latestPollingData);

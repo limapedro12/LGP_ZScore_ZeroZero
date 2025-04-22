@@ -3,8 +3,8 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import config from './config/config';
 import HomePage from './pages/home';
-import Cards from './components/cards';
-
+import CardsPolling from './pages/cardsPolling';
+import ScoreBoard from './pages/scoreBoard';
 
 /**
  * AppRouter component
@@ -16,7 +16,8 @@ const AppRouter = () => (
     <BrowserRouter basename={`${config.APP_BASE_ROUTE || ''}`}>
         <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/cards" element={<Cards />} />
+            <Route path="/scoreboard/:gameType/:gameId" element={<ScoreBoard />} />
+            <Route path="/cards" element={<CardsPolling />} />
         </Routes>
     </BrowserRouter>
 );
