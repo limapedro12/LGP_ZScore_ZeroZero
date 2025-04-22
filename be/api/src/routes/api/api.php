@@ -17,7 +17,7 @@ if (!$apiurl) {
     sendError(500, 'API URL not found.');
 }
 
-function sendPostRequest($url, array $data) {
+function sendPostRequest($url, array $data = []) {
     $content = http_build_query($data);
     $header = "Content-type: application/x-www-form-urlencoded\r\n";
 
@@ -25,6 +25,22 @@ function sendPostRequest($url, array $data) {
         'http' => array(
             'header' => $header,
             'method' => 'POST',
+            'content' => $content
+        )
+    );
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+    return $result;
+}
+
+function sendGetRequest($url, array $data = []) {
+    $content = http_build_query($data);
+    $header = "Content-type: application/x-www-form-urlencoded\r\n";
+
+    $options = array(
+        'http' => array(
+            'header' => $header,
+            'method' => 'GET',
             'content' => $content
         )
     );
@@ -45,9 +61,30 @@ function login($apiurl, $appkey, $username, $password) {
     return $response;
 }
 
+function buildMethodUrl($apiurl, $method, $appkey, $cookie) {
+    return $apiurl . $method . '/AppKey/' . $appkey . '/Key/' . $cookie;
+}
 
+function getMatchesColab($apiurl, $appkey, $cookie) {
+    $url = buildMethodUrl($apiurl, 'getMatchesColab', $appkey, $cookie);
+    $response = sendGetRequest($url);
+    return $response;
+}
 
 // Example usage
-$result = login($apiurl, $appkey, $username, $password);
-echo json_encode($result);
+/*
+$loginResponse = login($apiurl, $appkey, $username, $password);
+if ($loginResponse) {
+    $responseData = json_decode($loginResponse, true);
+    if (isset($responseData['data'])) {
+        $cookie = $responseData['data']['Cookie'];
+        $matchesColabResponse = getMatchesColab($apiurl, $appkey, $cookie);
+        echo $matchesColabResponse;
+    } else {
+        echo "Login failed: " . json_encode($responseData);
+    }
+} else {
+    echo "Login request failed.";
+}
+*/
 ?>
