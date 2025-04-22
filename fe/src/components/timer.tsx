@@ -19,6 +19,11 @@ const Timer: React.FC = () => {
     }, [urlplacardId, urlsport]);
 
     const fetchTimerStatus = React.useCallback(async () => {
+
+        if (!placardId || !sport || placardId === 'default' || sport === 'default') {
+            return;
+        }
+
         try {
             const response = await apiManager.getTimerStatus(placardId, sport);
             const data = response;
@@ -32,11 +37,13 @@ const Timer: React.FC = () => {
     }, [placardId, sport]);
 
     useEffect(() => {
-        fetchTimerStatus();
-        const intervalId = setInterval(fetchTimerStatus, 1000);
-
-        return () => clearInterval(intervalId);
-    }, [placardId, fetchTimerStatus]);
+        if (placardId && sport && placardId !== 'default' && sport !== 'default') {
+            fetchTimerStatus();
+            const intervalId = setInterval(fetchTimerStatus, 1000);
+            return () => clearInterval(intervalId);
+        }
+        return undefined;
+    }, [placardId, fetchTimerStatus, sport]);
 
     return (
         <div className="timer">

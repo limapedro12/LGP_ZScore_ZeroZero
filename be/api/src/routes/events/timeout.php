@@ -6,12 +6,14 @@ require_once __DIR__ . '/../../config/gameConfig.php';
 header('Content-Type: application/json');
 
 $params = RequestUtils::getRequestParams();
+$requestMethod = $_SERVER['REQUEST_METHOD'];
 
 $requiredParams = ['placardId', 'sport', 'action'];
 $allowedActions = ['get', 'reset', 'adjust', 'start', 'pause', 'status', 'gameStatus'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
+    http_response_code(400);
     echo json_encode($validationError);
     exit;
 }
@@ -22,11 +24,13 @@ $action = $params['action'] ?? null;
 $team = $params['team'] ?? null;
 
 if ((($action === 'adjust') || ($action === 'start')) && empty($team)) {
+    http_response_code(400);
     echo json_encode(["error" => "Team parameter is required for adjust action"]);
     exit;
 }
 
 if (!empty($team) && !in_array($team, ['home', 'away'])) {
+    http_response_code(400);
     echo json_encode(["error" => "Team parameter must be 'home' or 'away'"]);
     exit;
 } else if (!empty($team)) {
@@ -35,6 +39,7 @@ if (!empty($team) && !in_array($team, ['home', 'away'])) {
 
 $redis = RedistUtils::connect();
 if (!$redis) {
+    http_response_code(500);
     echo json_encode(["error" => "Failed to connect to Redis"]);
     exit;
 }
@@ -57,6 +62,7 @@ try {
     $timeoutDuration = $gameConfig['timeoutDuration']?? null;
 
     if (empty($timeoutDuration)) {
+        http_response_code(500);
         $response = ["error" => "Timeout duration not set in game configuration"];
         echo json_encode($response);
         exit;
@@ -250,6 +256,12 @@ try {
     switch ($action) {
         case 'start':
 
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
+
             if ($status === 'running') {
                 $response = [
                     "message" => "Timeout already in progress for " . $activeTeam . " team",
@@ -271,6 +283,7 @@ try {
             }
 
             if(!checkTimeoutsLimit($team)) {
+                http_response_code(400);
                 $response = [
                     "error" => "Maximum timeouts reached for " . $team . " team from " . $totalTimeoutsPerTeam . " allowed",
                     "status" => $status,
@@ -318,15 +331,24 @@ try {
                     "event" => $result["event"]
                 ];
             } else {
+                http_response_code(500);
                 $response = ["error" => $result["error"]];
             }
             
             break;
 
         case 'pause':
+
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
+
             if ($status !== 'running') {
+                http_response_code(400);
                 $response = [
-                    "message" => "No timeout currently running",
+                    "error" => "No timeout currently running",
                     "status" => $status
                 ];
                 break;
@@ -342,6 +364,13 @@ try {
             ];
             break;
         case 'status':
+
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
+                break;
+            }
+
             $response = [
                 "status" => $status,
                 "team" => $activeTeam,
@@ -349,16 +378,25 @@ try {
             ];
             break;
         case 'adjust':
+
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
+
             $amount = $params['amount'] ?? null;
         
-            if (!isset($amount)) {
-                $response = ["error" => "Missing amount"];
+            if (!isset($amount) || !is_numeric($amount)) {
+                http_response_code(400);
+                $response = ["error" => "Invalid or missing amount. Amount must be a numeric value."];
                 break;
             }
             $amount = intval($amount);
 
             if($amount > 0) {
                 if(!checkTimeoutsLimit($team, $amount)) {
+                    http_response_code(400);
                     $response = [
                         "error" => "Additional timeouts exceed maximum limit for " . $team . " team from " . $totalTimeoutsPerTeam . " allowed",
                         "team" => $team,
@@ -371,6 +409,7 @@ try {
                     $result = createTimeoutEvent($timeoutUpdate['homeTimeouts'], $timeoutUpdate['awayTimeouts'], $team);
                     
                     if (!$result["success"]) {
+                        http_response_code(500);
                         $response = ["error" => $result["error"]];
                         break;
                     }
@@ -388,6 +427,7 @@ try {
                 $teamTimeoutCount = countTeamTimeoutEvents($team);
                 
                 if ($teamTimeoutCount < $removeCount) {
+                    http_response_code(400);
                     $response = [
                         "error" => "Cannot remove $removeCount timeouts. Only $teamTimeoutCount timeouts exist for " . $team . " team",
                         "team" => $team,
@@ -405,10 +445,12 @@ try {
                         "awayTimeoutsUsed" => $result["awayTimeoutsUsed"]
                     ];
                 } else {
+                    http_response_code(500);
                     $response = ["error" => $result["error"]];
                 }
 
             } else {
+                http_response_code(400);
                 $response = [
                     "error" => "Invalid amount. Must be non-zero",
                     "team" => $team,
@@ -418,6 +460,13 @@ try {
             break;
             
         case 'get':
+
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
+                break;
+            }
+
             $timeoutEvents = [];
             $timeoutEventKeys = $redis->zRevRange($keys['game_timeouts'], 0, -1);
     
@@ -435,6 +484,13 @@ try {
             break;
             
         case 'reset':
+
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
+
             $timeoutEventKeys = $redis->zRange($keys['game_timeouts'], 0, -1);
             $eventsCount = count($timeoutEventKeys);
 
@@ -458,6 +514,7 @@ try {
                     "eventsRemoved" => $eventsCount
                 ];
             } else {
+                http_response_code(500);
                 $response = [
                     "success" => false,
                     "error" => "Failed to reset timeout events"
@@ -465,6 +522,13 @@ try {
             }
             break;
         case 'gameStatus':
+
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
+                break;
+            }
+
             $response = [
                 "homeTimeoutsUsed" => intval($redis->get($homeTimeoutsUsedKey) ?: 0),
                 "awayTimeoutsUsed" => intval($redis->get($awayTimeoutsUsedKey) ?: 0),
@@ -472,11 +536,13 @@ try {
             ];
             break;
         default:
+            http_response_code(400);
             $response = ["error" => "Invalid action " . $action];
             break;
     }
     
 } catch (Exception $e) {
+    http_response_code(500);
     $response = ["error" => "An error occurred: " . $e->getMessage()];
 }
 

@@ -6,11 +6,15 @@ require_once __DIR__ . '/../../utils/requestUtils.php';
 header('Content-Type: application/json');
 
 $params = RequestUtils::getRequestParams();
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+
+
 $requiredParams = ['placardId', 'sport', 'action'];
 $allowedActions = ['start', 'pause', 'reset', 'status', 'adjust', 'set'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
+    http_response_code(400);
     echo json_encode($validationError);
     exit;
 }
@@ -21,6 +25,7 @@ $action = $params['action'] ?? null;
 
 $redis = RedistUtils::connect();
 if (!$redis) {
+    http_response_code(500);
     echo json_encode(["error" => "Failed to connect to Redis"]);
     exit;
 }
@@ -45,7 +50,6 @@ try {
         $storedRemaining = $gameConfig['periodDuration'];
     }
     
-    // Calculate remaining time
     $remainingTime = $storedRemaining;
     if ($status === 'running' && $startTime > 0) {
         $remainingTime = max(0, $storedRemaining - ($currentTime - $startTime));
@@ -65,6 +69,12 @@ try {
 
     switch ($action) {
         case 'start':
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
+
             if ($status !== 'running') {
                 if ($redis->get($remainingTimeKey) === false) {
                     $redis->set($remainingTimeKey, $gameConfig['periodDuration']);
@@ -86,6 +96,12 @@ try {
             break;
             
         case 'pause':
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
+
             if ($status === 'running') {
                 $redis->set($remainingTimeKey, $remainingTime);
                 $redis->set($timerStatusKey, 'paused');
@@ -102,6 +118,11 @@ try {
             break;
             
         case 'status':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
+                break;
+            }
             $response = [
                 "message" => "Timer status",
                 "status" => $status,
@@ -112,6 +133,11 @@ try {
             break;
             
         case 'reset':
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
             $redis->set($startTimeKey, 0);
             $redis->set($remainingTimeKey, $gameConfig['periodDuration']);
             $redis->set($timerStatusKey, 'paused');
@@ -127,8 +153,15 @@ try {
             break;
 
         case 'adjust':
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
+
             $seconds = isset($params['seconds']) ? intval($params['seconds']) : null;
             if ($seconds === null) {
+                http_response_code(400);
                 $response = ["error" => "Missing seconds parameter"];
                 break;
             }
@@ -155,15 +188,23 @@ try {
             break;
 
         case 'set':
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
+
             $newTime = isset($params['time']) ? intval($params['time']) : null;
             $newPeriod = isset($params['period']) ? intval($params['period']) : $period;
         
             if ($newTime === null) {
+                http_response_code(400);
                 $response = ["error" => "Missing time parameter"];
                 break;
             }
             
             if ($newTime <= 0) {
+                http_response_code(400);
                 $response = ["error" => "Time must be a positive value"];
                 break;
             }
@@ -175,6 +216,7 @@ try {
             }
             
             if ($newPeriod < 1 || $newPeriod > $gameConfig['periods']) {
+                http_response_code(400);
                 $response = ["error" => "Invalid period value"];
                 break;
             }
@@ -197,10 +239,12 @@ try {
             break;
             
         default:
+            http_response_code(400);
             $response = ["error" => "Invalid action"];
             break;
     }
 } catch (Exception $e) {
+    http_response_code(500);
     $response = ["error" => "An error occurred: " . $e->getMessage()];
 }
 

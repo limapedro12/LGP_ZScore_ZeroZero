@@ -23,7 +23,6 @@ const TimeoutCounter: React.FC = () => {
         try {
             const response = await apiManager.getGameStatus(placardId, sport);
             const data = response;
-            console.log('TimeoutCounter data:', data);
             if (data !== undefined) {
                 const homeTimeouts = Number(data.homeTimeoutsUsed) || 0;
                 const awayTimeouts = Number(data.awayTimeoutsUsed) || 0;
