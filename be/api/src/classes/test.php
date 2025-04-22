@@ -8,6 +8,8 @@ require_once 'VolleyballPlacard.php';
 require_once 'FutsalTeam.php';
 require_once 'FutsalPlayer.php';
 require_once 'FutsalPlacard.php';
+require_once 'CardEvent.php';
+require_once 'AbstractEvent.php';
 
 // Test VolleyballTeam and VolleyballPlayer
 $volleyballTeam = new VolleyballTeam(1, "Volleyball Team A", "logoA.png");
@@ -22,6 +24,15 @@ $volleyballPlacard = new VolleyballPlacard($volleyballTeam, null, false, 1, 2, 2
 $volleyballPlacard->addSetResult(1, 25, 20);
 echo "Volleyball Placard Current Set: " . $volleyballPlacard->getCurrentSet() . "\n";
 echo "Set 1 Result: " . json_encode($volleyballPlacard->getSetNumber(1)) . "\n";
+
+// Test CardEvent
+$cardEvent = new CardEvent(10, "Volleyball", $volleyballPlacard, $volleyballPlayer, "Red");
+$cardEvent->setPlayer($volleyballPlayer);
+$cardEvent->setCardColor("Yellow");
+$volleyballPlacard->addEvent($cardEvent);
+echo "Card Event Player: " . $volleyballPlacard->getEvents()[0]->getPlayer()->getName() . "\n";
+echo "Card Event Color: " . $volleyballPlacard->getEvents()[0]->getCardColor() . "\n";
+
 
 // Test FutsalTeam and FutsalPlayer
 $futsalTeam = new FutsalTeam(2, "Futsal Team B", "logoB.png");
