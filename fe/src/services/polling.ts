@@ -9,7 +9,9 @@ export async function startPolling(
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
-            latestPollingData = data.result;
+            latestPollingData = data.cards;
+        } else {
+            console.error('Failed to fetch polling data:', response.status);
         }
         await sleep(interval);
     }
