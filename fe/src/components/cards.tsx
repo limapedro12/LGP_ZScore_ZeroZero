@@ -8,10 +8,8 @@ import { latestPollingData, startPolling, stopPolling } from '../services/pollin
  * @returns {React.FC} Home page component
  */
 const Cards: React.FC = () => {
-    const [latestData, setLatestData] = useState<any[]>([]); // Assuming latestData is an array
-    const [noYellow, setNoYellow] = useState<number>(0);
-    const [noRed, setNoRed] = useState<number>(0);
-
+    const [latestData, setLatestData] = useState<any | null>(null);
+    const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
     const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
 
     useEffect(() => {
@@ -25,34 +23,46 @@ const Cards: React.FC = () => {
             stopPolling();
             clearInterval(interval);
         };
-    }, []);
+    }, [sport, placardId]);
 
     useEffect(() => {
-        let yellowCount = 0;
-        let redCount = 0;
+        if (latestData === null) return;
 
-        for (let i = 0; i < latestData.length; i++) {
-            if (latestData[i].cardType === 'yellow') {
-                yellowCount++;
-            } else if (latestData[i].cardType === 'red') {
-                redCount++;
+        const counts: Record<string, number> = {};
+
+        if (sport === 'futsal') {
+            counts['yellow'] = 0;
+            counts['red'] = 0;
+        } else if (sport === 'volleyball') {
+            counts['white'] = 0;
+            counts['yellow'] = 0;
+            counts['red'] = 0;
+            counts['yellow_red_together'] = 0;
+            counts['yellow_red_separately'] = 0;
+        }
+
+        for (let i = 0; i < latestData.cards.length; i++) {
+            const cardType = latestData.cards[i].cardType;
+            if (Object.prototype.hasOwnProperty.call(counts, cardType)) {
+                counts[cardType]++;
             }
         }
 
-        setNoYellow(yellowCount);
-        setNoRed(redCount);
-    }, [latestData]);
+        setCardCounts(counts);
+    }, [latestData, sport]);
 
     return (
         <>
-            <p>
-                {noYellow}
-                Yellow Cards
-            </p>
-            <p>
-                {noRed}
-                Red Cards
-            </p>
+            {Object.entries(cardCounts).map(([cardType, count]) => (
+                <p key={cardType}>
+                    {count}
+                    {' '}
+                    {cardType.replace('_', ' ')}
+                    {' '}
+                    Card
+                    {count !== 1 ? 's' : ''}
+                </p>
+            ))}
         </>
     );
 };

@@ -1,4 +1,4 @@
-export let latestPollingData = [];
+export let latestPollingData = null;
 let isPolling = true;
 
 export async function startPolling(
@@ -9,7 +9,7 @@ export async function startPolling(
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
-            latestPollingData = data.cards;
+            latestPollingData = data;
         } else {
             console.error('Failed to fetch polling data:', response.status);
         }
