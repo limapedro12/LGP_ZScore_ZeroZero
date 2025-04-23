@@ -24,10 +24,6 @@ interface TimerParams {
     period?: number;
 }
 
-/**
- * Defines the possible score actions that can be sent to the API
- */
-type ScoreAction = 'add' | 'remove' | 'get_score';
 
 /**
  * Interface for score request parameters
@@ -35,11 +31,6 @@ type ScoreAction = 'add' | 'remove' | 'get_score';
  * @property {number} placardId - The unique identifier for the game
  * @property {string} gameType - The type of game (e.g., 'futsal', 'volleyball')
  */
-interface ScoreParams {
-    abstractTeamId: number;
-    placardId: number;
-    gameType: 'futsal' | 'volleyball';
-}
 
 /**
  * API Manager that handles all API requests
@@ -139,11 +130,22 @@ class ApiManager {
     setTimer = (gameId: string, gameType: string, time: number, period: number) =>
         this.timerRequest('set', { gameId, gameType, time, period });
 
-    scoreRequest = (action: ScoreAction, params: ScoreParams, method: 'GET' | 'POST' = 'POST') => {
+    /**
+     * Generic method to handle all score-related requests
+     *
+     * @param {string} action - The score action to perform (e.g., 'add', 'remove', 'get_score')
+     * @param {Record<string, string | number>} params - Parameters for the score request
+     * @param {('GET'|'POST')} [method='POST'] - HTTP method to use
+     * @returns {Promise<Response>} - Fetch response
+     */
+    scoreRequest = (action: string, params: Record<string, string | number>, method: 'GET' | 'POST' = 'POST') => {
         let url = `${BASE_URL}${ENDPOINTS.SCORE()}`;
         if (method === 'GET') {
-            url =
-            `${url}?action=${action}&placardId=${params.placardId}&gameType=${params.gameType}&abstractTeamId=${params.abstractTeamId}`;
+            const queryParams = new URLSearchParams({
+                action,
+                ...Object.fromEntries(Object.entries(params)),
+            });
+            url = `${url}?${queryParams.toString()}`;
         }
 
         const options: RequestInit = {
@@ -152,6 +154,7 @@ class ApiManager {
                 'Content-Type': 'application/json',
             },
         };
+
         if (method === 'POST') {
             options.body = JSON.stringify({
                 action,
@@ -193,6 +196,38 @@ class ApiManager {
      */
     getScore = (placardId: number, gameType: 'futsal' | 'volleyball') =>
         this.scoreRequest('get_score', { abstractTeamId: 0, placardId, gameType }, 'GET');
+
+    /**
+     * Adds a point event
+     *
+     * @param {string} placardId - The game identifier
+     * @param {string} gameType - The type of game
+     * @param {number} teamId - The team identifier
+     * @returns {Promise<Response>} - Fetch response promise
+     */
+    addPointEvent = (placardId: string, gameType: string, teamId: number) =>
+        this.scoreRequest('add', { placardId, gameType, teamId });
+
+    /**
+     * Removes a point event
+     *
+     * @param {string} placardId - The game identifier
+     * @param {string} gameType - The type of game
+     * @param {number} eventId - The event identifier
+     * @returns {Promise<Response>} - Fetch response promise
+     */
+    removePointEvent = (placardId: string, gameType: string, eventId: number) =>
+        this.scoreRequest('remove', { placardId, gameType, eventId });
+
+    /**
+     * Gets all point events
+     *
+     * @param {string} placardId - The game identifier
+     * @param {string} gameType - The type of game
+     * @returns {Promise<Response>} - Fetch response promise
+     */
+    getPointEvents = (placardId: string, gameType: string) =>
+        this.scoreRequest('get', { placardId, gameType }, 'GET');
 }
 
 const apiManager = new ApiManager();
