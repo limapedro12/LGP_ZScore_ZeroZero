@@ -1,108 +1,81 @@
 <?php
 require_once __DIR__ . '/../../index.php';
-$appkey = getenv('APP_KEY');
-if (!$appkey) {
-    sendError(500, 'App key not found.');
-}
+require_once __DIR__ . '/../../utils/apiUtils.php';
 
-$apiurl = getenv('API_URL');
-if (!$apiurl) {
-    sendError(500, 'API URL not found.');
-}
-
-// Temporary values for testing
-$username = getenv('LOG_USER');
-if (!$username) {
-    sendError(500, 'Username not found.');
-}
-$password = getenv('PASS');
-if (!$password) {
-    sendError(500, 'Password not found.');
-}
-
-
-function sendPostRequest($url, array $data = []) {
-    $content = http_build_query($data);
-    $header = "Content-type: application/x-www-form-urlencoded\r\n";
-
-    $options = array(
-        'http' => array(
-            'header' => $header,
-            'method' => 'POST',
-            'content' => $content
-        )
-    );
-    $context = stream_context_create($options);
-    $result = file_get_contents($url, false, $context);
-    return $result;
-}
-
-function sendGetRequest($url, array $data = []) {
-    $content = http_build_query($data);
-    $header = "Content-type: application/x-www-form-urlencoded\r\n";
-
-    $options = array(
-        'http' => array(
-            'header' => $header,
-            'method' => 'GET',
-            'content' => $content
-        )
-    );
-    $context = stream_context_create($options);
-    $result = file_get_contents($url, false, $context);
-    return $result;
-}
-
-function login($apiurl, $appkey, $username, $password) {
-    $url = $apiurl . 'authUser/AppKey/' . $appkey;
-    $data = [
-        'username' => $username,
-        'password' => $password
-    ];
-
-    $response = sendPostRequest($url, $data);
-    
-    return $response;
-}
-
-function buildMethodUrl($apiurl, $method, $appkey, $cookie) {
-    return $apiurl . $method . '/AppKey/' . $appkey . '/Key/' . $cookie;
-}
-
-function getMatchesColab($apiurl, $appkey, $cookie) {
-    $url = buildMethodUrl($apiurl, 'getMatchesColab', $appkey, $cookie);
-    $response = sendGetRequest($url);
-    return $response;
-}
-
-function getMatchLiveInfo($apiurl, $appkey, $cookie, $matchId) {
-    $url = buildMethodUrl($apiurl, 'getMatchLiveInfo/MathchID/' . $matchId, $appkey, $cookie);
-    $response = sendGetRequest($url);
-    return $response;
-}
-
-function getTeamLive($apiurl, $appkey, $cookie, $matchId, $teamId) {
-    $url = buildMethodUrl($apiurl, 'getTeamLive/MathchID/' . $matchId . '/TeamID/' . $teamId, $appkey, $cookie);
-    $response = sendGetRequest($url);
-    return $response;
-}
-
-// Example usage
-
-/*
-$loginResponse = login($apiurl, $appkey, $username, $password);
-if ($loginResponse) {
-    $responseData = json_decode($loginResponse, true);
-    if (isset($responseData['data'])) {
-        $cookie = $responseData['data']['Cookie'];
-        $matchesColabResponse = getMatchesColab($apiurl, $appkey, $cookie);
-        echo $matchesColabResponse;
-    } else {
-        echo "Login failed: " . json_encode($responseData);
+header('Content-Type: application/json');
+$jsonBody = null;
+if($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = file_get_contents('php://input');
+    if ($input) {
+        $jsonBody = json_decode($input, true);
     }
-} else {
-    echo "Login request failed.";
 }
-*/
+
+$apiurl = GETENV('API_URL');
+if (empty($apiurl)) {
+    echo json_encode(["error" => "API URL not set"]);
+    exit;
+}
+
+$appkey = GETENV('APP_KEY');
+if (empty($appkey)) {
+    echo json_encode(["error" => "API Key not set"]);
+    exit;
+}
+
+$action = $_GET['action'] ?? $jsonBody['action'] ?? null;
+if (is_null($action)) {
+    echo json_encode(["error" => "Missing action"]);
+    exit;
+}
+
+$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive'];
+if (!in_array($action, $allowedActions)) {
+    echo json_encode(["error" => "Invalid action"]);
+    exit;
+}
+
+$username = $_GET['username'] ?? $jsonBody['username'] ?? null;
+$password = $_GET['password'] ?? $jsonBody['password'] ?? null;
+if ((is_null($username) || is_null($password)) && $action === 'login') {
+    echo json_encode(["error" => "Missing username or password"]);
+    exit;
+}
+$cookie = $_GET['cookie'] ?? $jsonBody['cookie'] ?? null;
+if (is_null($cookie) && $action !== 'login') {
+    echo json_encode(["error" => "Missing cookie"]);
+    exit;
+}
+$matchId = $_GET['matchId'] ?? $jsonBody['matchId'] ?? null;
+if (is_null($matchId) && ($action === 'getMatchLiveInfo' || $action === 'getTeamLive')) {
+    echo json_encode(["error" => "Missing matchId"]);
+    exit;
+}
+
+$teamId = $_GET['teamId'] ?? $jsonBody['teamId'] ?? null;
+if (is_null($teamId) && $action === 'getTeamLive') {
+    echo json_encode(["error" => "Missing teamId"]);
+    exit;
+}
+
+switch ($action) {
+    case 'login':
+        $response = login($apiurl, $appkey, $username, $password);
+        break;
+    case 'getMatchesColab':
+        $response = getMatchesColab($apiurl, $appkey, $cookie);
+        break;
+    case 'getMatchLiveInfo':
+        $response = getMatchLiveInfo($apiurl, $appkey, $cookie, $matchId);
+        break;
+    case 'getTeamLive':
+        $response = getTeamLive($apiurl, $appkey, $cookie, $matchId, $teamId);
+        break;
+    default:
+        echo json_encode(["error" => "Invalid action"]);
+        exit;
+}
+
+echo $response;
 
 ?>
