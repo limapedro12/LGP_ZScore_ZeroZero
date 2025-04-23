@@ -13,6 +13,9 @@ function sendPostRequest($url, array $data = []) {
     );
     $context = stream_context_create($options);
     $result = file_get_contents($url, false, $context);
+    if ($result === false){
+        return json_encode(['error' => 'Request failed']);
+    }
     return $result;
 }
 
@@ -29,6 +32,9 @@ function sendGetRequest($url, array $data = []) {
     );
     $context = stream_context_create($options);
     $result = file_get_contents($url, false, $context);
+    if ($result === false){
+        return json_encode(['error' => 'Request failed']);
+    }
     return $result;
 }
 
