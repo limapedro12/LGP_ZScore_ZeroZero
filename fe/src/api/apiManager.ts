@@ -3,8 +3,8 @@ import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status';
-type EndpointType = 'timer' | 'timeoutTimer' | 'timeout'; // Extendable for other endpoints
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get';
+type EndpointType = 'timer' | 'timeoutTimer' | 'timeout' | 'cards'; // Added 'cards'
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
 interface RequestParams {
@@ -47,6 +47,16 @@ interface TimeoutsResponse {
     error?: string;
 }
 
+interface CardsResponse {
+    cards: Array<{
+        eventId: number;
+        placardId: string;
+        playerId: string;
+        cardType: string;
+        timestamp: number;
+    }>;
+}
+
 /**
  * API Manager that handles all API requests
  */
@@ -63,7 +73,6 @@ class ApiManager {
 
         const endpointKey = endpoint.toUpperCase() as EndpointKeyType;
         let url = `${BASE_URL}${ENDPOINTS[endpointKey]()}`;
-
 
         if (method === 'GET') {
             const queryParams = new URLSearchParams({
@@ -143,6 +152,10 @@ class ApiManager {
 
     adjustTimeouts = (placardId: string, gameType: string, team: 'home' | 'away', value: number) =>
         this.makeRequest<TimeoutsResponse>('timeout', 'adjust', { placardId, gameType, team, value });
+
+    // Cards-specific method
+    getCards = (placardId: string, gameType: string): Promise<CardsResponse> =>
+        this.makeRequest<CardsResponse>('cards', 'get', { placardId, gameType }, 'GET');
 }
 
 const apiManager = new ApiManager();
