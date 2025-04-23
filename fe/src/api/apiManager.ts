@@ -153,7 +153,6 @@ class ApiManager {
     adjustTimeouts = (placardId: string, gameType: string, team: 'home' | 'away', value: number) =>
         this.makeRequest<TimeoutsResponse>('timeout', 'adjust', { placardId, gameType, team, value });
 
-    // Cards-specific method
     getCards = (placardId: string, gameType: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, gameType }, 'GET');
 }
