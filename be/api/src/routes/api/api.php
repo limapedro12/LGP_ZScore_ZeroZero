@@ -4,6 +4,13 @@ $appkey = getenv('APP_KEY');
 if (!$appkey) {
     sendError(500, 'App key not found.');
 }
+
+$apiurl = getenv('API_URL');
+if (!$apiurl) {
+    sendError(500, 'API URL not found.');
+}
+
+// Temporary values for testing
 $username = getenv('LOG_USER');
 if (!$username) {
     sendError(500, 'Username not found.');
@@ -12,10 +19,7 @@ $password = getenv('PASS');
 if (!$password) {
     sendError(500, 'Password not found.');
 }
-$apiurl = getenv('API_URL');
-if (!$apiurl) {
-    sendError(500, 'API URL not found.');
-}
+
 
 function sendPostRequest($url, array $data = []) {
     $content = http_build_query($data);
@@ -71,7 +75,20 @@ function getMatchesColab($apiurl, $appkey, $cookie) {
     return $response;
 }
 
+function getMatchLiveInfo($apiurl, $appkey, $cookie, $matchId) {
+    $url = buildMethodUrl($apiurl, 'getMatchLiveInfo/MathchID/' . $matchId, $appkey, $cookie);
+    $response = sendGetRequest($url);
+    return $response;
+}
+
+function getTeamLive($apiurl, $appkey, $cookie, $matchId, $teamId) {
+    $url = buildMethodUrl($apiurl, 'getTeamLive/MathchID/' . $matchId . '/TeamID/' . $teamId, $appkey, $cookie);
+    $response = sendGetRequest($url);
+    return $response;
+}
+
 // Example usage
+
 /*
 $loginResponse = login($apiurl, $appkey, $username, $password);
 if ($loginResponse) {
@@ -87,4 +104,5 @@ if ($loginResponse) {
     echo "Login request failed.";
 }
 */
+
 ?>
