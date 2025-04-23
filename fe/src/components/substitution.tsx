@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import apiManager from '../api/apiManager';
 import '../styles/substitution.scss';
@@ -17,9 +17,12 @@ type Substitution = {
  */
 const Substitution: React.FC = () => {
     const [substitutions, setSubstitutions] = useState<Substitution[]>([]);
-    const [newSubstitutions, setNewSubstitutions] = useState<Substitution[]>([]);
+    const [displayQueue, setDisplayQueue] = useState<Substitution[]>([]);
+    const [currentSubstitution, setCurrentSubstitution] = useState<Substitution | null>(null);
     const [gameId, setGameId] = useState<string>('default');
     const [gameType, setGameType] = useState<string>('default');
+    const displayTimerRef = useRef<NodeJS.Timeout | null>(null);
+
 
     const { gameId: urlGameId, gameType: urlGameType } = useParams<{gameId: string, gameType: string}>();
 
@@ -28,70 +31,104 @@ const Substitution: React.FC = () => {
         if (urlGameType) setGameType(urlGameType);
     }, [urlGameId, urlGameType]);
 
+    const areSubsEqual = (sub1: Substitution, sub2: Substitution): boolean => sub1.substitutionId === sub2.substitutionId &&
+               sub1.playerInId === sub2.playerInId &&
+               sub1.playerOutId === sub2.playerOutId &&
+               sub1.team === sub2.team;
+
     const fetchSubstitutions = React.useCallback(async () => {
+        if (gameId === 'default' || gameType === 'default') return;
+
         try {
             const response = await apiManager.getSubstitutionsStatus(gameId, gameType);
             const currSubstitutions : Substitution[] = response.substitutions || [];
-            const newSubs: Substitution[] = [];
-            currSubstitutions.forEach((sub: Substitution) => {
-                if (!substitutions.some((existingSub : Substitution) => existingSub.substitutionId === sub.substitutionId)) {
-                    newSubs.push(sub);
-                }
+
+            const newSubs = currSubstitutions.filter((apiSub) => {
+
+                const matchingSub = substitutions.find((lastSub : Substitution) =>
+                    lastSub.substitutionId === apiSub.substitutionId
+                );
+
+                // If there's no matching sub or if the details are different, it's a new/updated sub
+                return !matchingSub || !areSubsEqual(apiSub, matchingSub);
             });
-            setNewSubstitutions(newSubs);
+
+            if (newSubs.length > 0) {
+                setDisplayQueue((prev : Substitution[]) => [...prev, ...newSubs]);
+            }
+            setSubstitutions((prev : Substitution[]) => {
+                if (JSON.stringify(prev) !== JSON.stringify(currSubstitutions)) {
+                    return currSubstitutions;
+                }
+                return prev;
+            });
         } catch (error) {
             // console.error('Error fetching substitutions:', error);
         }
-    }, [gameId, gameType, substitutions]);
+    }, [gameId, gameType]);
 
     useEffect(() => {
         if (gameId !== 'default' && gameType !== 'default') {
+            // Initial fetch
             fetchSubstitutions();
-            const intervalId = setInterval(fetchSubstitutions, 15 * 1000);
 
+            // Set up interval to fetch every 15 seconds
+            const intervalId = setInterval(fetchSubstitutions, 15 * 1000);
             return () => clearInterval(intervalId);
         }
         return undefined;
     }, [gameId, gameType, fetchSubstitutions]);
 
     useEffect(() => {
-        const intervalId = setInterval(() => {
-            console.log('newSubs', newSubstitutions);
-            console.log('subs', substitutions);
-            if (newSubstitutions.length > 0) {
-                const nextSubstitution = newSubstitutions[0];
-                setNewSubstitutions((prev : Substitution[]) => prev.slice(1));
-                setTimeout(() => {
-                    setSubstitutions((prev : Substitution[]) => [...prev, nextSubstitution]);
-                }, 15 * 1000); // Display for 15 seconds
-            }
-        }, 5 * 1000);
+        if (displayTimerRef.current) {
+            clearTimeout(displayTimerRef.current);
+            displayTimerRef.current = null;
+        }
 
-        return () => clearInterval(intervalId);
-    }, [newSubstitutions]);
+        // If we're not showing anything and have items in queue, show next one
+        if (!currentSubstitution && displayQueue.length > 0) {
+            const nextSub = displayQueue[0];
+            setDisplayQueue((prev : Substitution[]) => prev.slice(1));
+            setCurrentSubstitution(nextSub);
+
+            // Set timer to clear current sub after 15 seconds
+            displayTimerRef.current = setTimeout(() => {
+                setCurrentSubstitution(null);
+                displayTimerRef.current = null;
+            }, 5 * 1000);
+        }
+    }, [currentSubstitution, displayQueue]);
+
+    useEffect(() =>  () => {
+        if (displayTimerRef.current) {
+            clearTimeout(displayTimerRef.current);
+        }
+    }, []);
+
+    if (!currentSubstitution) {
+        return null;
+    }
 
     return (
         <div className="substitution">
-            {newSubstitutions.length > 0 && (
-                <div className="substitution-box">
-                    <img src="/teamLogo.png" alt="Team Logo" className="team-logo" />
-                    <div className="player-names">
-                        <div className="player-info">
-                            <p className="player-name">John Leaver</p>
-                            <div className="tshirt-img">
-                                {newSubstitutions[0].playerOutId}
-                            </div>
-                        </div>
-                        <div className="player-info">
-                            <p className="player-name">Kid Entering</p>
-                            <div className="tshirt-img">
-                                {newSubstitutions[0].playerInId}
-                            </div>
+            <div className="substitution-box">
+                <img src="/teamLogo.png" alt="Team Logo" className="team-logo" />
+                <div className="player-names">
+                    <div className="player-info">
+                        <p className="player-name">John Leaver</p>
+                        <div className="tshirt-img">
+                            {currentSubstitution.playerOutId}
                         </div>
                     </div>
-                    <img src="/substitutionTriangles.png" alt="Substitution Triangles" className="substitution-triangles" />
+                    <div className="player-info">
+                        <p className="player-name">Kid Entering</p>
+                        <div className="tshirt-img">
+                            {currentSubstitution.playerInId}
+                        </div>
+                    </div>
                 </div>
-            )}
+                <img src="/substitutionTriangles.png" alt="Substitution Triangles" className="substitution-triangles" />
+            </div>
         </div>
     );
 };

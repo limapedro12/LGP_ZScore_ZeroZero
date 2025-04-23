@@ -96,7 +96,7 @@ try {
         case 'list':
             $prefix1Key = "game:$placardId:team:home:";
             $substitutions1 = $redis->lRange($prefix1Key . "substitution_set", 0, -1);
-            var_dump("subs1",$substitutions1);
+            // var_dump("subs1",$substitutions1);
             $substitutionsInfo = [];
             foreach ($substitutions1 as $itSubstitutionId) {
                 $substitutionInfo = json_decode($redis->get($prefix1Key . "substitution:$itSubstitutionId"), true);
@@ -150,7 +150,7 @@ try {
 
                 $newSubstitutionIdKey = $prefixKey . "substitution:$newSubstitutionId";
                 $redis->set($newSubstitutionIdKey,json_encode($substitutionInfo));
-                var_dump("newSubstitutionId", $newSubstitutionId, "subSetKey", $substitutionSetKey,"---");
+                // var_dump("newSubstitutionId", $newSubstitutionId, "subSetKey", $substitutionSetKey,"---");
                 $redis->rPush($substitutionSetKey, $newSubstitutionId);
 
                 $response = [
@@ -212,7 +212,7 @@ try {
                 $ingamePlayers[$oldSubstitution["playerOutId"]] = true;
                 
                 $redis->del($substitutionIdKey);
-                var_dump("substitutionId", $substitutionId, "subSetKey", $substitutionSetKey, "---");
+                // var_dump("substitutionId", $substitutionId, "subSetKey", $substitutionSetKey, "---");
                 $redis->lRem($substitutionSetKey, 0, (string) $substitutionId);
 
                 $response = [
