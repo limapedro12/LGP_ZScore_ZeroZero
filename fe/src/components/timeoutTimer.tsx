@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiManager from '../api/apiManager';
-import { formatTime, gameTypesFormat } from '../utils/timeUtils';
-import '../styles/timer.scss';
+import { formatTime } from '../utils/timeUtils';
+import '../styles/timeoutTimer.scss';
 
-/**
- * Timer component displays the current time and period for a game
- * Automatically updates every second by fetching data from API
- */
-const Timer: React.FC = () => {
+const TimeoutTimer: React.FC = () => {
     // State to track timer information
     const [elapsedTime, setElapsedTime] = useState(0);
-    const [period, setPeriod] = useState(0);
+    const [status, setStatus] = useState('default');
     const [gameId, setGameId] = useState<string>('default');
     const [gameType, setGameType] = useState<string>('default');
+    const [team, setTeam] = useState<string>('');
 
     const { gameId: urlGameId, gameType: urlGameType } = useParams<{ gameId: string, gameType: string }>();
 
@@ -24,11 +21,12 @@ const Timer: React.FC = () => {
 
     const fetchTimerStatus = React.useCallback(async () => {
         try {
-            const response = await apiManager.getTimerStatus(gameId, gameType);
+            const response = await apiManager.getTimeoutTimerStatus(gameId, gameType);
             const data = await response;
-            if (data.remaining_time !== undefined && data.period !== undefined) {
+            if (data.remaining_time !== undefined) {
                 setElapsedTime(data.remaining_time);
-                setPeriod(data.period);
+                setStatus(data.status);
+                setTeam(data.team || '');
             }
         } catch (error) {
             console.error('Error fetching timer status:', error);
@@ -42,16 +40,16 @@ const Timer: React.FC = () => {
         return () => clearInterval(intervalId);
     }, [gameId, fetchTimerStatus]);
 
-    return (
-        <div className="timer">
-            <div className="period">
-                {gameTypesFormat(gameType, period)}
-            </div>
-            <div className="time">
-                {formatTime(elapsedTime)}
+    // Only render the timer if status is not 'inactive'
+    return status !== 'inactive' ? (
+        <div className="timeout-timer">
+            <div className="timeout-time">
+                {team === 'home' && <div className="arrow arrow-left" />}
+                {formatTime(elapsedTime, true)}
+                {team === 'away' && <div className="arrow arrow-right" />}
             </div>
         </div>
-    );
+    ) : null;
 };
 
-export default Timer;
+export default TimeoutTimer;

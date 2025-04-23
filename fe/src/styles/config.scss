@@ -3,9 +3,16 @@
 // Colors
 $background-color: #2C3E50;
 $text-color: #ffffff;
+$secondary-text-color: #000000;
 
 // Typography
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto:wght@400;700&display=swap');
 
 $font-primary: 'Roboto', sans-serif;
 $font-secondary: 'Inter', sans-serif;
+
+body, html {
+    min-height: 100vh;
+    min-width: 400px;
+    width: 100%;
+}
