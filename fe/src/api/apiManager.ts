@@ -7,6 +7,7 @@ const BASE_URL = `${config.API_HOSTNAME}`;
  * Defines the possible timer actions that can be sent to the API
  */
 type TimerAction = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status';
+type ApiAction = 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
 
 /**
  * Interface for timer request parameters
@@ -22,6 +23,15 @@ interface TimerParams {
     seconds?: number;
     time?: number;
     period?: number;
+}
+
+interface ApiParams {
+    action: ApiAction;
+    username?: string;
+    password?: string;
+    matchId?: string;
+    teamId?: string;
+    cookie?: string;
 }
 
 /**
@@ -121,6 +131,32 @@ class ApiManager {
      */
     setTimer = (gameId: string, gameType: string, time: number, period: number) =>
         this.timerRequest('set', { gameId, gameType, time, period });
+    apiRequest = (apiAction: ApiAction, params: ApiParams, method: 'GET'|'POST' = 'POST') => {
+        const url = `${BASE_URL}${ENDPOINTS.API()}`;
+        const options: RequestInit = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                apiAction,
+                ...params,
+            }),
+        };
+
+        return fetch(url, options);
+    };
+    login = async (username: string, password: string) => {
+        const response = await this.apiRequest('login', { action: 'login', username: username, password: password });
+        /* Code used to check login response
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Response:', data);
+            return data;
+        }
+        */
+        return response;
+    };
 }
 
 const apiManager = new ApiManager();

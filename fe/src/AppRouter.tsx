@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import config from './config/config';
 import HomePage from './pages/home';
 import ScoreBoard from './pages/scoreBoard';
+import LoginPage from './pages/login';
 
 /**
  * AppRouter component
@@ -16,6 +17,7 @@ const AppRouter = () => (
         <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/scoreboard/:gameType/:gameId" element={<ScoreBoard />} />
+            <Route path="/login" element={<LoginPage />} />
         </Routes>
     </BrowserRouter>
 );
