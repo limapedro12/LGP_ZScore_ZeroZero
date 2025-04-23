@@ -17,7 +17,7 @@ const AppRouter = () => (
         <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/scoreboard/:gameType/:gameId" element={<ScoreBoard />} />
-            <Route path="/cards" element={<CardsPolling />} />
+            <Route path="/cards/:sport/:placardId" element={<CardsPolling />} />
         </Routes>
     </BrowserRouter>
 );

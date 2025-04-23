@@ -1,4 +1,4 @@
-export let latestPollingData = 0;
+export let latestPollingData = [];
 let isPolling = true;
 
 export async function startPolling(

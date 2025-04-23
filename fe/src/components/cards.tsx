@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { latestPollingData, startPolling, stopPolling } from '../services/polling';
 
 /**
@@ -11,8 +12,10 @@ const Cards: React.FC = () => {
     const [noYellow, setNoYellow] = useState<number>(0);
     const [noRed, setNoRed] = useState<number>(0);
 
+    const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
+
     useEffect(() => {
-        startPolling('http://localhost:8080/events/card?action=get&placardId=1&sport=volleyball', 5000);
+        startPolling(`http://localhost:8080/events/card?action=get&placardId=${placardId}&sport=${sport}`, 5000);
 
         const interval = setInterval(() => {
             setLatestData(latestPollingData);
