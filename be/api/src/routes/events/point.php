@@ -53,12 +53,18 @@ try {
     $gameConfig = new GameConfig();
     $gameConfig = $gameConfig->getConfig($sport);
 
-    if (!isset($keys['game_points']) || !isset($keys['event_counter'])) {
-        throw new Exception("Missing required keys in Redis.");
-    }
-
     $gamePointsKey = $keys['game_points'];
     $eventCounterKey = $keys['event_counter'];
+    $homePointsKey = $keys['home_points'];
+    $awayPointsKey = $keys['away_points'];
+
+    $pipeline = $redis->pipeline();
+    $pipeline->get($homePointsKey);
+    $pipeline->get($awayPointsKey);
+    $results = $pipeline->exec();
+
+    $homePoints = $results[0] ?? 0;
+    $awayPoints = $results[1] ?? 0;
 
     switch ($action) {
         case 'add':
@@ -71,6 +77,15 @@ try {
             $points = $gameConfig['points'];
             $playerId = $params['playerId'] ?? null;
 
+            if($sport === 'basketball'){
+                $triple = $params['triple'] ?? null;
+                if ($triple) {
+                    $points = $points[1];
+                } else {
+                    $points = $points[0];
+                }
+            }
+
             if (!PointValidationUtils::canModifyPoints()) {
                 http_response_code(400);
                 $response = ["error" => "Cannot add points at this time."];
@@ -79,6 +94,18 @@ try {
 
             $eventId = $redis->incr($eventCounterKey);
             $pointEventKey = $keys['point_event'] . $eventId;
+
+            if ($team === 'home') {
+                $points = $homePoints + $points;
+                $redis->set($homePointsKey, $points);
+            } else if ($team === 'away') {
+                $points = $awayPoints + $points;
+                $redis->set($awayPointsKey, $points);
+            } else {
+                http_response_code(400);
+                $response = ["error" => "Invalid team specified"];
+                break;
+            }
 
             $timestamp = RequestUtils::getGameTimePosition($placardId);
 
@@ -113,7 +140,7 @@ try {
                http_response_code(405); 
                $response = ["error" => "Invalid request method. Only POST is allowed for remove action."];
                break;
-           }
+            }
 
            $eventId = $params['eventId'] ?? null;
 
