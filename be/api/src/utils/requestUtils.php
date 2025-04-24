@@ -67,6 +67,12 @@ class RequestUtils {
                     'status' => $prefix . 'timeout_status',
                     'team' => $prefix . 'timeout_team',
                 ];
+            case 'cards':
+                return [
+                    'game_cards' => $prefix . 'cards',
+                    'event_counter' => $prefix . 'eventcounter',
+                    'card_event' => 'cardevent:'
+                ];
         }
     }
 
@@ -74,10 +80,6 @@ class RequestUtils {
         global $redis, $gameConfig;
         
         $timerKeys = self::getRedisKeys($placardId, 'timer');
-
-        if(!isset($gameConfig['periodDuration'])){
-            return 0;
-        }
         
         $pipeline = $redis->pipeline();
         $pipeline->get($timerKeys['period']);
@@ -103,5 +105,4 @@ class RequestUtils {
         
         return $totalElapsed;
     }
-
 }
