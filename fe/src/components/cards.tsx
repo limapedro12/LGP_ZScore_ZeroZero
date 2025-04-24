@@ -37,7 +37,7 @@ const Cards: React.FC = () => {
 
             setCardCounts(counts);
             data.cards.sort((a, b) => b.timestamp - a.timestamp);
-            const lastCards = data.cards.slice(-5).reverse();
+            const lastCards = data.cards.slice(0, 5);
             setLastCards(lastCards);
         } catch (error) {
             console.error('Error fetching cards:', error);
