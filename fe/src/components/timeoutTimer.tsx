@@ -5,42 +5,47 @@ import { formatTime } from '../utils/timeUtils';
 import '../styles/timeoutTimer.scss';
 
 const TimeoutTimer: React.FC = () => {
-    // State to track timer information
     const [elapsedTime, setElapsedTime] = useState(0);
     const [status, setStatus] = useState('default');
-    const [gameId, setGameId] = useState<string>('default');
-    const [gameType, setGameType] = useState<string>('default');
+    const [placardId, setplacardId] = useState<string>('default');
+    const [sport, setsport] = useState<string>('default');
     const [team, setTeam] = useState<string>('');
 
-    const { gameId: urlGameId, gameType: urlGameType } = useParams<{ gameId: string, gameType: string }>();
+    const { placardId: urlplacardId, sport: urlsport } = useParams<{ placardId: string, sport: string }>();
 
     useEffect(() => {
-        if (urlGameId) setGameId(urlGameId);
-        if (urlGameType) setGameType(urlGameType);
-    }, [urlGameId, urlGameType]);
+        if (urlplacardId) setplacardId(urlplacardId);
+        if (urlsport) setsport(urlsport);
+    }, [urlplacardId, urlsport]);
 
     const fetchTimerStatus = React.useCallback(async () => {
+
+        if (!placardId || !sport || placardId === 'default' || sport === 'default') {
+            return;
+        }
+
         try {
-            const response = await apiManager.getTimeoutTimerStatus(gameId, gameType);
-            const data = await response;
+            const response = await apiManager.getTimeoutStatus(placardId, sport);
+            const data = response;
             if (data.remaining_time !== undefined) {
                 setElapsedTime(data.remaining_time);
-                setStatus(data.status);
+                setStatus(data.status || 'default');
                 setTeam(data.team || '');
             }
         } catch (error) {
             console.error('Error fetching timer status:', error);
         }
-    }, [gameId, gameType]);
+    }, [placardId, sport]);
 
     useEffect(() => {
-        fetchTimerStatus();
-        const intervalId = setInterval(fetchTimerStatus, 1000);
+        if (placardId && sport && placardId !== 'default' && sport !== 'default') {
+            fetchTimerStatus();
+            const intervalId = setInterval(fetchTimerStatus, 1000);
+            return () => clearInterval(intervalId);
+        }
+        return undefined;
+    }, [placardId, fetchTimerStatus, sport]);
 
-        return () => clearInterval(intervalId);
-    }, [gameId, fetchTimerStatus]);
-
-    // Only render the timer if status is not 'inactive'
     return status !== 'inactive' ? (
         <div className="timeout-timer">
             <div className="timeout-time">
