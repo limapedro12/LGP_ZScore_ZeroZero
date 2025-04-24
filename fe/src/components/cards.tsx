@@ -9,7 +9,7 @@ import apiManager from '../api/apiManager';
  */
 const Cards: React.FC = () => {
     const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
-    const [lastCards, setLastCards] = useState<Array<{ cardType: string; timestamp: number, playerId: number}>>([]);
+    const [lastCards, setLastCards] = useState<Array<any>>([]);
     const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
 
     const fetchCards = React.useCallback(async () => {
@@ -44,6 +44,14 @@ const Cards: React.FC = () => {
         }
     }, [placardId, sport]);
 
+    const labels: Record<string, string> = {
+        yellow: 'Amarelo',
+        red: 'Vermelho',
+        white: 'Branco',
+        'yellow_red_together': 'Amarelo e Vermelho Juntos',
+        'yellow_red_separately': 'Amarelo e Vermelho Separados',
+    };
+
     useEffect(() => {
         fetchCards();
         const intervalId = setInterval(fetchCards, 5000);
@@ -56,18 +64,19 @@ const Cards: React.FC = () => {
             {Object.entries(cardCounts).map(([cardType, count]) => (
                 <p key={cardType}>
                     {count}
-                    {cardType.replace('_', ' ')}
-                    Card
-                    {count !== 1 ? 's' : ''}
+                    {' '}
+                    {labels[cardType] || cardType}
                 </p>
             ))}
             <div>
-                <h2>Last Cards</h2>
+                <h2>Últimos Cartões</h2>
                 <ol>
                     {lastCards.map((card, index) => (
                         <li key={index}>
-                            {card.cardType}
+                            {labels[card.cardType] || card.cardType}
+                            {' '}
                             -
+                            {' '}
                             {card.playerId}
                         </li>
                     ))}
