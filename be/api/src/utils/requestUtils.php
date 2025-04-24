@@ -56,12 +56,16 @@ class RequestUtils {
                 ];
             case 'timeout':
                 return [
+                    'game_timeouts' => $prefix . 'timeouts',
+                    'event_counter' => $prefix . 'event_counter',
+                    'timeout_event' => $prefix . 'timeout_event:',
+                    'home_timeouts_used' => $prefix . 'home_timeouts_used',
+                    'away_timeouts_used' => $prefix . 'away_timeouts_used',
+
                     'start_time' => $prefix . 'timeout_start_time',
                     'remaining_time' => $prefix . 'timeout_remaining_time',
                     'status' => $prefix . 'timeout_status',
                     'team' => $prefix . 'timeout_team',
-                    "home_timeout" => $prefix . 'home_timeout',
-                    "away_timeout" => $prefix . 'away_timeout',
                 ];
             case 'cards':
                 return [
@@ -73,38 +77,44 @@ class RequestUtils {
                 return [
                     'game_points' => $prefix . 'points',
                     'event_counter' => $prefix . 'eventcounter',
-                    'point_event' => $prefix . 'point_event:'
+                    'point_event' => $prefix . 'point_event:',
+                    'home_points' => $prefix . 'home_points',
+                    'away_points' => $prefix . 'away_points',
                 ];
         }
     }
 
     public static function getGameTimePosition($placardId) {
         global $redis, $gameConfig;
-
+        
         $timerKeys = self::getRedisKeys($placardId, 'timer');
 
+        if(!isset($gameConfig['periodDuration'])){
+            return 0;
+        }
+        
         $pipeline = $redis->pipeline();
         $pipeline->get($timerKeys['period']);
         $pipeline->get($timerKeys['remaining_time']);
         $pipeline->get($timerKeys['status']);
         $pipeline->get($timerKeys['start_time']);
         $results = $pipeline->exec();
-
+        
         $period = (int)($results[0] ?: 1);
         $remainingTime = (int)($results[1] ?: $gameConfig['periodDuration']);
         $status = $results[2] ?: 'paused';
         $startTime = (int)($results[3] ?: 0);
-
+        
         if ($status === 'running' && $startTime > 0) {
             $currentTime = time();
             $elapsedSinceStart = $currentTime - $startTime;
             $remainingTime = max(0, $remainingTime - $elapsedSinceStart);
         }
-
+        
         $elapsedInPeriod = $gameConfig['periodDuration'] - $remainingTime;
-
+        
         $totalElapsed = (($period - 1) * $gameConfig['periodDuration']) + $elapsedInPeriod;
-
+        
         return $totalElapsed;
     }
 }

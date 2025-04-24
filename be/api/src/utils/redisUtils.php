@@ -1,6 +1,6 @@
 <?php
 
-class RedisUtils {
+class RedistUtils {
     /**
      * Connects to Redis server using persistent connection
      *
@@ -12,7 +12,7 @@ class RedisUtils {
         $port = getenv('REDIS_PORT');
         try {
             $redis = new Redis();
-
+            
             // Use persistent connection
             if (!$redis->pconnect($host, $port, $timeout, 'lgp_timer_persistent')) {
                 error_log("Failed to connect to Redis at $host:$port");

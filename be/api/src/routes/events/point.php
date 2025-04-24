@@ -1,28 +1,16 @@
 <?php
 require_once __DIR__ . '/../../utils/redisUtils.php';
 require_once __DIR__ . '/../../utils/requestUtils.php';
-require_once __DIR__ . '/../../classes/AbstractEvent.php';
-require_once __DIR__ . '/../../classes/PointEvent.php';
 require_once __DIR__ . '/../../config/gameConfig.php';
-require_once __DIR__ . '/../../classes/FutsalPlacard.php';
-require_once __DIR__ . '/../../classes/VolleyballPlacard.php';
+require_once __DIR__ . '/../../utils/PointValidationUtils.php';
 
 header('Content-Type: application/json');
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
+$params = RequestUtils::getRequestParams();
 
-// Processar o corpo da requisição para métodos GET
-if ($requestMethod === 'GET') {
-    $input = file_get_contents('php://input');
-    if (!empty($input)) {
-        $params = json_decode($input, true) ?? [];
-    }
-} else {
-    $params = RequestUtils::getRequestParams();
-}
-
-$requiredParams = ['placardId', 'sport', 'action']; // Alterado para 'sport'
-$allowedActions = ['add', 'remove', 'get'];
+$requiredParams = ['placardId', 'sport', 'action'];
+$allowedActions = ['get', 'add', 'remove'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -34,8 +22,23 @@ if ($validationError) {
 $placardId = $params['placardId'] ?? null;
 $action = $params['action'] ?? null;
 $sport = $params['sport'] ?? null;
+$team = $params['team'] ?? null;
 
-$redis = RedisUtils::connect();
+if (($action !== 'get') && empty($team)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Team parameter is required for " . $action . " action"]);
+    exit;
+}
+
+if (!empty($team) && !in_array($team, ['home', 'away'])) {
+    http_response_code(400);
+    echo json_encode(["error" => "Team parameter must be 'home' or 'away'"]);
+    exit;
+} else if (!empty($team)) {
+    $team = strtolower($team);
+}
+
+$redis = RedistUtils::connect();
 if (!$redis) {
     http_response_code(500);
     echo json_encode(["error" => "Failed to connect to Redis"]);
@@ -45,13 +48,10 @@ if (!$redis) {
 $response = [];
 
 try {
-    if (!$sport) {
-        http_response_code(400);
-        echo json_encode(["error" => "Missing or invalid sport"]);
-        exit;
-    }
-
     $keys = RequestUtils::getRedisKeys($placardId, 'points');
+
+    $gameConfig = new GameConfig();
+    $gameConfig = $gameConfig->getConfig($sport);
 
     if (!isset($keys['game_points']) || !isset($keys['event_counter'])) {
         throw new Exception("Missing required keys in Redis.");
@@ -59,16 +59,6 @@ try {
 
     $gamePointsKey = $keys['game_points'];
     $eventCounterKey = $keys['event_counter'];
-
-    // Incrementar o contador de eventos e criar a chave do evento
-    $eventId = $redis->incr($eventCounterKey);
-    $timestamp = time();
-    $pointEventKey = $keys['point_event'] . $eventId;
-
-    $redis->zAdd($gamePointsKey, $timestamp, $pointEventKey);
-
-    $gameConfig = new GameConfig();
-    $gameConfig = $gameConfig->getConfig($sport);
 
     switch ($action) {
         case 'add':
@@ -78,279 +68,84 @@ try {
                 break;
             }
 
-            $teamId = $params['teamId'] ?? null;
             $points = $gameConfig['points'];
+            $playerId = $params['playerId'] ?? null;
 
-            if (!$teamId) {
+            if (!PointValidationUtils::canModifyPoints()) {
                 http_response_code(400);
-                $response = ["error" => "Missing teamId for add action"];
+                $response = ["error" => "Cannot add points at this time."];
                 break;
             }
 
-            // Determinar o tipo de jogo
-            if ($sport === 'futsal') {
-                // Carregar os dados do placard do Redis
-                $placardData = $redis->hGetAll("placard:{$placardId}");
+            $eventId = $redis->incr($eventCounterKey);
+            $pointEventKey = $keys['point_event'] . $eventId;
 
-                // Inicializar os valores do placard
-                $currentGoalsFirstTeam = isset($placardData['currentGoalsFirstTeam']) ? (int)$placardData['currentGoalsFirstTeam'] : 0;
-                $currentGoalsSecondTeam = isset($placardData['currentGoalsSecondTeam']) ? (int)$placardData['currentGoalsSecondTeam'] : 0;
+            $timestamp = RequestUtils::getGameTimePosition($placardId);
 
-                // Criar objetos FutsalTeam para o placard
-                $firstTeam = new FutsalTeam(1); // ID do time 1
-                $secondTeam = new FutsalTeam(2); // ID do time 2
+            $pointData = [
+                'eventId' => $eventId,
+                'placardId' => $placardId,
+                'team' => $team,
+                'playerId' => $playerId,
+                'points' => $points,
+                'timestamp' => $timestamp,
+            ];
 
-                // Instanciar o placard com os times
-                $placard = new FutsalPlacard($firstTeam, $secondTeam);
+            $redis->multi();
+            $redis->hMSet($pointEventKey, $pointData);
+            $redis->zAdd($gamePointsKey, $timestamp, $pointEventKey);
+            $result = $redis->exec();
 
-                // Atualizar os pontos com base no teamId
-                if ($teamId === 1) {
-                    $currentGoalsFirstTeam += $points;
-                    $placard->setCurrentGoalsFirstTeam($currentGoalsFirstTeam);
-                } elseif ($teamId === 2) {
-                    $currentGoalsSecondTeam += $points;
-                    $placard->setCurrentGoalsSecondTeam($currentGoalsSecondTeam);
-                } else {
-                    http_response_code(400);
-                    $response = ["error" => "Invalid teamId for futsal"];
-                    break;
-                }
-
-                // Salvar os dados atualizados no Redis
-                $redis->hMSet("placard:{$placardId}", [
-                    'currentGoalsFirstTeam' => $currentGoalsFirstTeam,
-                    'currentGoalsSecondTeam' => $currentGoalsSecondTeam,
-                ]);
-
-                // Salvar os dados do evento no Redis
-                $redis->hMSet($pointEventKey, [
-                    'eventId' => $eventId,
-                    'placardId' => $placardId,
-                    'teamId' => $teamId,
-                    'timestamp' => $timestamp,
-                    'points' => $points,
-                    'totalPoints' => $teamId === 1 ? $currentGoalsFirstTeam : $currentGoalsSecondTeam
-                ]);
-
-                // Retornar os pontos atualizados
-                $totalPoints = $teamId === 1 ? $currentGoalsFirstTeam : $currentGoalsSecondTeam;
-
-                http_response_code(201);
+            if ($result) {
+                http_response_code(201); 
                 $response = [
                     "message" => "Point event added successfully",
-                    "event" => [
-                        "eventId" => $eventId,
-                        "placardId" => $placardId,
-                        "teamId" => $teamId,
-                        "timestamp" => $timestamp,
-                        "totalPoints" => $totalPoints
-                    ]
-                ];
-            } elseif ($sport === 'volleyball') {
-                // Parâmetro adicional para volleyball
-                $setNumber = $params['setNumber'] ?? 1;
-
-                // Carregar os dados do placard do Redis
-                $placardData = $redis->hGetAll("placard:{$placardId}");
-
-                // Inicializar placard e sets
-                $placard = new VolleyballPlacard();
-                $currentSet = isset($placardData['currentSet']) ? (int)$placardData['currentSet'] : $setNumber;
-                $placard->setCurrentSet($currentSet);
-
-                // Recuperar pontos atuais do set
-                $pointsFirst = isset($placardData["set{$currentSet}_pointsFirst"]) ? (int)$placardData["set{$currentSet}_pointsFirst"] : 0;
-                $pointsSecond = isset($placardData["set{$currentSet}_pointsSecond"]) ? (int)$placardData["set{$currentSet}_pointsSecond"] : 0;
-
-                // Atualizar pontos
-                if ($teamId === 1) {
-                    $pointsFirst += $points;
-                } elseif ($teamId === 2) {
-                    $pointsSecond += $points;
-                } else {
-                    http_response_code(400);
-                    $response = ["error" => "Invalid teamId for volleyball"];
-                    break;
-                }
-
-                // Salvar resultado do set no placard
-                $placard->addSetResult($currentSet, $pointsFirst, $pointsSecond);
-
-                // Salvar dados atualizados no Redis
-                $redis->hMSet("placard:{$placardId}", [
-                    'currentSet' => $currentSet,
-                    "set{$currentSet}_pointsFirst" => $pointsFirst,
-                    "set{$currentSet}_pointsSecond" => $pointsSecond,
-                ]);
-
-                // Salvar evento do ponto
-                $redis->hMSet($pointEventKey, [
-                    'eventId' => $eventId,
-                    'placardId' => $placardId,
-                    'teamId' => $teamId,
-                    'setNumber' => $currentSet,
-                    'timestamp' => $timestamp,
-                    'points' => $points,
-                    'totalPoints' => $teamId === 1 ? $pointsFirst : $pointsSecond
-                ]);
-
-                $totalPoints = $teamId === 1 ? $pointsFirst : $pointsSecond;
-
-                http_response_code(201);
-                $response = [
-                    "message" => "Point event added successfully",
-                    "event" => [
-                        "eventId" => $eventId,
-                        "placardId" => $placardId,
-                        "teamId" => $teamId,
-                        "setNumber" => $currentSet,
-                        "timestamp" => $timestamp,
-                        "totalPoints" => $totalPoints
-                    ]
+                    "event" => $pointData
                 ];
             } else {
-                http_response_code(400);
-                $response = ["error" => "Unsupported sport type"];
+                http_response_code(500);
+                $response = ["error" => "Failed to add point event"];
             }
             break;
 
         case 'remove':
             if ($requestMethod !== 'POST') {
-                http_response_code(405);
-                $response = ["error" => "Invalid request method. Only POST is allowed for add action."];
-                break;
-            }
+               http_response_code(405); 
+               $response = ["error" => "Invalid request method. Only POST is allowed for remove action."];
+               break;
+           }
 
-            $teamId = $params['teamId'] ?? null;
-            $points = $gameConfig['points'];
+           $eventId = $params['eventId'] ?? null;
 
-            if (!$teamId) {
-                http_response_code(400);
-                $response = ["error" => "Missing teamId for add action"];
-                break;
-            }
+           if (!$eventId) {
+               http_response_code(400);
+               $response = ["error" => "Missing eventId for remove action"];
+               break;
+           }
 
-            // Determinar o tipo de jogo
-            if ($sport === 'futsal') {
-                // Carregar os dados do placard do Redis
-                $placardData = $redis->hGetAll("placard:{$placardId}");
+           $pointEventKey = $keys['point_event'] . $eventId;
 
-                // Inicializar os valores do placard
-                $currentGoalsFirstTeam = isset($placardData['currentGoalsFirstTeam']) ? (int)$placardData['currentGoalsFirstTeam'] : 0;
-                $currentGoalsSecondTeam = isset($placardData['currentGoalsSecondTeam']) ? (int)$placardData['currentGoalsSecondTeam'] : 0;
+           if (!$redis->exists($pointEventKey)) {
+               http_response_code(404); 
+               $response = ["error" => "Point event not found"];
+               break;
+           }
 
-                // Criar objetos FutsalTeam para o placard
-                $firstTeam = new FutsalTeam(1); // ID do time 1
-                $secondTeam = new FutsalTeam(2); // ID do time 2
+           $redis->multi();
+           $redis->del($pointEventKey);
+           $redis->zRem($gameCardsKey, $pointEventKey);
+           $result = $redis->exec();
 
-                // Instanciar o placard com os times
-                $placard = new FutsalPlacard($firstTeam, $secondTeam);
-
-                // Atualizar os pontos com base no teamId
-                if ($teamId === 1) {
-                    $currentGoalsFirstTeam -= $points;
-                    $placard->setCurrentGoalsFirstTeam($currentGoalsFirstTeam);
-                } elseif ($teamId === 2) {
-                    $currentGoalsSecondTeam -= $points;
-                    $placard->setCurrentGoalsSecondTeam($currentGoalsSecondTeam);
-                } else {
-                    http_response_code(400);
-                    $response = ["error" => "Invalid teamId for futsal"];
-                    break;
-                }
-
-                // Salvar os dados atualizados no Redis
-                $redis->hMSet("placard:{$placardId}", [
-                    'currentGoalsFirstTeam' => $currentGoalsFirstTeam,
-                    'currentGoalsSecondTeam' => $currentGoalsSecondTeam,
-                ]);
-
-                // Salvar os dados do evento no Redis
-                $redis->hMSet($pointEventKey, [
-                    'eventId' => $eventId,
-                    'placardId' => $placardId,
-                    'teamId' => $teamId,
-                    'timestamp' => $timestamp,
-                    'points' => $points,
-                    'totalPoints' => $teamId === 1 ? $currentGoalsFirstTeam : $currentGoalsSecondTeam
-                ]);
-
-                // Retornar os pontos atualizados
-                $totalPoints = $teamId === 1 ? $currentGoalsFirstTeam : $currentGoalsSecondTeam;
-
-                http_response_code(201);
+           if ($result && isset($result[0]) && $result[0] > 0 && isset($result[1]) && $result[1] > 0) {
                 $response = [
-                    "message" => "Point event added successfully",
-                    "event" => [
-                        "eventId" => $eventId,
-                        "placardId" => $placardId,
-                        "teamId" => $teamId,
-                        "timestamp" => $timestamp,
-                        "totalPoints" => $totalPoints
-                    ]
-                ];
-            } elseif ($sport === 'volleyball') {
-                $setNumber = $params['setNumber'] ?? 1;
-
-                // Carregar os dados do placard do Redis
-                $placardData = $redis->hGetAll("placard:{$placardId}");
-
-                $placard = new VolleyballPlacard();
-                $currentSet = isset($placardData['currentSet']) ? (int)$placardData['currentSet'] : $setNumber;
-                $placard->setCurrentSet($currentSet);
-
-                $pointsFirst = isset($placardData["set{$currentSet}_pointsFirst"]) ? (int)$placardData["set{$currentSet}_pointsFirst"] : 0;
-                $pointsSecond = isset($placardData["set{$currentSet}_pointsSecond"]) ? (int)$placardData["set{$currentSet}_pointsSecond"] : 0;
-
-                if ($teamId === 1) {
-                    $pointsFirst -= $points;
-                    if ($pointsFirst < 0) $pointsFirst = 0;
-                } elseif ($teamId === 2) {
-                    $pointsSecond -= $points;
-                    if ($pointsSecond < 0) $pointsSecond = 0;
-                } else {
-                    http_response_code(400);
-                    $response = ["error" => "Invalid teamId for volleyball"];
-                    break;
-                }
-
-                $placard->addSetResult($currentSet, $pointsFirst, $pointsSecond);
-
-                $redis->hMSet("placard:{$placardId}", [
-                    'currentSet' => $currentSet,
-                    "set{$currentSet}_pointsFirst" => $pointsFirst,
-                    "set{$currentSet}_pointsSecond" => $pointsSecond,
-                ]);
-
-                $redis->hMSet($pointEventKey, [
-                    'eventId' => $eventId,
-                    'placardId' => $placardId,
-                    'teamId' => $teamId,
-                    'setNumber' => $currentSet,
-                    'timestamp' => $timestamp,
-                    'points' => -$points,
-                    'totalPoints' => $teamId === 1 ? $pointsFirst : $pointsSecond
-                ]);
-
-                $totalPoints = $teamId === 1 ? $pointsFirst : $pointsSecond;
-
-                http_response_code(201);
-                $response = [
-                    "message" => "Point event removed successfully",
-                    "event" => [
-                        "eventId" => $eventId,
-                        "placardId" => $placardId,
-                        "teamId" => $teamId,
-                        "setNumber" => $currentSet,
-                        "timestamp" => $timestamp,
-                        "totalPoints" => $totalPoints
-                    ]
-                ];
-            } else {
-                http_response_code(400);
-                $response = ["error" => "Unsupported sport type"];
-            }
-            break;
+                   "message" => "Point event removed successfully",
+                   "eventId" => $eventId
+               ];
+           } else {
+                http_response_code(500);
+                $response = ["error" => "Failed to remove point event"];
+           }
+           break;
 
         case 'get':
             if ($requestMethod !== 'GET') {
@@ -359,70 +154,6 @@ try {
                 break;
             }
 
-            // Carregar os dados do placard do Redis
-            $placardData = $redis->hGetAll("placard:{$placardId}");
-
-            if ($sport === 'futsal') {
-                // Inicializar os valores de totalPoints
-                $totalPointsTeam1 = isset($placardData['currentGoalsFirstTeam']) ? (int)$placardData['currentGoalsFirstTeam'] : 0;
-                $totalPointsTeam2 = isset($placardData['currentGoalsSecondTeam']) ? (int)$placardData['currentGoalsSecondTeam'] : 0;
-            } elseif ($sport === 'volleyball') {
-                $currentSet = isset($placardData['currentSet']) ? (int)$placardData['currentSet'] : 1;
-                $totalPointsTeam1 = isset($placardData["set{$currentSet}_pointsFirst"]) ? (int)$placardData["set{$currentSet}_pointsFirst"] : 0;
-                $totalPointsTeam2 = isset($placardData["set{$currentSet}_pointsSecond"]) ? (int)$placardData["set{$currentSet}_pointsSecond"] : 0;
-            } else {
-                http_response_code(400);
-                $response = ["error" => "Unsupported sport type"];
-                break;
-            }
-
-            // Recuperar as chaves dos eventos de pontos associados ao placard
-            $pointEventKeys = $redis->zRange($gamePointsKey, 0, -1);
-
-            if (empty($pointEventKeys)) {
-                $response = [
-                    "team1" => [
-                        "lastEvent" => null,
-                        "totalPoints" => $totalPointsTeam1
-                    ],
-                    "team2" => [
-                        "lastEvent" => null,
-                        "totalPoints" => $totalPointsTeam2
-                    ]
-                ];
-                break;
-            }
-
-            // Inicializar variáveis para armazenar os últimos eventos
-            $lastEventTeam1 = null;
-            $lastEventTeam2 = null;
-
-            // Obter os dados de cada evento de ponto
-            foreach ($pointEventKeys as $key) {
-                $eventData = $redis->hGetAll($key);
-
-                if (!empty($eventData)) {
-                    $teamId = (int)($eventData['teamId'] ?? 0);
-
-                    if ($teamId === 1) {
-                        $lastEventTeam1 = $eventData;
-                    } elseif ($teamId === 2) {
-                        $lastEventTeam2 = $eventData;
-                    }
-                }
-            }
-
-            // Construir a resposta com as estatísticas do jogo
-            $response = [
-                "team1" => [
-                    "lastEvent" => $lastEventTeam1,
-                    "totalPoints" => $totalPointsTeam1
-                ],
-                "team2" => [
-                    "lastEvent" => $lastEventTeam2,
-                    "totalPoints" => $totalPointsTeam2
-                ]
-            ];
             break;
 
         default:
