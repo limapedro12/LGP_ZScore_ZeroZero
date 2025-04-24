@@ -1,31 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiManager from '../api/apiManager';
-import { formatTime, gameTypesFormat } from '../utils/timeUtils';
+import { formatTime, sportsFormat } from '../utils/timeUtils';
 import '../styles/timer.scss';
 
-/**
- * Timer component displays the current time and period for a game
- * Automatically updates every second by fetching data from API
- */
+
 const Timer: React.FC = () => {
-    // State to track timer information
     const [elapsedTime, setElapsedTime] = useState(0);
     const [period, setPeriod] = useState(0);
-    const [gameId, setGameId] = useState<string>('default');
-    const [gameType, setGameType] = useState<string>('default');
+    const [placardId, setplacardId] = useState<string>('default');
+    const [sport, setsport] = useState<string>('default');
 
-    const { gameId: urlGameId, gameType: urlGameType } = useParams<{ gameId: string, gameType: string }>();
+    const { placardId: urlplacardId, sport: urlsport } = useParams<{ placardId: string, sport: string }>();
 
     useEffect(() => {
-        if (urlGameId) setGameId(urlGameId);
-        if (urlGameType) setGameType(urlGameType);
-    }, [urlGameId, urlGameType]);
+        if (urlplacardId) setplacardId(urlplacardId);
+        if (urlsport) setsport(urlsport);
+    }, [urlplacardId, urlsport]);
 
     const fetchTimerStatus = React.useCallback(async () => {
+
+        if (!placardId || !sport || placardId === 'default' || sport === 'default') {
+            return;
+        }
+
         try {
-            const response = await apiManager.getTimerStatus(gameId, gameType);
-            const data = await response;
+            const response = await apiManager.getTimerStatus(placardId, sport);
+            const data = response;
             if (data.remaining_time !== undefined && data.period !== undefined) {
                 setElapsedTime(data.remaining_time);
                 setPeriod(data.period);
@@ -33,19 +34,21 @@ const Timer: React.FC = () => {
         } catch (error) {
             console.error('Error fetching timer status:', error);
         }
-    }, [gameId, gameType]);
+    }, [placardId, sport]);
 
     useEffect(() => {
-        fetchTimerStatus();
-        const intervalId = setInterval(fetchTimerStatus, 1000);
-
-        return () => clearInterval(intervalId);
-    }, [gameId, fetchTimerStatus]);
+        if (placardId && sport && placardId !== 'default' && sport !== 'default') {
+            fetchTimerStatus();
+            const intervalId = setInterval(fetchTimerStatus, 1000);
+            return () => clearInterval(intervalId);
+        }
+        return undefined;
+    }, [placardId, fetchTimerStatus, sport]);
 
     return (
         <div className="timer">
             <div className="period">
-                {gameTypesFormat(gameType, period)}
+                {sportsFormat(sport, period)}
             </div>
             <div className="time">
                 {formatTime(elapsedTime)}

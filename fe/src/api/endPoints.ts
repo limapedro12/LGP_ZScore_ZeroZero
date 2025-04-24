@@ -4,9 +4,9 @@
 
 const ENDPOINTS = {
     TIMER: () => '/timer/timer',
-    TIMEOUTTIMER: () => '/timer/timeoutTimer',
-    TIMEOUT: () => '/timeout/timeout',
-    CARDS: () => '/events/card', // Added endpoint for cards
+    API: () => '/api/api',
+    TIMEOUT: () => '/events/timeout',
+    CARDS: () => '/events/card',
 };
 
 export default ENDPOINTS;

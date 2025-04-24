@@ -20,13 +20,13 @@ export const formatTime = (seconds: number, onlySeconds = false): string => {
 
 /**
  * Formats the period display based on game type
- * @param gameType - The type of game (e.g., basketball, futsal)
+ * @param sport - The type of game (e.g., basketball, futsal)
  * @param period - The current period number
  * @returns {string} - The formatted period string
  */
-export const gameTypesFormat = (gameType: string, period: number): string => {
-    const gameTypeLower = gameType.toLowerCase();
-    switch (gameTypeLower) {
+export const sportsFormat = (sport: string, period: number): string => {
+    const sportLower = sport.toLowerCase();
+    switch (sportLower) {
         case 'basketball':
             return `${period}Q`;
         default:

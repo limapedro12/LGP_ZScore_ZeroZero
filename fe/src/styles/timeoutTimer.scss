@@ -1,4 +1,5 @@
 @use "./config.scss";
+@use "./arrow.scss";
 
 .timeout-timer {
     font-family: config.$font-secondary;
@@ -21,25 +22,5 @@
         line-height: 1;
         text-shadow: -2px 2px 4px rgba(0, 0, 0, 0.5);
         text-align: center;
-    }
-
-    .arrow {
-        width: 0;
-        height: 0;
-        border-top: 20px solid transparent;
-        border-bottom: 20px solid transparent;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-    
-    .arrow-left {
-        border-right: 25px solid config.$secondary-text-color;
-        left: 20px;
-    }
-    
-    .arrow-right {
-        border-left: 25px solid config.$secondary-text-color;
-        right: 20px;
     }
 }

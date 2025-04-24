@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Offcanvas, ListGroup } from 'react-bootstrap';
 import apiManager from '../api/apiManager';
 
 /**
@@ -10,8 +9,7 @@ import apiManager from '../api/apiManager';
  */
 const Cards: React.FC = () => {
     const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
-    const [cards, setCards] = useState<Array<{ cardType: string; timestamp: number }>>([]);
-    const [showMenu, setShowMenu] = useState(false);
+    const [lastCards, setLastCards] = useState<Array<{ cardType: string; timestamp: number, playerId: number}>>([]);
     const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
 
     const fetchCards = React.useCallback(async () => {
@@ -38,7 +36,9 @@ const Cards: React.FC = () => {
             }
 
             setCardCounts(counts);
-            setCards(data.cards);
+            data.cards.sort((a, b) => b.timestamp - a.timestamp);
+            const lastCards = data.cards.slice(-5).reverse();
+            setLastCards(lastCards);
         } catch (error) {
             console.error('Error fetching cards:', error);
         }
@@ -51,46 +51,29 @@ const Cards: React.FC = () => {
         return () => clearInterval(intervalId);
     }, [fetchCards]);
 
-    const lastCards = cards.slice(-5).reverse();
-
     return (
         <>
             {Object.entries(cardCounts).map(([cardType, count]) => (
                 <p key={cardType}>
-                    {count} {cardType.replace('_', ' ')} Card{count !== 1 ? 's' : ''}
+                    {count}
+                    {cardType.replace('_', ' ')}
+                    Card
+                    {count !== 1 ? 's' : ''}
                 </p>
             ))}
-            <button
-                style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 15px',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                }}
-                onClick={() => setShowMenu(true)}
-            >
-                Show Last Cards
-            </button>
-            <Offcanvas show={showMenu} onHide={() => setShowMenu(false)} placement="end">
-                <Offcanvas.Header closeButton>
-                    <Offcanvas.Title>Last Cards</Offcanvas.Title>
-                </Offcanvas.Header>
-                <Offcanvas.Body>
-                    <ListGroup>
-                        {lastCards.map((card, index) => (
-                            <ListGroup.Item key={index}>
-                                {card.cardType} - {new Date(card.timestamp).toLocaleString()}
-                            </ListGroup.Item>
-                        ))}
-                        {cards.length === 0 && <p>No cards available</p>}
-                    </ListGroup>
-                </Offcanvas.Body>
-            </Offcanvas>
+            <div>
+                <h2>Last Cards</h2>
+                <ol>
+                    {lastCards.map((card, index) => (
+                        <li key={index}>
+                            {card.cardType}
+                            -
+                            {card.playerId}
+                        </li>
+                    ))}
+                    {lastCards.length === 0 && <p>No cards available</p>}
+                </ol>
+            </div>
         </>
     );
 };
