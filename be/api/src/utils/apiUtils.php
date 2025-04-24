@@ -61,13 +61,13 @@ function getMatchesColab($apiurl, $appkey, $cookie) {
 }
 
 function getMatchLiveInfo($apiurl, $appkey, $cookie, $matchId) {
-    $url = buildMethodUrl($apiurl, 'getMatchLiveInfo/MathchID/' . $matchId, $appkey, $cookie);
+    $url = buildMethodUrl($apiurl, 'getMatchLiveInfo/MatchID/' . $matchId, $appkey, $cookie);
     $response = sendGetRequest($url);
     return $response;
 }
 
 function getTeamLive($apiurl, $appkey, $cookie, $matchId, $teamId) {
-    $url = buildMethodUrl($apiurl, 'getTeamLive/MathchID/' . $matchId . '/TeamID/' . $teamId, $appkey, $cookie);
+    $url = buildMethodUrl($apiurl, 'getTeamLive/MatchID/' . $matchId . '/TeamID/' . $teamId, $appkey, $cookie);
     $response = sendGetRequest($url);
     return $response;
 }

@@ -148,13 +148,12 @@ class ApiManager {
     };
     login = async (username: string, password: string) => {
         const response = await this.apiRequest('login', { action: 'login', username: username, password: password });
-        /* Code used to check login response
+        // Code used to check login response
         if (response.ok) {
             const data = await response.json();
             console.log('Response:', data);
             return data;
         }
-        */
         return response;
     };
 }
