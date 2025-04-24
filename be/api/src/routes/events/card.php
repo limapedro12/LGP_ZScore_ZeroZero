@@ -102,7 +102,7 @@ try {
             break;
 
         case 'update':
-             if ($requestMethod !== 'POST') {
+            if ($requestMethod !== 'POST') {
                 http_response_code(405); 
                 $response = ["error" => "Invalid request method. Only POST is allowed for update action."];
                 break;
