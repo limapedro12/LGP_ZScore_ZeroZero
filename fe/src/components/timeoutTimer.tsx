@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiManager from '../api/apiManager';
-import { formatTime, sportsFormat } from '../utils/timeUtils';
-import '../styles/timer.scss';
+import { formatTime } from '../utils/timeUtils';
+import '../styles/timeoutTimer.scss';
 
-
-const Timer: React.FC = () => {
+const TimeoutTimer: React.FC = () => {
     const [elapsedTime, setElapsedTime] = useState(0);
-    const [period, setPeriod] = useState(0);
+    const [status, setStatus] = useState('default');
     const [placardId, setplacardId] = useState<string>('default');
     const [sport, setsport] = useState<string>('default');
+    const [team, setTeam] = useState<string>('');
 
     const { placardId: urlplacardId, sport: urlsport } = useParams<{ placardId: string, sport: string }>();
 
@@ -25,11 +25,12 @@ const Timer: React.FC = () => {
         }
 
         try {
-            const response = await apiManager.getTimerStatus(placardId, sport);
+            const response = await apiManager.getTimeoutStatus(placardId, sport);
             const data = response;
-            if (data.remaining_time !== undefined && data.period !== undefined) {
+            if (data.remaining_time !== undefined) {
                 setElapsedTime(data.remaining_time);
-                setPeriod(data.period);
+                setStatus(data.status || 'default');
+                setTeam(data.team || '');
             }
         } catch (error) {
             console.error('Error fetching timer status:', error);
@@ -45,16 +46,15 @@ const Timer: React.FC = () => {
         return undefined;
     }, [placardId, fetchTimerStatus, sport]);
 
-    return (
-        <div className="timer">
-            <div className="period">
-                {sportsFormat(sport, period)}
-            </div>
-            <div className="time">
-                {formatTime(elapsedTime)}
+    return status !== 'inactive' ? (
+        <div className="timeout-timer">
+            <div className="timeout-time">
+                {team === 'home' && <div className="arrow arrow-left" />}
+                {formatTime(elapsedTime, true)}
+                {team === 'away' && <div className="arrow arrow-right" />}
             </div>
         </div>
-    );
+    ) : null;
 };
 
-export default Timer;
+export default TimeoutTimer;
