@@ -74,6 +74,10 @@ class RequestUtils {
         global $redis, $gameConfig;
         
         $timerKeys = self::getRedisKeys($placardId, 'timer');
+
+        if(!isset($gameConfig['periodDuration'])){
+            return 0;
+        }
         
         $pipeline = $redis->pipeline();
         $pipeline->get($timerKeys['period']);
