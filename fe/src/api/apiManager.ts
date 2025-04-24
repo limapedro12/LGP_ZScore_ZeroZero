@@ -6,7 +6,7 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';;
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';
 type EndpointType = 'timer' | 'timeout' | 'api';
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
@@ -132,7 +132,7 @@ class ApiManager {
             }
             return response.json();
         });
-    }
+    };
 
     startTimer = (placardId: string, sport: string) =>
         this.makeRequest<TimerResponse>('timer', 'start', { placardId, sport });
@@ -173,7 +173,7 @@ class ApiManager {
     resetTimeouts = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });
     login = (username: string, password: string) =>
-        this.ApiRequest({action: 'login', username: username, password: password});
+        this.ApiRequest({ action: 'login', username: username, password: password });
 
 
 }
