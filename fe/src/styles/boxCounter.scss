@@ -1,0 +1,38 @@
+@use "./config.scss";
+
+.box-counter {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid white;
+    border-radius: 4px;
+    display: inline-block;
+    margin: 0 4px;
+    
+    &--empty {
+        background-color: transparent;
+    }
+    
+    &--filled {
+        background-color: white;
+    }
+}
+
+.box-counter-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.box-counter-team {
+    display: flex;
+    align-items: center;
+}
+
+.box-counter-label {
+    font-size: 2rem;
+    font-weight: bold;
+    color: config.$text-color;
+    display: flex;
+    align-items: center;
+    height: 2rem;
+}

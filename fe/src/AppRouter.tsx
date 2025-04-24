@@ -16,8 +16,8 @@ const AppRouter = () => (
     <BrowserRouter basename={`${config.APP_BASE_ROUTE || ''}`}>
         <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/scoreboard/:gameType/:gameId" element={<ScoreBoard />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
         </Routes>
     </BrowserRouter>
 );

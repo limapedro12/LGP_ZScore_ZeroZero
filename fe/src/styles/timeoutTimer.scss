@@ -1,0 +1,26 @@
+@use "./config.scss";
+@use "./arrow.scss";
+
+.timeout-timer {
+    font-family: config.$font-secondary;
+    color: config.$secondary-text-color;
+    background-color: white;
+    border-radius: 1rem;
+    padding: 0.5rem 1.5rem;
+    margin-bottom: 3rem;
+    position: relative;
+    max-width: 200px;
+    min-width: 200px;
+
+    
+    .timeout-time {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        font-weight: bold;
+        line-height: 1;
+        text-shadow: -2px 2px 4px rgba(0, 0, 0, 0.5);
+        text-align: center;
+    }
+}

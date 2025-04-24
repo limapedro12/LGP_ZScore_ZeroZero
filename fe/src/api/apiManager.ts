@@ -6,51 +6,91 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type TimerAction = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status';
-type ApiAction = 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';;
+type EndpointType = 'timer' | 'timeout' | 'api';
+type EndpointKeyType = keyof typeof ENDPOINTS;
+type TeamType = 'home' | 'away';
 
-/**
- * Interface for timer request parameters
- * @property {string} gameId - The unique identifier for the game
- * @property {string} gameType - The type of game (e.g., 'basketball', 'futsal')
- * @property {number} [seconds] - Optional seconds to adjust the timer by (for 'adjust' action)
- * @property {number} [time] - Optional time value in seconds to set the timer to (for 'set' action)
- * @property {number} [period] - Optional period number to set (for 'set' action)
- */
-interface TimerParams {
-    gameId: string;
-    gameType: string;
-    seconds?: number;
-    time?: number;
-    period?: number;
+interface RequestParams {
+    placardId: string;
+    sport: string;
+    [key: string]: string | number;
 }
 
 interface ApiParams {
-    action: ApiAction;
+    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
     username?: string;
     password?: string;
-    matchId?: string;
-    teamId?: string;
     cookie?: string;
+    placardId?: string;
+    teamId?: string;
 }
 
-/**
- * API Manager that handles all API requests
- */
+interface TimerResponse {
+    message?: string;
+    status: 'running' | 'paused' | 'inactive';
+    remaining_time: number;
+    period: number;
+    total_periods: number;
+    error?: string;
+}
+
+interface TimeoutResponse {
+    message?: string;
+    status?: 'running' | 'paused' | 'inactive';
+    team?: TeamType;
+    remaining_time?: number;
+    timer?: {
+        status: 'running' | 'paused' | 'inactive';
+        team: TeamType;
+        remaining_time: number;
+    };
+    homeTimeoutsUsed?: number;
+    awayTimeoutsUsed?: number;
+    totalTimeoutsPerTeam?: number;
+    event?: {
+        eventId: number;
+        placardId: string;
+        team: TeamType | null;
+        homeTimeoutsUsed: number;
+        awayTimeoutsUsed: number;
+        totalTimeoutsPerTeam: number;
+    };
+    events?: Array<{
+        eventId: string;
+        placardId: string;
+        team: TeamType | null;
+        homeTimeoutsUsed: string;
+        awayTimeoutsUsed: string;
+        totalTimeoutsPerTeam: string;
+    }>;
+    error?: string;
+}
+
+
 class ApiManager {
 
-    /**
-     * Generic method to handle all timer-related requests
-     *
-     * @param {TimerAction} action - The timer action to perform
-     * @param {TimerParams} params - Parameters for the timer request
-     * @param {('GET'|'POST')} [method='POST'] - HTTP method to use
-     * @returns {Promise<Response>} - Fetch response
-     */
-    timerRequest = (action: TimerAction, params: TimerParams, method: 'GET' | 'POST' = 'POST') => {
-        let url = `${BASE_URL}${ENDPOINTS.TIMER()}`;
+    makeRequest = async <T>(
+        endpoint: EndpointType,
+        action: ActionType,
+        params: RequestParams,
+        method: 'GET' | 'POST' = 'POST'
+    ): Promise<T> => {
+
+        const endpointKey = endpoint.toUpperCase() as EndpointKeyType;
+        let url = `${BASE_URL}${ENDPOINTS[endpointKey]()}`;
+
+
         if (method === 'GET') {
-            url = `${url}?action=${action}&gameId=${params.gameId}&gameType=${params.gameType}`;
+            const queryParams = new URLSearchParams({
+                action,
+                placardId: params.placardId,
+                sport: params.sport,
+                ...Object.fromEntries(
+                    Object.entries(params).filter(([key]) => !['placardId', 'sport'].includes(key))
+                ),
+            });
+            url = `${url}?${queryParams.toString()}`;
         }
 
         const options: RequestInit = {
@@ -59,6 +99,7 @@ class ApiManager {
                 'Content-Type': 'application/json',
             },
         };
+
         if (method === 'POST') {
             options.body = JSON.stringify({
                 action,
@@ -66,96 +107,75 @@ class ApiManager {
             });
         }
 
-        return fetch(url, options);
+        const response = await fetch(url, options);
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        return response.json();
     };
 
-    /**
-     * Starts the timer for a specific game
-     *
-     * @param {string} gameId - The game identifier
-     * @param {string} gameType - The type of game
-     * @returns {Promise<Response>} - Fetch response promise
-     */
-    startTimer = (gameId: string, gameType: string) =>
-        this.timerRequest('start', { gameId, gameType });
-
-    /**
-     * Pauses/stops the timer for a specific game
-     *
-     * @param {string} gameId - The game identifier
-     * @param {string} gameType - The type of game
-     * @returns {Promise<Response>} - Fetch response promise
-     */
-    stopTimer = (gameId: string, gameType: string) =>
-        this.timerRequest('pause', { gameId, gameType });
-
-    /**
-     * Gets the current status of the timer
-     *
-     * @param {string} gameId - The game identifier
-     * @param {string} gameType - The type of game
-     * @returns {Promise<Response>} - Fetch response promise containing timer status
-     */
-    getTimerStatus = (gameId: string, gameType: string) =>
-        this.timerRequest('status', { gameId, gameType }, 'GET');
-
-    /**
-     * Resets the timer to its initial state
-     *
-     * @param {string} gameId - The game identifier
-     * @param {string} gameType - The type of game
-     * @returns {Promise<Response>} - Fetch response promise
-     */
-    resetTimer = (gameId: string, gameType: string) =>
-        this.timerRequest('reset', { gameId, gameType });
-
-    /**
-     * Adjusts the timer by adding or subtracting seconds
-     *
-     * @param {string} gameId - The game identifier
-     * @param {string} gameType - The type of game
-     * @param {number} seconds - Number of seconds to adjust (positive to add, negative to subtract)
-     * @returns {Promise<Response>} - Fetch response promise
-     */
-    adjustTimer = (gameId: string, gameType: string, seconds: number) =>
-        this.timerRequest('adjust', { gameId, gameType, seconds });
-
-    /**
-     * Sets the timer to a specific time and period
-     *
-     * @param {string} gameId - The game identifier
-     * @param {string} gameType - The type of game
-     * @param {number} time - Time in seconds to set the timer to
-     * @param {number} period - Period number to set
-     * @returns {Promise<Response>} - Fetch response promise
-     */
-    setTimer = (gameId: string, gameType: string, time: number, period: number) =>
-        this.timerRequest('set', { gameId, gameType, time, period });
-    apiRequest = (apiAction: ApiAction, params: ApiParams, method: 'GET'|'POST' = 'POST') => {
+    ApiRequest = (params: ApiParams) => {
         const url = `${BASE_URL}${ENDPOINTS.API()}`;
         const options: RequestInit = {
-            method: method,
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                apiAction,
-                ...params,
-            }),
+            body: JSON.stringify(params),
         };
 
-        return fetch(url, options);
-    };
-    login = async (username: string, password: string) => {
-        const response = await this.apiRequest('login', { action: 'login', username: username, password: password });
-        // Code used to check login response
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Response:', data);
-            return data;
-        }
-        return response;
-    };
+        return fetch(url, options).then((response) => {
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            return response.json();
+        });
+    }
+
+    startTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'start', { placardId, sport });
+
+    stopTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'pause', { placardId, sport });
+
+    getTimerStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'status', { placardId, sport }, 'GET');
+
+    resetTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'reset', { placardId, sport });
+
+    adjustTimer = (placardId: string, sport: string, seconds: number) =>
+        this.makeRequest<TimerResponse>('timer', 'adjust', { placardId, sport, seconds });
+
+    setTimer = (placardId: string, sport: string, time: number, period: number) =>
+        this.makeRequest<TimerResponse>('timer', 'set', { placardId, sport, time, period });
+
+    startTimeout = (placardId: string, sport: string, team: TeamType) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'start', { placardId, sport, team });
+
+    pauseTimeout = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'pause', { placardId, sport });
+
+    getTimeoutStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'status', { placardId, sport }, 'GET');
+
+    adjustTimeout = (placardId: string, sport: string, team: TeamType, amount: number) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'adjust', { placardId, sport, team, amount });
+
+    getTimeoutEvents = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'get', { placardId, sport }, 'GET');
+
+    getGameStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'gameStatus', { placardId, sport }, 'GET');
+
+    resetTimeouts = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });
+    login = (username: string, password: string) =>
+        this.ApiRequest({action: 'login', username: username, password: password});
+
+
 }
 
 const apiManager = new ApiManager();

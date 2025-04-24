@@ -1,5 +1,7 @@
 import React from 'react';
 import Timer from '../components/timer';
+import TimeoutTimer from '../components/timeoutTimer';
+import TimeoutCounter from '../components/timeoutCounter';
 import '../styles/scoreBoard.scss';
 
 /**
@@ -9,7 +11,9 @@ import '../styles/scoreBoard.scss';
  */
 const ScoreBoard = () => (
     <div className="scoreboard-container">
+        <TimeoutTimer />
         <Timer />
+        <TimeoutCounter />
     </div>
 );
 
