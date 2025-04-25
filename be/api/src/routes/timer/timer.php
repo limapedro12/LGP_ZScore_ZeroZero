@@ -3,38 +3,36 @@ require_once __DIR__ . '/../../utils/redisUtils.php';
 require_once __DIR__ . '/../../config/gameConfig.php';
 require_once __DIR__ . '/../../utils/requestUtils.php';
 
-
-
 header('Content-Type: application/json');
 
-
 $params = RequestUtils::getRequestParams();
+$requestMethod = $_SERVER['REQUEST_METHOD'];
 
-$requiredParams = ['placardId', 'gameType', 'action'];
+
+$requiredParams = ['placardId', 'sport', 'action'];
 $allowedActions = ['start', 'pause', 'reset', 'status', 'adjust', 'set'];
-
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
+    http_response_code(400);
     echo json_encode($validationError);
     exit;
 }
 
 $placardId = $params['placardId'] ?? null;
-$gameType = $params['gameType'] ?? null;
+$sport = $params['sport'] ?? null;
 $action = $params['action'] ?? null;
 
 $redis = RedistUtils::connect();
 if (!$redis) {
+    http_response_code(500);
     echo json_encode(["error" => "Failed to connect to Redis"]);
     exit;
 }
 
-try{
+try {
     $gameConfigManager = new GameConfig();
-    $gameConfig = $gameConfigManager->getConfig($gameType);
-    
-    // Get Redis keys
+    $gameConfig = $gameConfigManager->getConfig($sport);
     $keys = RequestUtils::getRedisKeys($placardId, 'timer');
 
     $startTimeKey = $keys['start_time'];
@@ -42,251 +40,212 @@ try{
     $timerStatusKey = $keys['status'];
     $periodKey = $keys['period'];
     
-    // Get current timestamp
     $currentTime = time();
+    $status = $redis->get($timerStatusKey) ?: 'paused';
+    $startTime = (int)$redis->get($startTimeKey) ?: 0;
+    $storedRemaining = (int)$redis->get($remainingTimeKey);
+    $period = (int)$redis->get($periodKey) ?: 1;
     
-    $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
+    if ($storedRemaining === 0) {
+        $storedRemaining = $gameConfig['periodDuration'];
+    }
+    
+    $remainingTime = $storedRemaining;
+    if ($status === 'running' && $startTime > 0) {
+        $remainingTime = max(0, $storedRemaining - ($currentTime - $startTime));
+        
+        if ($remainingTime <= 0) {
+            $redis->set($timerStatusKey, 'paused');
+            $redis->set($remainingTimeKey, 0);
+            $status = 'paused';
+            $remainingTime = 0;
+            
+            if ($period < $gameConfig['periods']) {
+                $redis->set($periodKey, $period + 1);
+                $redis->set($remainingTimeKey, $gameConfig['periodDuration']);
+            }
+        }
+    }
 
     switch ($action) {
         case 'start':
-            if($timerData['status'] !== 'running') {                
-                try{
-                    if ($redis->get($remainingTimeKey) === false) {
-                        $redis->set($remainingTimeKey, $gameConfig['periodDuration']);
-                        $redis->set($periodKey, 1);
-                    }
-                    
-                    $redis->set($startTimeKey, $currentTime);
-                    $redis->set($timerStatusKey, 'running');
-                    
-                    $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
-                    $response = [
-                        "message" => "Timer started",
-                        "status" => "running",
-                        "remaining_time" => $timerData['remaining_time'],
-                        "period" => $timerData['period'],
-                        "total_periods" => $timerData['total_periods']
-                    ];
-                } catch (Exception $e) {
-                    $response = ["error" => "Failed to start timer: " . $e->getMessage()];
-                }
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
 
+            if ($status !== 'running') {
+                if ($redis->get($remainingTimeKey) === false) {
+                    $redis->set($remainingTimeKey, $gameConfig['periodDuration']);
+                    $redis->set($periodKey, 1);
+                }
+                
+                $redis->set($startTimeKey, $currentTime);
+                $redis->set($timerStatusKey, 'running');
+                $status = 'running';
+                
+                $response = [
+                    "message" => "Timer started"
+                ];
             } else {
                 $response = [
-                    "message" => "Timer already running",
-                    "status" => "running",
-                    "remaining_time" => $timerData['remaining_time'],
-                    "period" => $timerData['period'],
-                    "total_periods" => $timerData['total_periods']
+                    "message" => "Timer already " . $status,
                 ];
             }
             break;
             
         case 'pause':
-            if($timerData['status'] === 'running') {
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
+            }
 
-                try{
-                    $redis->set($remainingTimeKey, $timerData['remaining_time']);
-                    $redis->set($timerStatusKey, 'paused');
-                    
-                    $response = [
-                        "message" => "Timer paused",
-                        "status" => "paused",
-                        "remaining_time" => $timerData['remaining_time'],
-                        "period" => $timerData['period'],
-                        "total_periods" => $timerData['total_periods']
-                    ];
-                } catch (Exception $e) {
-                    $response = ["error" => "Failed to pause timer: " . $e->getMessage()];
-                }
+            if ($status === 'running') {
+                $redis->set($remainingTimeKey, $remainingTime);
+                $redis->set($timerStatusKey, 'paused');
+                $status = 'paused';
+                
+                $response = [
+                    "message" => "Timer " . $status
+                ];
             } else {
                 $response = [
-                    "message" => "Timer already paused",
-                    "status" => "paused",
-                    "remaining_time" => $timerData['remaining_time'],
-                    "period" => $timerData['period'],
-                    "total_periods" => $timerData['total_periods']
+                    "message" => "Timer already " . $status,
                 ];
             }
             break;
             
         case 'status':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
+                break;
+            }
             $response = [
                 "message" => "Timer status",
-                "status" => $timerData['status'],
-                "remaining_time" => $timerData['remaining_time'],
-                "period" => $timerData['period'],
-                "total_periods" => $timerData['total_periods']
+                "status" => $status,
+                "remaining_time" => $remainingTime,
+                "period" => $period,
+                "total_periods" => $gameConfig['periods']
             ];
             break;
             
         case 'reset':
-
-            try{
-                $redis->set($startTimeKey, 0);
-                $redis->set($remainingTimeKey, $gameConfig['periodDuration']);
-                $redis->set($timerStatusKey, 'paused');
-                $redis->set($periodKey, 1);
-                
-                $response = [
-                    "message" => "Timer reset",
-                    "status" => "paused",
-                    "remaining_time" => $gameConfig['periodDuration'],
-                    "period" => 1,
-                    "total_periods" => $gameConfig['periods']
-                ];
-            } catch (Exception $e) {
-                $response = ["error" => "Failed to reset timer: " . $e->getMessage()];
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
             }
+            $redis->set($startTimeKey, 0);
+            $redis->set($remainingTimeKey, $gameConfig['periodDuration']);
+            $redis->set($timerStatusKey, 'paused');
+            $redis->set($periodKey, 1);
+            
+            $response = [
+                "message" => "Timer reset",
+                "status" => "paused",
+                "remaining_time" => $gameConfig['periodDuration'],
+                "period" => 1,
+                "total_periods" => $gameConfig['periods']
+            ];
             break;
 
         case 'adjust':
-
-            try{
-                $seconds = isset($params['seconds']) ? intval($params['seconds']) : null;
-                if($seconds === null) {
-                    $response = ["error" => "Missing seconds parameter"];
-                    break;
-                }
-                $wasRunning = ($timerData['status'] === 'running');
-                
-                if ($wasRunning) {
-                    $redis->set($remainingTimeKey, $timerData['remaining_time']);
-                    $redis->set($timerStatusKey, 'paused');
-                }
-                
-                $currentRemaining = $timerData['remaining_time'];
-                $newRemaining = min($gameConfig['periodDuration'], max(0, $currentRemaining + $seconds));
-                $redis->set($remainingTimeKey, $newRemaining);
-                
-                if ($wasRunning) {
-                    $redis->set($startTimeKey, $currentTime);
-                    $redis->set($timerStatusKey, 'running');
-                }
-                
-                $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
-                
-                $response = [
-                    "message" => "Timer adjusted",
-                    "status" => $timerData['status'],
-                    "remaining_time" => $timerData['remaining_time'],
-                    "period" => $timerData['period'],
-                    "total_periods" => $timerData['total_periods']
-                ];
-            } catch (Exception $e) {
-                $response = ["error" => "Failed to adjust timer: " . $e->getMessage()];
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
             }
+
+            $seconds = isset($params['seconds']) ? intval($params['seconds']) : null;
+            if ($seconds === null) {
+                http_response_code(400);
+                $response = ["error" => "Missing seconds parameter"];
+                break;
+            }
+            
+            $wasRunning = ($status === 'running');
+            
+            if ($wasRunning) {
+                $redis->set($remainingTimeKey, $remainingTime);
+                $redis->set($timerStatusKey, 'paused');
+            }
+            
+            $newRemaining = min($gameConfig['periodDuration'], max(0, $remainingTime + $seconds));
+            $redis->set($remainingTimeKey, $newRemaining);
+            
+            if ($wasRunning) {
+                $redis->set($startTimeKey, $currentTime);
+                $redis->set($timerStatusKey, 'running');
+            }
+            
+            $response = [
+                "message" => "Timer adjusted by $seconds seconds",
+                "status" => $wasRunning ? "running" : "paused"
+            ];
             break;
 
         case 'set':
-
-            try{
-                $newTime = isset($params['time']) ? intval($params['time']) : null;
-                $newPeriod = isset($params['period']) ? intval($params['period']) : $timerData['period'];
-
-                if($newTime === null) {
-                    $response = ["error" => "Missing time parameter"];
-                    break;
-                }
-
-                $wasRunning = ($timerData['status'] === 'running');
-                
-                if ($wasRunning) {
-                    $redis->set($timerStatusKey, 'paused');
-                }
-                
-                if ($newPeriod < 1 || $newPeriod > $gameConfig['periods']) {
-                    $response = ["error" => "Invalid period value"];
-                    break;
-                }
-                
-                $boundedTime = min($gameConfig['periodDuration'], max(0, $newTime));
-                $redis->set($remainingTimeKey, $boundedTime);
-                $redis->set($periodKey, $newPeriod);
-                
-                if ($wasRunning) {
-                    $redis->set($startTimeKey, $currentTime);
-                    $redis->set($timerStatusKey, 'running');
-                }
-                
-                $timerData = getTimerData($redis, $placardId, $currentTime, $gameConfig);
-                
-                $response = [
-                    "message" => "Timer manually set",
-                    "status" => $timerData['status'],
-                    "remaining_time" => $timerData['remaining_time'],
-                    "period" => $newPeriod,
-                    "total_periods" => $timerData['total_periods']
-                ];
-            } catch (Exception $e) {
-                $response = ["error" => "Failed to set timer: " . $e->getMessage()];
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
+                break;
             }
+
+            $newTime = isset($params['time']) ? intval($params['time']) : null;
+            $newPeriod = isset($params['period']) ? intval($params['period']) : $period;
+        
+            if ($newTime === null) {
+                http_response_code(400);
+                $response = ["error" => "Missing time parameter"];
+                break;
+            }
+            
+            if ($newTime <= 0) {
+                http_response_code(400);
+                $response = ["error" => "Time must be a positive value"];
+                break;
+            }
+        
+            $wasRunning = ($status === 'running');
+            
+            if ($wasRunning) {
+                $redis->set($timerStatusKey, 'paused');
+            }
+            
+            if ($newPeriod < 1 || $newPeriod > $gameConfig['periods']) {
+                http_response_code(400);
+                $response = ["error" => "Invalid period value"];
+                break;
+            }
+            
+            $boundedTime = min($gameConfig['periodDuration'], $newTime);
+            $redis->set($remainingTimeKey, $boundedTime);
+            $redis->set($periodKey, $newPeriod);
+            
+            if ($wasRunning) {
+                $redis->set($startTimeKey, $currentTime);
+                $redis->set($timerStatusKey, 'running');
+            }
+            
+            $response = [
+                "message" => "Timer manually set to $boundedTime seconds and period $newPeriod",
+                "status" => $wasRunning ? "running" : "paused",
+                "period" => $newPeriod,
+                "total_periods" => $gameConfig['periods']
+            ];
             break;
             
         default:
+            http_response_code(400);
             $response = ["error" => "Invalid action"];
             break;
     }
 } catch (Exception $e) {
+    http_response_code(500);
     $response = ["error" => "An error occurred: " . $e->getMessage()];
-}
-
-
-
-/**
- * Retrieves and calculates timer data for a specific game
- *
- *
- * @param Redis $redis Redis connection
- * @param string $placardId Game identifier
- * @param int $currentTime Current Unix timestamp
- * @param array $gameConfig Game configuration parameters
- * @return array Timer data including status, remaining time, and period information
- */
-function getTimerData($redis, $placardId, $currentTime, $gameConfig) {
-    try{
-        $prefix = "game:$placardId:";
-        $status = $redis->get($prefix . 'status') ?: 'paused';
-        $startTime = (int)$redis->get($prefix . 'start_time') ?: 0;
-        $storedRemaining = (int)$redis->get($prefix . 'remaining_time');
-        $period = (int)$redis->get($prefix . 'period') ?: 1;
-        
-        // Initialize remaining time if not set yet
-        if ($storedRemaining === 0 && $redis->get($prefix . 'remaining_time') === false) {
-            $storedRemaining = $gameConfig['periodDuration'];
-        }
-        
-        // Calculate remaining time if timer is running
-        $remainingTime = ($status === 'running' && $startTime > 0) 
-            ? $storedRemaining - ($currentTime - $startTime)
-            : $storedRemaining;
-        
-        // Auto-pause if timer reaches 0
-        if ($remainingTime <= 0 && $status === 'running') {
-            $remainingTime = 0;
-            $redis->set($prefix . 'status', 'paused');
-            $redis->set($prefix . 'remaining_time', 0);
-            $status = 'paused';
-            
-            // If not the last period, prepare for next period
-            if ($period < $gameConfig['periods']) {
-                $redis->set($prefix . 'period', $period + 1);
-                $redis->set($prefix . 'remaining_time', $gameConfig['periodDuration']);
-            }
-        }
-            
-        return [
-            'status' => $status,
-            'start_time' => $startTime,
-            'remaining_time' => max(0, $remainingTime),
-            'period' => $period,
-            'total_periods' => $gameConfig['periods']
-        ];
-    } catch (Exception $e) {
-        return [
-            'error' => "Failed to get timer data: " . $e->getMessage()
-        ];
-    }
 }
 
 echo json_encode($response);

@@ -44,9 +44,9 @@ $requiredParams = $requiredParamsBase;
 if ($action === 'get_player_fouls' && $requestMethod === 'GET') {
     $requiredParams[] = 'playerId';
 } elseif ($action === 'update' || $action === 'delete') {
-     if(!isset($params['foulId'])){
+     if(!isset($params['eventId'])){
          http_response_code(400);
-         echo json_encode(["error" => "Missing required parameter: foulId"]);
+         echo json_encode(["error" => "Missing required parameter: eventId"]);
          exit;
      }
 }
@@ -81,11 +81,13 @@ try {
     if (is_null($timerKeys) || !isset($timerKeys['period'])) {
         throw new Exception("Configuration error: Could not retrieve Redis period key configuration.");
     }
-     if (is_null($foulKeys) || !isset($foulKeys['foul_counter_key']) || !isset($foulKeys['game_fouls_set_key']) || !isset($foulKeys['foul_data_key_prefix']) || !isset($foulKeys['accumulated_foul_key_prefix'])) {
+     if (is_null($foulKeys) || !isset($foulKeys['event_counter']) || !isset($foulKeys['game_fouls']) || !isset($foulKeys['foul_event']) || !isset($foulKeys['accumulated_foul'])) {
         throw new Exception("Configuration error: Could not retrieve all required Redis foul key configurations.");
     }
 
     $currentPeriodKey = $timerKeys['period'];
+    $gameFoulsKey = $foulKeys['game_fouls'];
+    $eventCounterKey = $foulKeys['event_counter'];
 
     switch ($action) {
 
@@ -97,16 +99,17 @@ try {
             }
             $playerId = trim($params['playerId'] ?? '');
             $teamId = trim($params['teamId'] ?? '');
-            $foulTime = trim($params['foulTime'] ?? '');
             $missingFields = [];
             if (empty($playerId)) $missingFields[] = 'playerId';
             if (empty($teamId)) $missingFields[] = 'teamId';
-            if ($foulTime === '') $missingFields[] = 'foulTime';
             if (!empty($missingFields)) {
                 http_response_code(400);
                 $response = ['status' => 'error', 'message' => 'Missing required fields for create: ' . implode(', ', $missingFields)];
                 break;
             }
+
+            $timestamp = RequestUtils::getGameTimePosition($placardId);
+
             $currentPeriod = $redis->get($currentPeriodKey);
             if ($currentPeriod === false || !is_numeric($currentPeriod) || (int)$currentPeriod < 1) {
                  http_response_code(409);
@@ -119,36 +122,36 @@ try {
                  $response = ['status' => 'error', 'message' => "Cannot record foul: Current period ({$currentPeriod}) exceeds total periods ({$totalPeriods}) for sport '{$sport}'."];
                  break;
             }
-            $newFoulId = $redis->incr($foulKeys['foul_counter_key']);
-            if ($newFoulId === false) {
+            $eventId = $redis->incr($eventCounterKey);
+            if ($eventId === false) {
                  throw new Exception("Failed to increment foul counter key '{$foulKeys['foul_counter_key']}'.");
             }
-            $newFoulIdStr = (string)$newFoulId;
-            $foulDataKey = $foulKeys['foul_data_key_prefix'] . $newFoulIdStr;
-            $accumulatedFoulKey = $foulKeys['accumulated_foul_key_prefix'] . "{$teamId}:period:{$currentPeriod}:fouls_accumulated";
-            $foulEvent = new FoulEvent($foulTime, $sport, null, $playerId, $teamId, $currentPeriod);
-            $foulEvent->setId($newFoulIdStr);
+            $eventIdStr = (string)$eventId;
+            $foulEventKey = $foulKeys['foul_event'] . $eventIdStr;
+            $accumulatedFoulKey = $foulKeys['accumulated_foul'] . "{$teamId}:period:{$currentPeriod}:fouls_accumulated";
+            $foulEvent = new FoulEvent((string)$timestamp, $sport, null, $playerId, $teamId, $currentPeriod);
+            $foulEvent->setId($eventIdStr);
             $foulDataForRedis = [
-                'foulId' => $foulEvent->getId(), 'placardId' => $placardId, 'sport' => $sport,
-                'playerId' => $playerId, 'teamId' => $teamId, 'time' => $foulTime,
+                'eventId' => $foulEvent->getId(), 'placardId' => $placardId, 'sport' => $sport,
+                'playerId' => $playerId, 'teamId' => $teamId, 'timestamp' => $timestamp,
                 'period' => (string)$currentPeriod, 'recordedAt' => (string)time()
             ];
             $redis->multi();
-            $redis->hMSet($foulDataKey, $foulDataForRedis);
-            $redis->sAdd($foulKeys['game_fouls_set_key'], $foulDataKey);
+            $redis->hMSet($foulEventKey, $foulDataForRedis);
+            $redis->zAdd($gameFoulsKey, $timestamp, $foulEventKey);
             $redis->incr($accumulatedFoulKey);
             $results = $redis->exec();
             if ($results === false || !isset($results[0]) || $results[0] === false || !isset($results[1]) || $results[1] === false || !isset($results[2]) || $results[2] === false) {
-                 $redis->del($foulDataKey);
-                 $redis->sRem($foulKeys['game_fouls_set_key'], $foulDataKey);
+                 $redis->del($foulEventKey);
+                 $redis->zRem($gameFoulsKey, $foulEventKey);
                  http_response_code(500);
                  $response = ["status" => "error", "message" => "Failed to atomically record foul and update accumulated count."];
-                 error_log("Redis MULTI/EXEC failed for foul creation. Placard: {$placardId}, FoulID Attempted: {$newFoulIdStr}, Results: " . print_r($results, true));
+                 error_log("Redis MULTI/EXEC failed for foul creation. Placard: {$placardId}, eventId Attempted: {$eventIdStr}, Results: " . print_r($results, true));
             } else {
                  http_response_code(201);
                  $response = [
                      'status' => 'success', 'message' => 'Foul created and accumulated count updated.',
-                     'foulId' => $foulEvent->getId(), 'foulDataKey' => $foulDataKey,
+                     'eventId' => $foulEvent->getId(), 'foulEventKey' => $foulEventKey,
                      'data' => $foulDataForRedis, 'accumulatedFoulsThisPeriod' => (int)$results[2]
                  ];
             }
@@ -160,19 +163,19 @@ try {
                  $response = ["status" => "error", "message" => "Invalid request method. Only POST/PUT allowed for 'update'."];
                  break;
              }
-             $foulId = trim($params['foulId'] ?? '');
-             if (empty($foulId)) {
+             $eventId = trim($params['eventId'] ?? '');
+             if (empty($eventId)) {
                  http_response_code(400);
-                 $response = ['status' => 'error', 'message' => 'Missing required field for update: foulId.'];
+                 $response = ['status' => 'error', 'message' => 'Missing required field for update: eventId.'];
                  break;
              }
-             $foulDataKey = $foulKeys['foul_data_key_prefix'] . $foulId;
-             $redis->watch($foulDataKey);
-             $originalFoulData = $redis->hGetAll($foulDataKey);
+             $foulEventKey = $foulKeys['foul_event'] . $eventId;
+             $redis->watch($foulEventKey);
+             $originalFoulData = $redis->hGetAll($foulEventKey);
              if (empty($originalFoulData)) {
                  $redis->unwatch();
                  http_response_code(404);
-                 $response = ["status" => "error", "message" => "Foul with ID {$foulId} not found for placard {$placardId}."];
+                 $response = ["status" => "error", "message" => "Foul with ID {$eventId} not found for placard {$placardId}."];
                  break;
              }
              $updateData = []; $isChanged = false; $teamChanged = false;
@@ -193,8 +196,8 @@ try {
                     break;
                  }
              }
-             if (isset($params['foulTime']) && trim($params['foulTime']) !== ($originalFoulData['time'] ?? null)) {
-                 $updateData['time'] = trim($params['foulTime']); $isChanged = true;
+             if (isset($params['timestamp']) && trim($params['timestamp']) !== ($originalFoulData['time'] ?? null)) {
+                 $updateData['time'] = trim($params['timestamp']); $isChanged = true;
              }
              if (!$isChanged) {
                  $redis->unwatch(); http_response_code(400);
@@ -203,26 +206,26 @@ try {
              }
              $updateData['updatedAt'] = (string)time();
              $redis->multi();
-             $redis->hMSet($foulDataKey, $updateData);
+             $redis->hMSet($foulEventKey, $updateData);
              if ($teamChanged && $originalTeamId && $originalPeriod) {
-                 $oldAccumulatedKey = $foulKeys['accumulated_foul_key_prefix'] . "{$originalTeamId}:period:{$originalPeriod}:fouls_accumulated";
-                 $newAccumulatedKey = $foulKeys['accumulated_foul_key_prefix'] . "{$newTeamId}:period:{$originalPeriod}:fouls_accumulated";
+                 $oldAccumulatedKey = $foulKeys['accumulated_foul'] . "{$originalTeamId}:period:{$originalPeriod}:fouls_accumulated";
+                 $newAccumulatedKey = $foulKeys['accumulated_foul'] . "{$newTeamId}:period:{$originalPeriod}:fouls_accumulated";
                  $redis->decr($oldAccumulatedKey); $redis->incr($newAccumulatedKey);
              }
              $results = $redis->exec();
              if ($results === false) {
                  http_response_code(409);
                  $response = ["status" => "error", "message" => "Update failed due to a conflict or Redis error. Please retry."];
-                 error_log("Redis WATCH/MULTI/EXEC failed for foul update. Placard: {$placardId}, FoulID: {$foulId}. Key might have changed.");
+                 error_log("Redis WATCH/MULTI/EXEC failed for foul update. Placard: {$placardId}, eventId: {$eventId}. Key might have changed.");
              } elseif(is_array($results) && isset($results[0]) && $results[0] === false) {
                  http_response_code(500);
                  $response = ["status" => "error", "message" => "Failed to apply updates to foul data in Redis."];
-                 error_log("Redis HMSET failed within MULTI/EXEC for foul update. Placard: {$placardId}, FoulID: {$foulId}. Results: " . print_r($results, true));
+                 error_log("Redis HMSET failed within MULTI/EXEC for foul update. Placard: {$placardId}, eventId: {$eventId}. Results: " . print_r($results, true));
              } else {
-                 $finalFoulData = $redis->hGetAll($foulDataKey);
+                 $finalFoulData = $redis->hGetAll($foulEventKey);
                  $response = [
                      'status' => 'success', 'message' => 'Foul updated successfully.' . ($teamChanged ? ' Accumulated counts adjusted.' : ''),
-                     'foulId' => $foulId, 'foulDataKey' => $foulDataKey, 'data' => $finalFoulData
+                     'eventId' => $eventId, 'foulEventKey' => $foulEventKey, 'data' => $finalFoulData
                  ];
                  if ($teamChanged && isset($results[1]) && isset($results[2])) {
                      $response['oldTeamNewCount'] = (int)$results[1]; $response['newTeamNewCount'] = (int)$results[2];
@@ -237,47 +240,47 @@ try {
                  $response = ["status" => "error", "message" => "Invalid request method. Only POST/DELETE allowed for 'delete'."];
                  break;
              }
-             $foulId = trim($params['foulId'] ?? '');
-             if (empty($foulId)) {
+             $eventId = trim($params['eventId'] ?? '');
+             if (empty($eventId)) {
                  http_response_code(400);
-                 $response = ['status' => 'error', 'message' => 'Missing required field for delete: foulId.'];
+                 $response = ['status' => 'error', 'message' => 'Missing required field for delete: eventId.'];
                  break;
              }
-             $foulDataKey = $foulKeys['foul_data_key_prefix'] . $foulId;
-             $redis->watch($foulDataKey);
-             $originalFoulData = $redis->hGetAll($foulDataKey);
+             $foulEventKey = $foulKeys['foul_event'] . $eventId;
+             $redis->watch($foulEventKey);
+             $originalFoulData = $redis->hGetAll($foulEventKey);
              if (empty($originalFoulData)) {
                  $redis->unwatch(); http_response_code(404);
-                 $response = ["status" => "error", "message" => "Foul with ID {$foulId} not found for placard {$placardId}."];
+                 $response = ["status" => "error", "message" => "Foul with ID {$eventId} not found for placard {$placardId}."];
                  break;
              }
              $originalTeamId = $originalFoulData['teamId'] ?? null;
              $originalPeriod = $originalFoulData['period'] ?? null;
              if (!$originalTeamId || !$originalPeriod) {
-                 $redis->unwatch(); error_log("Inconsistent foul data found for deletion: Placard {$placardId}, Foul {$foulId}. Missing teamId or period.");
+                 $redis->unwatch(); error_log("Inconsistent foul data found for deletion: Placard {$placardId}, Foul {$eventId}. Missing teamId or period.");
                  http_response_code(500);
                  $response = ['status' => 'error', 'message' => 'Cannot delete foul due to inconsistent stored data. Check logs.'];
                  break;
              }
-             $accumulatedFoulKey = $foulKeys['accumulated_foul_key_prefix'] . "{$originalTeamId}:period:{$originalPeriod}:fouls_accumulated";
+             $accumulatedFoulKey = $foulKeys['accumulated_foul'] . "{$originalTeamId}:period:{$originalPeriod}:fouls_accumulated";
              $redis->multi();
-             $redis->del($foulDataKey);
-             $redis->sRem($foulKeys['game_fouls_set_key'], $foulDataKey);
+             $redis->del($foulEventKey);
+             $redis->zRem($gameFoulsKey, $foulEventKey);
              $redis->decr($accumulatedFoulKey);
              $results = $redis->exec();
              if ($results === false) {
                  http_response_code(409);
                  $response = ["status" => "error", "message" => "Delete failed due to a conflict or Redis error. Please retry."];
-                 error_log("Redis WATCH/MULTI/EXEC failed for foul delete. Placard: {$placardId}, FoulID: {$foulId}.");
+                 error_log("Redis WATCH/MULTI/EXEC failed for foul delete. Placard: {$placardId}, eventId: {$eventId}.");
              } elseif (is_array($results) && (!isset($results[0]) || $results[0] < 1)) {
                  http_response_code(500);
                  $response = ["status" => "error", "message" => "Failed to delete foul data key, it might have been removed concurrently or delete failed."];
-                 error_log("Redis DEL failed within MULTI/EXEC for foul delete. Placard: {$placardId}, FoulID: {$foulId}. Results: " . print_r($results, true));
+                 error_log("Redis DEL failed within MULTI/EXEC for foul delete. Placard: {$placardId}, eventId: {$eventId}. Results: " . print_r($results, true));
              } else {
                  http_response_code(200);
                  $response = [
                      'status' => 'success', 'message' => 'Foul deleted and accumulated count updated.',
-                     'foulId' => $foulId, 'newAccumulatedCount' => isset($results[2]) ? (int)$results[2] : 'N/A'
+                     'eventId' => $eventId, 'newAccumulatedCount' => isset($results[2]) ? (int)$results[2] : 'N/A'
                  ];
              }
              break;
@@ -300,7 +303,7 @@ try {
                 $accumulated["period_{$p}"] = [];
                 foreach ($teamIds as $tId) {
                     if (empty($tId)) continue;
-                    $key = $foulKeys['accumulated_foul_key_prefix'] . "{$tId}:period:{$p}:fouls_accumulated";
+                    $key = $foulKeys['accumulated_foul'] . "{$tId}:period:{$p}:fouls_accumulated";
                     $keysToFetch[] = ['period' => $p, 'teamId' => $tId, 'key' => $key];
                     $pipe->get($key);
                 }
@@ -325,7 +328,7 @@ try {
                 $response = ["status" => "error", "message" => "Invalid request method. Only GET is allowed for 'list_game_fouls'."];
                 break;
             }
-            $foulKeysResult = $redis->sMembers($foulKeys['game_fouls_set_key']);
+            $foulKeysResult = $redis->zRange($gameFoulsKey, 0, -1);
             if (empty($foulKeysResult)) {
                 http_response_code(200);
                 $response = ['status' => 'success', 'message' => "No fouls recorded for placard '{$placardId}'.", 'data' => []];
@@ -336,7 +339,7 @@ try {
             $foulHashes = $pipe->exec(); $fouls = [];
             foreach ($foulHashes as $index => $hash) {
                 if ($hash && is_array($hash)) {
-                    if (isset($hash['foulId'])) $hash['foulId'] = (string)$hash['foulId'];
+                    if (isset($hash['eventId'])) $hash['eventId'] = (string)$hash['eventId'];
                     if (isset($hash['period'])) $hash['period'] = (int)$hash['period'];
                     if (isset($hash['recordedAt'])) $hash['recordedAt'] = (int)$hash['recordedAt'];
                     if (isset($hash['updatedAt'])) $hash['updatedAt'] = (int)$hash['updatedAt'];
@@ -365,7 +368,7 @@ try {
                 $response = ['status' => 'error', 'message' => 'Missing required field for get_player_fouls: playerId.'];
                 break;
             }
-            $foulKeysResult = $redis->sMembers($foulKeys['game_fouls_set_key']);
+            $foulKeysResult = $redis->zRange($gameFoulsKey, 0, -1);
             if (empty($foulKeysResult)) {
                 http_response_code(200);
                 $response = [
@@ -379,7 +382,7 @@ try {
             $foulHashes = $pipe->exec(); $playerFouls = []; $foulCount = 0;
             foreach ($foulHashes as $index => $hash) {
                 if ($hash && is_array($hash) && isset($hash['playerId']) && $hash['playerId'] === $playerId) {
-                    if (isset($hash['foulId'])) $hash['foulId'] = (string)$hash['foulId'];
+                    if (isset($hash['eventId'])) $hash['eventId'] = (string)$hash['eventId'];
                     if (isset($hash['period'])) $hash['period'] = (int)$hash['period'];
                     if (isset($hash['recordedAt'])) $hash['recordedAt'] = (int)$hash['recordedAt'];
                     if (isset($hash['updatedAt'])) $hash['updatedAt'] = (int)$hash['updatedAt'];
