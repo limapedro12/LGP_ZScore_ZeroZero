@@ -69,6 +69,14 @@ class RequestUtils {
                     'event_counter' => $prefix . 'eventcounter',
                     'card_event' => 'cardevent:'
                 ];
+            // --- NOVO CASE PARA FALTAS ---
+            case 'fouls':
+                return [
+                    'foul_counter_key' => $prefix . 'foul_counter',
+                    'game_fouls_set_key' => $prefix . 'fouls',
+                    'foul_data_key_prefix' => "foul:$placardId:",
+                    'accumulated_foul_key_prefix' => $prefix . 'team:'
+                ];    
         }
     }
 
