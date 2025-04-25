@@ -1,0 +1,179 @@
+@use "./config.scss";
+@import "bootstrap/scss/bootstrap";
+
+// Variables
+$team-logo-size-xxl: 200px;
+$team-logo-size-xl: 160px; // Added size for xl breakpoint
+$team-logo-size-lg: 120px;
+$team-logo-size-md: 60px;
+$team-logo-size-sm: 40px;
+
+$font-size-xxl: 4rem;
+$font-size-xl: 3.5rem; // Added size for xl breakpoint
+$font-size-lg: 3rem;
+$font-size-md: 2rem;
+$font-size-sm: 1.5rem;
+
+$score-box-width-xxl: 150px;
+$score-box-width-xl: 120px; // Added width for xl breakpoint
+$score-box-width-lg: 100px;
+$score-box-width-md: 80px;
+$score-box-width-sm: 60px;
+
+.scores-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  color: white;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  
+  @include media-breakpoint-down(sm) {
+    padding: 0.75rem;
+  }
+  
+  .team {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    transition: all 0.3s ease;
+    
+    .team-logo-container {
+      width: $team-logo-size-xxl;
+      height: $team-logo-size-xxl;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      
+      @include media-breakpoint-down(xl) {
+        width: $team-logo-size-xl;
+        height: $team-logo-size-xl;
+      }
+      
+      @include media-breakpoint-down(lg) {
+        width: $team-logo-size-lg;
+        height: $team-logo-size-lg;
+      }
+      
+      @include media-breakpoint-down(md) {
+        width: $team-logo-size-md;
+        height: $team-logo-size-md;
+      }
+      
+      @include media-breakpoint-down(sm) {
+        width: $team-logo-size-sm;
+        height: $team-logo-size-sm;
+      }
+      
+      .team-logo {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .team-abbreviation {
+      font-size: $font-size-xxl;
+      font-weight: bold;
+      margin: 0 1.5rem;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      
+      @include media-breakpoint-down(xl) {
+        font-size: $font-size-xl;
+        margin: 0 1.25rem;
+      }
+      
+      @include media-breakpoint-down(lg) {
+        font-size: $font-size-lg;
+        margin: 0 1rem;
+      }
+      
+      @include media-breakpoint-down(md) {
+        font-size: $font-size-md;
+        margin: 0 0.75rem;
+      }
+      
+      @include media-breakpoint-down(sm) {
+        font-size: $font-size-sm;
+        margin: 0 0.5rem;
+      }
+    }
+  }
+  
+  .home-team {
+    justify-content: flex-start;
+  }
+  
+  .away-team {
+    justify-content: flex-end;
+    text-align: right;
+  }
+  
+  .scores-container {
+    display: flex;
+    align-items: center;
+    gap: 5rem;
+    transition: all 0.3s ease;
+    
+    @include media-breakpoint-down(xl) {
+      gap: 0.75rem;
+    }
+    
+    @include media-breakpoint-down(sm) {
+      gap: 0.5rem;
+    }
+    
+    .score-box {
+      background-color: white;
+      color: black;
+      font-size: $font-size-xxl;
+      font-weight: bold;
+      border-radius: 8px;
+      width: $score-box-width-xxl;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      
+      @include media-breakpoint-down(xl) {
+        font-size: $font-size-xl;
+        width: $score-box-width-xl;
+        padding: 0.85rem;
+      }
+      
+      @include media-breakpoint-down(lg) {
+        font-size: $font-size-lg;
+        width: $score-box-width-lg;
+        padding: 0.75rem;
+      }
+      
+      @include media-breakpoint-down(md) {
+        font-size: $font-size-md;
+        width: $score-box-width-md;
+        padding: 0.5rem;
+      }
+      
+      @include media-breakpoint-down(sm) {
+        font-size: $font-size-sm;
+        width: $score-box-width-sm;
+        padding: 0.3rem;
+      }
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+    }
+  }
+}

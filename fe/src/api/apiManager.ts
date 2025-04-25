@@ -4,9 +4,16 @@ import ENDPOINTS from './endPoints';
 const BASE_URL = `${config.API_HOSTNAME}`;
 
 type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';
-type EndpointType = 'timer' | 'timeout';
+type EndpointType = 'timer' | 'timeout' | 'score';
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
+
+interface ScoreResponse {
+    message?: string;
+    homeScore?: number;
+    awayScore?: number;
+    error?: string;
+}
 
 interface RequestParams {
     placardId: string;
@@ -137,11 +144,14 @@ class ApiManager {
     getTimeoutEvents = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'get', { placardId, sport }, 'GET');
 
-    getGameStatus = (placardId: string, sport: string) =>
+    getGameTimeoutStatus = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'gameStatus', { placardId, sport }, 'GET');
 
     resetTimeouts = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });
+
+    getScores = (placardId: string, sport: string) =>
+        this.makeRequest<ScoreResponse>('score', 'gameStatus', { placardId, sport }, 'GET');
 
 }
 

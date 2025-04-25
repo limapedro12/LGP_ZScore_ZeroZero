@@ -10,7 +10,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $params = RequestUtils::getRequestParams();
 
 $requiredParams = ['placardId', 'sport', 'action'];
-$allowedActions = ['get', 'create', 'delete', 'update'];
+$allowedActions = ['get', 'create', 'delete', 'update', 'gameStatus'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -301,6 +301,19 @@ try {
                 http_response_code(500);
                 $response = ["error" => "Failed to update point event"];
             }
+            break;
+        
+        case 'gameStatus':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
+                break;
+            }
+
+            $response = [
+                "homeScore" => $redis->get($homePointsKey) ?: 0,
+                "awayScore" => $redis->get($awayPointsKey) ?: 0,
+            ];
             break;
 
         default:
