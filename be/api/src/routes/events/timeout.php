@@ -97,7 +97,7 @@ try {
 
         $eventId = $redis->incr($keys['event_counter']);
         $timeoutEventKeys = $keys['timeout_event'] . $eventId;
-        $gameTimePosition = RequestUtils::getGameTimePosition($placardId);
+        $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
         
         $timeoutData = [

@@ -10,7 +10,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $params = RequestUtils::getRequestParams();
 
 $requiredParams = ['placardId', 'sport', 'action'];
-$allowedActions = ['get', 'add', 'remove', 'update'];
+$allowedActions = ['get', 'create', 'delete', 'update'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -24,7 +24,7 @@ $action = $params['action'] ?? null;
 $sport = $params['sport'] ?? null;
 $team = $params['team'] ?? null;
 
-if (($action === 'add') && empty($team)) {
+if (($action === 'create') && empty($team)) {
     http_response_code(400);
     echo json_encode(["error" => "Team parameter is required for " . $action . " action"]);
     exit;
@@ -67,10 +67,10 @@ try {
     $awayPoints = $results[1] ?? 0;
 
     switch ($action) {
-        case 'add':
+        case 'create':
             if ($requestMethod !== 'POST') {
                 http_response_code(405);
-                $response = ["error" => "Invalid request method. Only POST is allowed for add action."];
+                $response = ["error" => "Invalid request method. Only POST is allowed for create action."];
                 break;
             }
 
@@ -79,7 +79,7 @@ try {
 
             if(!$playerId) {
                 http_response_code(400);
-                $response = ["error" => "Missing playerId for add action"];
+                $response = ["error" => "Missing playerId for create action"];
                 break;
             }
 
@@ -113,7 +113,7 @@ try {
                 break;
             }
 
-            $timestamp = RequestUtils::getGameTimePosition($placardId);
+            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
             $currentHomePoints = ($team === 'home') ? $points : (int)$homePoints;
             $currentAwayPoints = ($team === 'away') ? $points : (int)$awayPoints;
@@ -146,10 +146,10 @@ try {
             }
             break;
 
-        case 'remove':
+        case 'delete':
             if ($requestMethod !== 'POST') {
                http_response_code(405); 
-               $response = ["error" => "Invalid request method. Only POST is allowed for remove action."];
+               $response = ["error" => "Invalid request method. Only POST is allowed for " . $action . " action."];
                break;
             }
 
@@ -157,7 +157,7 @@ try {
 
            if (!$eventId) {
                http_response_code(400);
-               $response = ["error" => "Missing eventId for remove action"];
+               $response = ["error" => "Missing eventId for " . $action . " action."];
                break;
            }
 
@@ -176,12 +176,12 @@ try {
 
            if ($result && isset($result[0]) && $result[0] > 0 && isset($result[1]) && $result[1] > 0) {
                 $response = [
-                   "message" => "Point event removed successfully",
+                   "message" => "Point event deleted successfully",
                    "eventId" => $eventId
                ];
            } else {
                 http_response_code(500);
-                $response = ["error" => "Failed to remove point event"];
+                $response = ["error" => "Failed to delete point event"];
            }
            break;
 
@@ -277,7 +277,6 @@ try {
                 break;
             }
 
-            // Preserve existing data that isn't being updated
             $updatedData['eventId'] = $eventId;
             $updatedData['placardId'] = $placardId;
             $updatedData['playerId'] = $updatedData['playerId'] ?? $currentPointData['playerId'];

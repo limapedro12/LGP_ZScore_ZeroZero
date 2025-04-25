@@ -59,7 +59,7 @@ try {
                 $response = ["error" => "Invalid card type"];
                 break;
             }
-            $timestamp = RequestUtils::getGameTimePosition($placardId);
+            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
             if (!$playerId || !$cardType || ($timestamp === null)) {
                 http_response_code(400);
