@@ -68,9 +68,9 @@ if (empty($placardId) || empty($sport)) {
 }
 
 try {
-    $gameConfigManager = new GameConfig();
-    $currentGameConfig = $gameConfigManager->getConfig($sport);
-    $totalPeriods = $currentGameConfig['periods'] ?? null;
+    $gameConfig = new GameConfig();
+    $gameConfig = $gameConfig->getConfig($sport);
+    $totalPeriods = $gameConfig['periods'] ?? null;
     if (is_null($totalPeriods)) {
         throw new Exception("Configuration error: Sport '{$sport}' is missing the 'periods' definition.");
     }

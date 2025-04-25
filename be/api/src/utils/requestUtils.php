@@ -81,7 +81,7 @@ class RequestUtils {
 
     public static function getGameTimePosition($placardId) {
         global $redis, $gameConfig;
-        
+
         $timerKeys = self::getRedisKeys($placardId, 'timer');
         
         $pipeline = $redis->pipeline();
