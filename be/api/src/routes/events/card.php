@@ -12,7 +12,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $params = RequestUtils::getRequestParams();
 
 $requiredParams = ['placardId', 'sport', 'action'];
-$allowedActions = ['add', 'update', 'remove', 'get'];
+$allowedActions = ['create', 'update', 'delete', 'get'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -57,7 +57,7 @@ try {
     $eventCounterKey = $keys['event_counter'];
 
     switch ($action) {
-        case 'add':
+        case 'create':
             if ($requestMethod !== 'POST') {
                 http_response_code(405);
                 $response = ["error" => "Invalid request method. Only POST is allowed for add action."];
@@ -210,7 +210,7 @@ try {
             }
             break;
 
-        case 'remove':
+        case 'delete':
              if ($requestMethod !== 'POST') {
                 http_response_code(405); 
                 $response = ["error" => "Invalid request method. Only POST is allowed for remove action."];
