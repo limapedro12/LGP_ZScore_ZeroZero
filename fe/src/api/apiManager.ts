@@ -7,7 +7,8 @@ const BASE_URL = `${config.API_HOSTNAME}`;
  * Defines the possible timer actions that can be sent to the API
  */
 type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';
-type EndpointType = 'timer' | 'timeout' | 'api';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards';
+
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
 
@@ -68,6 +69,19 @@ interface TimeoutResponse {
 }
 
 
+interface CardsResponse {
+    cards: Array<{
+        eventId: number;
+        placardId: string;
+        playerId: string;
+        cardType: string;
+        timestamp: number;
+    }>;
+}
+
+/**
+ * API Manager that handles all API requests
+ */
 class ApiManager {
 
     makeRequest = async <T>(
@@ -79,7 +93,6 @@ class ApiManager {
 
         const endpointKey = endpoint.toUpperCase() as EndpointKeyType;
         let url = `${BASE_URL}${ENDPOINTS[endpointKey]()}`;
-
 
         if (method === 'GET') {
             const queryParams = new URLSearchParams({
@@ -175,7 +188,8 @@ class ApiManager {
     login = (username: string, password: string) =>
         this.ApiRequest({ action: 'login', username: username, password: password });
 
-
+    getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
+        this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 }
 
 const apiManager = new ApiManager();
