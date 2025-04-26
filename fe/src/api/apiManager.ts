@@ -3,14 +3,28 @@ import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'create' | 'delete' | 'update' | 'list';
-type EndpointType = 'timer' | 'substitutions'; // Extendable for other endpoints
+/**
+ * Defines the possible timer actions that can be sent to the API
+ */
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'add' | 'update' | 'remove';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'substitution';
+
 type EndpointKeyType = keyof typeof ENDPOINTS;
+type TeamType = 'home' | 'away';
 
 interface RequestParams {
     placardId: string;
-    gameType: string;
+    sport: string;
     [key: string]: string | number;
+}
+
+interface ApiParams {
+    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
+    username?: string;
+    password?: string;
+    cookie?: string;
+    placardId?: string;
+    teamId?: string;
 }
 
 interface TimerResponse {
@@ -20,6 +34,49 @@ interface TimerResponse {
     period: number;
     total_periods: number;
     error?: string;
+}
+
+interface TimeoutResponse {
+    message?: string;
+    status?: 'running' | 'paused' | 'inactive';
+    team?: TeamType;
+    remaining_time?: number;
+    timer?: {
+        status: 'running' | 'paused' | 'inactive';
+        team: TeamType;
+        remaining_time: number;
+    };
+    homeTimeoutsUsed?: number;
+    awayTimeoutsUsed?: number;
+    totalTimeoutsPerTeam?: number;
+    event?: {
+        eventId: number;
+        placardId: string;
+        team: TeamType | null;
+        homeTimeoutsUsed: number;
+        awayTimeoutsUsed: number;
+        totalTimeoutsPerTeam: number;
+    };
+    events?: Array<{
+        eventId: string;
+        placardId: string;
+        team: TeamType | null;
+        homeTimeoutsUsed: string;
+        awayTimeoutsUsed: string;
+        totalTimeoutsPerTeam: string;
+    }>;
+    error?: string;
+}
+
+
+interface CardsResponse {
+    cards: Array<{
+        eventId: number;
+        placardId: string;
+        playerId: string;
+        cardType: string;
+        timestamp: number;
+    }>;
 }
 
 type Substitution = {
@@ -63,14 +120,13 @@ class ApiManager {
         const endpointKey = endpoint.toUpperCase() as EndpointKeyType;
         let url = `${BASE_URL}${ENDPOINTS[endpointKey]()}`;
 
-
         if (method === 'GET') {
             const queryParams = new URLSearchParams({
                 action,
                 placardId: params.placardId,
-                gameType: params.gameType,
+                sport: params.sport,
                 ...Object.fromEntries(
-                    Object.entries(params).filter(([key]) => !['placardId', 'gameType'].includes(key))
+                    Object.entries(params).filter(([key]) => !['placardId', 'sport'].includes(key))
                 ),
             });
             url = `${url}?${queryParams.toString()}`;
@@ -82,6 +138,7 @@ class ApiManager {
                 'Content-Type': 'application/json',
             },
         };
+
         if (method === 'POST') {
             options.body = JSON.stringify({
                 action,
@@ -98,40 +155,83 @@ class ApiManager {
         return response.json();
     };
 
-    // Timer-specific methods
-    startTimer = (placardId: string, gameType: string) =>
-        this.makeRequest<TimerResponse>('timer', 'start', { placardId, gameType });
+    ApiRequest = (params: ApiParams) => {
+        const url = `${BASE_URL}${ENDPOINTS.API()}`;
+        const options: RequestInit = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params),
+        };
 
-    stopTimer = (placardId: string, gameType: string) =>
-        this.makeRequest<TimerResponse>('timer', 'pause', { placardId, gameType });
+        return fetch(url, options).then((response) => {
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            return response.json();
+        });
+    };
 
-    getTimerStatus = (placardId: string, gameType: string) =>
-        this.makeRequest<TimerResponse>('timer', 'status', { placardId, gameType }, 'GET');
+    startTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'start', { placardId, sport });
 
-    resetTimer = (placardId: string, gameType: string) =>
-        this.makeRequest<TimerResponse>('timer', 'reset', { placardId, gameType });
+    stopTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'pause', { placardId, sport });
 
-    adjustTimer = (placardId: string, gameType: string, seconds: number) =>
-        this.makeRequest<TimerResponse>('timer', 'adjust', { placardId, gameType, seconds });
+    getTimerStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'status', { placardId, sport }, 'GET');
 
-    setTimer = (placardId: string, gameType: string, time: number, period: number) =>
-        this.makeRequest<TimerResponse>('timer', 'set', { placardId, gameType, time, period });
+    resetTimer = (placardId: string, sport: string) =>
+        this.makeRequest<TimerResponse>('timer', 'reset', { placardId, sport });
+
+    adjustTimer = (placardId: string, sport: string, seconds: number) =>
+        this.makeRequest<TimerResponse>('timer', 'adjust', { placardId, sport, seconds });
+
+    setTimer = (placardId: string, sport: string, time: number, period: number) =>
+        this.makeRequest<TimerResponse>('timer', 'set', { placardId, sport, time, period });
+
+    startTimeout = (placardId: string, sport: string, team: TeamType) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'start', { placardId, sport, team });
+
+    pauseTimeout = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'pause', { placardId, sport });
+
+    getTimeoutStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'status', { placardId, sport }, 'GET');
+
+    adjustTimeout = (placardId: string, sport: string, team: TeamType, amount: number) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'adjust', { placardId, sport, team, amount });
+
+    getTimeoutEvents = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'get', { placardId, sport }, 'GET');
+
+    getGameStatus = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'gameStatus', { placardId, sport }, 'GET');
+
+    resetTimeouts = (placardId: string, sport: string) =>
+        this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });
+    login = (username: string, password: string) =>
+        this.ApiRequest({ action: 'login', username: username, password: password });
+
+    getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
+        this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
     // Substitution-specific methods
-    getSubstitutionsStatus = (placardId: string, gameType: string) =>
-        this.makeRequest<SubstitutionResponse>('substitutions', 'list', { placardId, gameType }, 'GET');
+    getSubstitutionStatus = (placardId: string, sport: string) =>
+        this.makeRequest<SubstitutionResponse>('substitution', 'get', { placardId, sport }, 'GET');
 
-    createSubstitution = (placardId: string, gameType: string, teamNumber: string,
+    createSubstitution = (placardId: string, sport: string, teamNumber: string,
         playerIn: string, playerOut: string) =>
-        this.makeRequest<SubstitutionResponse>('substitutions', 'create', { placardId, gameType, teamNumber, playerIn, playerOut });
+        this.makeRequest<SubstitutionResponse>('substitution', 'add', { placardId, sport, teamNumber, playerIn, playerOut });
 
-    updateSubstitution = (placardId: string, gameType: string, teamNumber: string,
+    updateSubstitution = (placardId: string, sport: string, teamNumber: string,
         substitutionId: string, playerIn: string, playerOut: string) =>
-        this.makeRequest<SubstitutionResponse>('substitutions', 'update', { placardId, gameType, teamNumber,
+        this.makeRequest<SubstitutionResponse>('substitution', 'update', { placardId, sport, teamNumber,
             substitutionId, playerIn, playerOut });
 
-    deleteSubstitution = (placardId: string, gameType: string, teamNumber: string, substitutionId: string) =>
-        this.makeRequest<SubstitutionResponse>('substitutions', 'delete', { placardId, gameType, teamNumber, substitutionId });
+    deleteSubstitution = (placardId: string, sport: string, teamNumber: string, substitutionId: string) =>
+        this.makeRequest<SubstitutionResponse>('substitution', 'remove', { placardId, sport, teamNumber, substitutionId });
 }
 
 const apiManager = new ApiManager();

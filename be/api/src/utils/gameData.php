@@ -11,7 +11,7 @@
  * @param GameConfig $gameConfig Game configuration parameters
  * @return array Players and their status [(player : AbstractPlayer) => (ingame : bool)]
  */
-function getIngamePlayers($redis, $placardId, $gameType, $team) {
+function getIngamePlayers($redis, $placardId, $sport, $team) {
     try {
         $prefix = "game:$placardId:team:$team:";
         $initialLineupKey = $prefix . 'initial_lineup';
@@ -24,7 +24,7 @@ function getIngamePlayers($redis, $placardId, $gameType, $team) {
         //     ];
         // }
         if ($ingamePlayers === null) {
-            switch ($gameType){
+            switch ($sport){
                 case 'volleyball':
                     $ingamePlayers = [
                         '1' => true,

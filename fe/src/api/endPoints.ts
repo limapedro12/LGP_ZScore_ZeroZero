@@ -4,7 +4,10 @@
 
 const ENDPOINTS = {
     TIMER: () => '/timer/timer',
-    SUBSTITUTIONS: () => '/events/substitutions',
+    API: () => '/api/api',
+    TIMEOUT: () => '/events/timeout',
+    CARDS: () => '/events/card',
+    SUBSTITUTION: () => '/events/substitution',
 };
 
 export default ENDPOINTS;
