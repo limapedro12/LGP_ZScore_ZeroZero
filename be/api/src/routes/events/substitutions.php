@@ -1,79 +1,44 @@
 <?php
-require_once __DIR__ . '/../../utils/connRedis.php';
+require_once __DIR__ . '/../../utils/redisUtils.php';
+require_once __DIR__ . '/../../utils/requestUtils.php';
+require_once __DIR__ . '/../../classes/AbstractEvent.php';
+require_once __DIR__ . '/../../classes/SubstitutionEvent.php';
 require_once __DIR__ . '/../../utils/gameData.php';
 require_once __DIR__ . '/../../config/gameConfig.php';
 
 
 header('Content-Type: application/json');
-$jsonBody = null;
 
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+$params = RequestUtils::getRequestParams();
 
-if($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = file_get_contents('php://input');
-    if ($input) {
-        $jsonBody = json_decode($input, true);
-    }
-}
-else if (!($_SERVER['REQUEST_METHOD'] === 'GET' && $_GET['action'] === 'list')) {
-    $response['message'] = 'Invalid request method. Only POST is allowed. (GET for list substitutions)';
-    http_response_code(405);
-    echo json_encode($response);
-    exit;
-}
+$requiredParams = ['placardId', 'sport', 'action'];
+$allowedActions = ['add', 'update', 'remove', 'get'];
 
-
-$action = $_GET['action'] ?? $jsonBody['action'] ?? null;
-$placardId = $_GET['placardId'] ?? $jsonBody['placardId'] ?? null; //GET is used for the list action
-$sport = $_GET['sport'] ?? $jsonBody['sport'] ?? null;
-$team = $jsonBody['team'] ?? null;
-$playerIn = $jsonBody['playerIn'] ?? null;
-$playerOut = $jsonBody['playerOut'] ?? null;
-$substitutionId = $jsonBody['substitutionId'] ?? null;
-
-$allowedActions = ['add', 'update', 'remove', 'list'];
-if (is_null($action) || !in_array($action, $allowedActions)) {
-    $response['message'] = 'Missing or invalid action parameter (Curr:' . $action . '). Allowed actions: ' . implode(', ', $allowedActions);
+$validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
+if ($validationError) {
     http_response_code(400);
-    echo json_encode($response);
-    exit;
-}
-if (is_null($placardId)) {
-    echo json_encode(["error" => "Missing gameId"]);
-    exit;
-}
-if (is_null($sport)) {
-    echo json_encode(["error" => "Missing sport"]);
-    exit;
-}
-if ((is_null($team) || ($team !== "home" && $team !== "away")) && ($action !== "list")) {
-    echo json_encode(["error" => "Missing valid team"]);
-    exit;
-}
-if (is_null($playerIn) && ($action !== "remove" && $action !== "list")) {
-    echo json_encode(["error" => "Missing playerIn"]);
-    exit;
-}
-if (is_null($playerOut) && ($action !== "remove" && $action !== "list")) {
-    echo json_encode(["error"=> "Missing playerOut"]);
-    exit;
-}
-if (is_null($substitutionId) && ($action !== "add" && $action !== "list")) {
-    echo json_encode(["error"=> "Missing substitutionId"]);
+    echo json_encode($validationError);
     exit;
 }
 
-try {
-    $redis = connectRedis();
-    if (!$redis || !$redis->ping()) {
-        throw new Exception("Failed to connect to Redis");
-    }
-} catch (Exception $e) {
-    error_log("Redis Connection Error: " . $e->getMessage());
-    $response['message'] = 'Service unavailable (Database connection failed).';
-    http_response_code(503);
-    echo json_encode($response);
+$action =  $params['action'] ?? null;
+$placardId =  $params['placardId'] ?? null;
+$sport =  $params['sport'] ?? null;
+$team = $params['team'] ?? null;
+$playerIn = $params['playerIn'] ?? null;
+$playerOut = $params['playerOut'] ?? null;
+$substitutionId = $params['substitutionId'] ?? null;
+
+
+$redis = RedistUtils::connect();
+if (!$redis) {
+    http_response_code(500);
+    echo json_encode(["error" => "Failed to connect to Redis"]);
     exit;
 }
+
+$response = [];
 
 $prefixKey = "game:$placardId:team:$team:";
 $substitutionSetKey = $prefixKey . "substitution_set";
@@ -82,7 +47,7 @@ try {
     $gameConfig = new GameConfig();
     $gameConfig = $gameConfig->getConfig($sport);
 
-    if ($action !== 'list') {
+    if ($action !== 'get') {
         $ingamePlayers = getIngamePlayers($redis, $placardId, $sport, $team);
         if (array_key_exists("error", $ingamePlayers)){
             $response = ["error"=> $ingamePlayers["error"]];
@@ -93,7 +58,13 @@ try {
     }
 
     switch ($action){
-        case 'list':
+        case 'get':
+            if (($requestMethod !== 'GET')) {
+                http_response_code(400);
+                echo json_encode(["error" => "Method not allowed"]);
+                exit;
+            }
+
             $prefix1Key = "game:$placardId:team:home:";
             $substitutions1 = $redis->lRange($prefix1Key . "substitution_set", 0, -1);
             // var_dump("subs1",$substitutions1);
@@ -121,6 +92,24 @@ try {
             break;
 
         case 'add':
+            if (($requestMethod !== 'POST')) {
+                http_response_code(400);
+                echo json_encode(["error" => "Method not allowed"]);
+                exit;
+            }
+            else if ((is_null($team) || ($team !== "home" && $team !== "away"))) {
+                echo json_encode(["error" => "Missing valid team"]);
+                exit;
+            }
+            else if (is_null($playerIn)) {
+                echo json_encode(["error" => "Missing playerIn"]);
+                exit;
+            }
+            else if (is_null($playerOut)) {
+                echo json_encode(["error"=> "Missing playerOut"]);
+                exit;
+            }
+
             if ($ingamePlayers[$playerOut] == false){
                 $response = ["error"=> "Player $playerOut is not in the game"];
             }
@@ -129,8 +118,14 @@ try {
             }
 
             else {
-                $currentSubstitutions = $redis->lRange($substitutionSetKey, 0, -1);
-                if ($gameConfig["substitutionsPerTeam"] != 0 && sizeof($currentSubstitutions) >= $gameConfig["SubstitutionsPerTeam"]) {
+                $currentSubstitutionIDs = $redis->lRange($substitutionSetKey, 0, -1);
+                foreach ($currentSubstitutionIDs as $itSubstitutionId) {
+                    $substitutionInfo = json_decode($redis->get($prefixKey . "substitution:$itSubstitutionId"), true);
+                    if ($substitutionInfo !== null) {
+                        $currentSubstitutions[] = $substitutionInfo["substitutionId"];
+                    }
+                }
+                if ($gameConfig["substitutionsPerTeam"] != 0 && sizeof($currentSubstitutions) >= $gameConfig["SubstitutionsPerTeam"]) { //TODO Still doesn't check per set (as in volleyball)
                     $response = ["error"=> "Maximum number of substitutions reached"];
                     break;
                 }
@@ -161,6 +156,29 @@ try {
             }
             break;
         case 'update':
+            if (($requestMethod !== 'POST')) {
+                http_response_code(400);
+                echo json_encode(["error" => "Method not allowed"]);
+                exit;
+            }
+            else if ((is_null($team) || ($team !== "home" && $team !== "away"))) {
+                echo json_encode(["error" => "Missing valid team"]);
+                exit;
+            }
+            else if (is_null($substitutionId)) {
+                echo json_encode(["error"=> "Missing substitutionId"]);
+                exit;
+            }
+            else if (is_null($playerIn)) {
+                echo json_encode(["error" => "Missing playerIn"]);
+                exit;
+            } 
+            else if (is_null($playerOut)) {
+                echo json_encode(["error"=> "Missing playerOut"]);
+                exit;
+            }
+            
+
             try {
                 $oldSubstitution = json_decode($redis->get($substitutionIdKey),true);
                 if ($oldSubstitution === null) {
@@ -201,6 +219,21 @@ try {
             }
             break;
         case 'remove':
+            if (($requestMethod !== 'POST')) {
+                http_response_code(400);
+                echo json_encode(["error" => "Method not allowed"]);
+                exit;
+            }
+            else if ((is_null($team) || ($team !== "home" && $team !== "away"))) {
+                echo json_encode(["error" => "Missing valid team"]);
+                exit;
+            }
+            else if (is_null($substitutionId)) {
+                echo json_encode(["error"=> "Missing substitutionId"]);
+                exit;
+            }
+            
+
             try {
                 $oldSubstitution = json_decode($redis->get($substitutionIdKey),true);
                 if ($oldSubstitution === null) {
