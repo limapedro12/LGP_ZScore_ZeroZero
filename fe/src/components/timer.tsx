@@ -10,6 +10,7 @@ const Timer: React.FC = () => {
     const [period, setPeriod] = useState(0);
     const [placardId, setplacardId] = useState<string>('default');
     const [sport, setsport] = useState<string>('default');
+    const nonTimerSports = ['volleyball'];
 
     const { placardId: urlplacardId, sport: urlsport } = useParams<{ placardId: string, sport: string }>();
 
@@ -37,24 +38,29 @@ const Timer: React.FC = () => {
     }, [placardId, sport]);
 
     useEffect(() => {
-        if (placardId && sport && placardId !== 'default' && sport !== 'default') {
+        if (placardId && sport && placardId !== 'default' && (sport !== 'default' && !nonTimerSports.includes(sport))) {
             fetchTimerStatus();
             const intervalId = setInterval(fetchTimerStatus, 1000);
             return () => clearInterval(intervalId);
         }
         return undefined;
-    }, [placardId, fetchTimerStatus, sport]);
+    }, [placardId, fetchTimerStatus, sport, nonTimerSports]);
 
-    return (
-        <div className="timer">
-            <div className="period">
-                {sportsFormat(sport, period)}
+    if (!nonTimerSports.includes(sport)) {
+        return (
+            <div className="timer">
+                <div className="period">
+                    {sportsFormat(sport, period)}
+                </div>
+                <div className="time">
+                    {formatTime(elapsedTime)}
+                </div>
             </div>
-            <div className="time">
-                {formatTime(elapsedTime)}
-            </div>
-        </div>
-    );
+        );
+    } else {
+        return null;
+    }
+
 };
 
 export default Timer;

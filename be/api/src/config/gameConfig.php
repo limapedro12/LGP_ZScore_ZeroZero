@@ -13,7 +13,9 @@ class GameConfig {
         'basketball' => [
             'periods' => 4,
             'periodDuration' => 10 * 60,
-            'points' => [2, 3],
+            'timeoutDuration' => 60,
+            'timeoutsPerTeam' => 5,
+            'points' => [1, 2, 3],
         ],
         'volleyball' => [
             'periods' => 5,
@@ -21,7 +23,10 @@ class GameConfig {
             'timeoutsPerTeam' => 2,
             'timeoutsPerPeriod' => 2,
             'cards' => ['white', 'yellow', 'red', 'yellow_red_together', 'yellow_red_separately'],
-            'points' => 1
+            'points' => 1,
+            'periodEndScore' => 25,
+            'pointDifference' => 2,
+            'resetPointsEachPeriod' => true,
         ]
     ];
     

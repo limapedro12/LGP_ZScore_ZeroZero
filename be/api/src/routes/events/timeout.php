@@ -11,6 +11,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requiredParams = ['placardId', 'sport', 'action'];
 $allowedActions = ['get', 'reset', 'adjust', 'start', 'pause', 'status', 'gameStatus'];
 
+
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
     http_response_code(400);
@@ -93,7 +94,7 @@ try {
 
 
     function createTimeoutEvent($homeTimeoutsUsed, $awayTimeoutsUsed, $team = null) {
-        global $redis, $keys, $placardId, $totalTimeoutsPerTeam;
+        global $redis, $keys, $placardId, $totalTimeoutsPerTeam, $gameConfig;
 
         $eventId = $redis->incr($keys['event_counter']);
         $timeoutEventKeys = $keys['timeout_event'] . $eventId;

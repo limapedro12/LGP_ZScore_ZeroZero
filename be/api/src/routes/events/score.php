@@ -74,7 +74,7 @@ try {
                 break;
             }
 
-            $points = $gameConfig['points'];
+            $points = null;
             $playerId = $params['playerId'] ?? null;
 
             if(!$playerId) {
@@ -83,16 +83,21 @@ try {
                 break;
             }
 
-            if($sport === 'basketball'){
-                $triple = $params['triple'] ?? null;
-                if ($triple) {
-                    $points = $points[1];
-                } else {
-                    $points = $points[0];
+            if (is_array($gameConfig['points'])) {
+                $pointValue = $params['pointValue'] ?? null;
+                
+                if (!is_numeric($pointValue) || !in_array((int)$pointValue, $gameConfig['points'])) {
+                    http_response_code(400);
+                    $response = ["error" => "For $sport, pointValue must be one of: " . implode(', ', $gameConfig['points'])];
+                    break;
                 }
+                
+                $points = (int)$pointValue;
+            } else {
+                $points = $gameConfig['points'];
             }
 
-            if (!PointValidationUtils::canModifyPoints()) {
+            if (!PointValidationUtils::canModifyPoints($placardId, $sport, $team, $points)) {
                 http_response_code(400);
                 $response = ["error" => "Cannot add points at this time."];
                 break;
@@ -112,6 +117,8 @@ try {
                 $response = ["error" => "Invalid team specified"];
                 break;
             }
+
+            PointValidationUtils::changePeriod($placardId, $sport, $team);
 
             $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
@@ -242,34 +249,33 @@ try {
             $updatedData = [];
             $isChanged = false;
 
-            if(isset($params['new_playerId'])){
-                //need to check if playerId exists, only possible when there is players data
-                if ($params['new_playerId'] != $currentPointData['playerId']) {
-                    $updatedData['playerId'] = $params['new_playerId'];
+            if(isset($params['playerId'])){
+                if ($params['playerId'] != $currentPointData['playerId']) {
+                    $updatedData['playerId'] = $params['playerId'];
                     $isChanged = true;
                 }
             }
 
-            if(isset($params['new_timestamp'])){
-                if ((string)$params['new_timestamp'] !== (string)$currentPointData['timestamp']) {
-                    $updatedData['timestamp'] = $params['new_timestamp'];
+            if(isset($params['timestamp'])){
+                if ((string)$params['timestamp'] !== (string)$currentPointData['timestamp']) {
+                    $updatedData['timestamp'] = $params['timestamp'];
                     $isChanged = true;
                 }
             }
 
-            if(isset($params['new_team'])) {
-                if ($params['new_team'] !== $currentPointData['team']) {
-                    if (!in_array($params['new_team'], ['home', 'away'])) {
+            if(isset($params['team'])) {
+                if ($params['team'] !== $currentPointData['team']) {
+                    if (!in_array($params['team'], ['home', 'away'])) {
                         http_response_code(400);
                         $response = ["error" => "Team parameter must be 'home' or 'away'"];
                         break;
                     }
-                    $updatedData['team'] = $params['new_team'];
+                    $updatedData['team'] = $params['team'];
                     $isChanged = true;
                 }
             }
 
-            $providedUpdateParams = isset($params['new_playerId']) || isset($params['new_timestamp']) || isset($params['new_team']);
+            $providedUpdateParams = isset($params['playerId']) || isset($params['timestamp']) || isset($params['team']);
 
             if (!$providedUpdateParams || !$isChanged) {
                 http_response_code(400);
