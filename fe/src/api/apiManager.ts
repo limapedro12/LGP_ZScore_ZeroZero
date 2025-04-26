@@ -3,8 +3,12 @@ import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
+/**
+ * Defines the possible timer actions that can be sent to the API
+ */
 type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';
-type EndpointType = 'timer' | 'timeout' | 'score';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score';
+
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
 
@@ -19,6 +23,15 @@ interface RequestParams {
     placardId: string;
     sport: string;
     [key: string]: string | number;
+}
+
+interface ApiParams {
+    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
+    username?: string;
+    password?: string;
+    cookie?: string;
+    placardId?: string;
+    teamId?: string;
 }
 
 interface TimerResponse {
@@ -63,6 +76,19 @@ interface TimeoutResponse {
 }
 
 
+interface CardsResponse {
+    cards: Array<{
+        eventId: number;
+        placardId: string;
+        playerId: string;
+        cardType: string;
+        timestamp: number;
+    }>;
+}
+
+/**
+ * API Manager that handles all API requests
+ */
 class ApiManager {
 
     makeRequest = async <T>(
@@ -74,7 +100,6 @@ class ApiManager {
 
         const endpointKey = endpoint.toUpperCase() as EndpointKeyType;
         let url = `${BASE_URL}${ENDPOINTS[endpointKey]()}`;
-
 
         if (method === 'GET') {
             const queryParams = new URLSearchParams({
@@ -109,6 +134,24 @@ class ApiManager {
         }
 
         return response.json();
+    };
+
+    ApiRequest = (params: ApiParams) => {
+        const url = `${BASE_URL}${ENDPOINTS.API()}`;
+        const options: RequestInit = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params),
+        };
+
+        return fetch(url, options).then((response) => {
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+            return response.json();
+        });
     };
 
     startTimer = (placardId: string, sport: string) =>
@@ -149,10 +192,14 @@ class ApiManager {
 
     resetTimeouts = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });
+    login = (username: string, password: string) =>
+        this.ApiRequest({ action: 'login', username: username, password: password });
 
     getScores = (placardId: string, sport: string) =>
         this.makeRequest<ScoreResponse>('score', 'gameStatus', { placardId, sport }, 'GET');
 
+    getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
+        this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 }
 
 const apiManager = new ApiManager();
