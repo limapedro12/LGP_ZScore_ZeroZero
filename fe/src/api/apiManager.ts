@@ -6,7 +6,7 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'add' | 'update' | 'remove';
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete';
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'substitution';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
@@ -222,7 +222,7 @@ class ApiManager {
 
     createSubstitution = (placardId: string, sport: string, team: string,
         playerIn: string, playerOut: string) =>
-        this.makeRequest<SubstitutionResponse>('substitution', 'add', { placardId, sport, team, playerIn, playerOut });
+        this.makeRequest<SubstitutionResponse>('substitution', 'create', { placardId, sport, team, playerIn, playerOut });
 
     updateSubstitution = (placardId: string, sport: string, team: string,
         substitutionId: string, playerIn: string, playerOut: string) =>
@@ -230,7 +230,7 @@ class ApiManager {
             substitutionId, playerIn, playerOut });
 
     deleteSubstitution = (placardId: string, sport: string, team: string, substitutionId: string) =>
-        this.makeRequest<SubstitutionResponse>('substitution', 'remove', { placardId, sport, team, substitutionId });
+        this.makeRequest<SubstitutionResponse>('substitution', 'delete', { placardId, sport, team, substitutionId });
 }
 
 const apiManager = new ApiManager();

@@ -13,7 +13,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $params = RequestUtils::getRequestParams();
 
 $requiredParams = ['placardId', 'sport', 'action'];
-$allowedActions = ['add', 'update', 'remove', 'get'];
+$allowedActions = ['create', 'update', 'delete', 'get'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -80,7 +80,7 @@ try {
             ];
             break;
 
-        case 'add':
+        case 'create':
             if (($requestMethod !== 'POST')) {
                 http_response_code(400);
                 echo json_encode(["error" => "Method not allowed"]);
@@ -150,14 +150,14 @@ try {
                 if ($result) {
                     http_response_code(201);
                     $response = [
-                        "message"=> "Substitution added successfully",
+                        "message"=> "Substitution created successfully",
                         "substitution"=> $substitutionData,
                         "ingamePlayers" => $ingamePlayers
                     ];
                 }
                 else {
                     http_response_code(500);
-                    $response = ["error"=> "Failed to add substitution event"];
+                    $response = ["error"=> "Failed to create substitution event"];
                 }
             }
             break;
@@ -180,6 +180,15 @@ try {
                 exit;
             }
 
+            $substitutionEventKey = $keys['substitution_event'] . $substitutionId;
+            $oldSubstitution = $redis->hGetAll($substitutionEventKey);
+            if (empty($oldSubstitution)) {
+                $response = ["error"=> "Substitution with ID $substitutionId not found"];
+                break;
+            }
+
+            $team = $oldSubstitution["team"];
+
             $ingamePlayers = getIngamePlayers($redis, $placardId, $sport, $team);
             if (array_key_exists("error", $ingamePlayers)){
                 $response = ["error"=> $ingamePlayers["error"]];
@@ -188,14 +197,6 @@ try {
             }
             $ingamePlayers = $ingamePlayers["players"];
             
-
-
-            $substitutionEventKey = $keys['substitution_event'] . $substitutionId;
-            $oldSubstitution = $redis->hGetAll($substitutionEventKey);
-            if (empty($oldSubstitution)) {
-                $response = ["error"=> "Substitution with ID $substitutionId not found"];
-                break;
-            }
 
             //validate alterations
             if ($oldSubstitution["playerInId"] !== $playerIn && $ingamePlayers[$playerIn] === true) {
@@ -239,7 +240,7 @@ try {
                 $response = ["error"=> "Failed to update substitution event"];
             }
             break;
-        case 'remove':
+        case 'delete':
             if (($requestMethod !== 'POST')) {
                 http_response_code(400);
                 echo json_encode(["error" => "Method not allowed"]);
@@ -278,13 +279,13 @@ try {
 
             if ($result && isset($result[0]) && $result[0] > 0 && isset($result[1]) && $result[1] > 0) {
                 $response = [
-                    "message"=> "Substitution removed successfully",
+                    "message"=> "Substitution deleted successfully",
                     "substitutionId"=> $substitutionId,
                     "ingamePlayers" => $ingamePlayers,
                 ];
             } else {
                 http_response_code(500);
-                $response = ["error"=> "Failed to remove substitution event"];
+                $response = ["error"=> "Failed to delete substitution event"];
             }
 
             break;
