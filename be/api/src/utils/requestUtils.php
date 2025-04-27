@@ -73,12 +73,19 @@ class RequestUtils {
                     'event_counter' => $prefix . 'eventcounter',
                     'card_event' => 'cardevent:'
                 ];
+            case 'fouls':
+                return [
+                    'event_counter' => $prefix . 'eventcounter',
+                    'game_fouls' => $prefix . 'fouls',
+                    'foul_event' => "foulevent:",
+                    'accumulated_foul' => $prefix . 'team:'
+                ];    
         }
     }
 
     public static function getGameTimePosition($placardId) {
         global $redis, $gameConfig;
-        
+
         $timerKeys = self::getRedisKeys($placardId, 'timer');
         
         $pipeline = $redis->pipeline();
