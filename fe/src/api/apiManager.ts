@@ -79,13 +79,6 @@ interface CardsResponse {
     }>;
 }
 
-type Substitution = {
-    substitutionId: string,
-    team: string,
-    playerInId: string,
-    playerOutId: string
-}
-
 /**
  * Interface for the response from the substitution API
  * @property {string} [message] - Optional message from the API
@@ -98,7 +91,13 @@ interface SubstitutionResponse{
     message?: string;
     substitutionId?: string;
     ingamePlayers?: Map<string, boolean>;
-    substitutions?: Substitution[];
+    substitutions?: Array<{
+        substitutionId: string,
+        team: string,
+        playerInId: string,
+        playerOutId: string,
+        timestamp: string,
+    }>;
     error?: string;
 }
 
@@ -221,17 +220,17 @@ class ApiManager {
     getSubstitutionStatus = (placardId: string, sport: string) =>
         this.makeRequest<SubstitutionResponse>('substitution', 'get', { placardId, sport }, 'GET');
 
-    createSubstitution = (placardId: string, sport: string, teamNumber: string,
+    createSubstitution = (placardId: string, sport: string, team: string,
         playerIn: string, playerOut: string) =>
-        this.makeRequest<SubstitutionResponse>('substitution', 'add', { placardId, sport, teamNumber, playerIn, playerOut });
+        this.makeRequest<SubstitutionResponse>('substitution', 'add', { placardId, sport, team, playerIn, playerOut });
 
-    updateSubstitution = (placardId: string, sport: string, teamNumber: string,
+    updateSubstitution = (placardId: string, sport: string, team: string,
         substitutionId: string, playerIn: string, playerOut: string) =>
-        this.makeRequest<SubstitutionResponse>('substitution', 'update', { placardId, sport, teamNumber,
+        this.makeRequest<SubstitutionResponse>('substitution', 'update', { placardId, sport, team,
             substitutionId, playerIn, playerOut });
 
-    deleteSubstitution = (placardId: string, sport: string, teamNumber: string, substitutionId: string) =>
-        this.makeRequest<SubstitutionResponse>('substitution', 'remove', { placardId, sport, teamNumber, substitutionId });
+    deleteSubstitution = (placardId: string, sport: string, team: string, substitutionId: string) =>
+        this.makeRequest<SubstitutionResponse>('substitution', 'remove', { placardId, sport, team, substitutionId });
 }
 
 const apiManager = new ApiManager();

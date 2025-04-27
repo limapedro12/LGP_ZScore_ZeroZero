@@ -7,7 +7,8 @@ type Substitution = {
     substitutionId: string,
     team: string,
     playerInId: string,
-    playerOutId: string
+    playerOutId: string,
+    timestamp: string,
 }
 
 /**
@@ -19,28 +20,29 @@ const Substitution: React.FC = () => {
     const [substitutions, setSubstitutions] = useState<Substitution[]>([]);
     const [displayQueue, setDisplayQueue] = useState<Substitution[]>([]);
     const [currentSubstitution, setCurrentSubstitution] = useState<Substitution | null>(null);
-    const [gameId, setGameId] = useState<string>('default');
-    const [gameType, setGameType] = useState<string>('default');
+    const [placardId, setPlacardId] = useState<string>('default');
+    const [sport, setSport] = useState<string>('default');
     const displayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
 
-    const { gameId: urlGameId, gameType: urlGameType } = useParams<{gameId: string, gameType: string}>();
+    const { placardId: urlPlacardId, sport: urlSport } = useParams<{placardId: string, sport: string}>();
 
     useEffect(() => {
-        if (urlGameId) setGameId(urlGameId);
-        if (urlGameType) setGameType(urlGameType);
-    }, [urlGameId, urlGameType]);
+        if (urlPlacardId) setPlacardId(urlPlacardId);
+        if (urlSport) setSport(urlSport);
+    }, [urlPlacardId, urlSport]);
 
     const areSubsEqual = (sub1: Substitution, sub2: Substitution): boolean => sub1.substitutionId === sub2.substitutionId &&
                sub1.playerInId === sub2.playerInId &&
                sub1.playerOutId === sub2.playerOutId &&
+               sub1.timestamp === sub2.timestamp &&
                sub1.team === sub2.team;
 
     const fetchSubstitutions = React.useCallback(async () => {
-        if (gameId === 'default' || gameType === 'default') return;
+        if (placardId === 'default' || sport === 'default') return;
 
         try {
-            const response = await apiManager.getSubstitutionsStatus(gameId, gameType);
+            const response = await apiManager.getSubstitutionStatus(placardId, sport);
             const currSubstitutions : Substitution[] = response.substitutions || [];
 
             const newSubs = currSubstitutions.filter((apiSub) => {
@@ -65,10 +67,10 @@ const Substitution: React.FC = () => {
         } catch (error) {
             // console.error('Error fetching substitutions:', error);
         }
-    }, [gameId, gameType]);
+    }, [placardId, sport]);
 
     useEffect(() => {
-        if (gameId !== 'default' && gameType !== 'default') {
+        if (placardId !== 'default' && sport !== 'default') {
             // Initial fetch
             fetchSubstitutions();
 
@@ -77,7 +79,7 @@ const Substitution: React.FC = () => {
             return () => clearInterval(intervalId);
         }
         return undefined;
-    }, [gameId, gameType, fetchSubstitutions]);
+    }, [placardId, sport, fetchSubstitutions]);
 
     useEffect(() => {
         if (displayTimerRef.current) {

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/requestUtils.php'; 
+
 /**
  * Retrieves the players and their status of a team for a specific game
  * 
@@ -13,9 +15,9 @@
  */
 function getIngamePlayers($redis, $placardId, $sport, $team) {
     try {
-        $prefix = "game:$placardId:team:$team:";
-        $initialLineupKey = $prefix . 'initial_lineup';
-        $substitutionSetKey = $prefix . 'substitution_set';
+        $initialLineupKey = 'game:$placardId:team:$team:initial_lineup';
+        $keys = RequestUtils::getRedisKeys($placardId, 'substitutions');
+        $substitutionSetKey = $keys['substitutions'];
         $ingamePlayers = json_decode($redis->get($initialLineupKey),true );
 
         // if ($ingamePlayers === null) { //correct, but need a stub for testing
@@ -23,7 +25,7 @@ function getIngamePlayers($redis, $placardId, $sport, $team) {
         //         'error' => "No players found for team $team in game $placardId"
         //     ];
         // }
-        if ($ingamePlayers === null) {
+        if (empty($ingamePlayers)) {
             switch ($sport){
                 case 'volleyball':
                     $ingamePlayers = [
@@ -83,12 +85,14 @@ function getIngamePlayers($redis, $placardId, $sport, $team) {
         }
         
         //get substitutions and calculate current players
-        $substitutionKeys = $redis->lRange($substitutionSetKey, 0, -1);
-        $substitutions = array_map(fn($key) => json_decode($redis->get($prefix. "substitution:".$key), true), $substitutionKeys);
-        var_dump("gameData",$substitutionKeys, $substitutions);
-        foreach ($substitutions as $substitution ){
+        $substitutionKeys = $redis->zRange($substitutionSetKey, 0, -1);
+        $substitutions = array_map(fn($key) => $redis->hGetAll($key), $substitutionKeys);
+        // var_dump("gameData",$substitutionKeys, $substitutions);
+        foreach ($substitutions as $substitution){
+            if (!empty($substitution) && $substitution['team'] === $team) {
                 $ingamePlayers[$substitution['playerInId']] = true;
                 $ingamePlayers[$substitution['playerOutId']] = false;
+            }
         }
         return [
             "players" => $ingamePlayers

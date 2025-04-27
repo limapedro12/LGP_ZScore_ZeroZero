@@ -71,7 +71,13 @@ class RequestUtils {
                 return [
                     'game_cards' => $prefix . 'cards',
                     'event_counter' => $prefix . 'eventcounter',
-                    'card_event' => 'cardevent:'
+                    'card_event' => $prefix . 'cardevent:'
+                ];
+            case 'substitutions':
+                return [
+                    'substitutions' => $prefix . 'substitutions',
+                    'event_counter' => $prefix . 'event_counter',
+                    'substitution_event' => $prefix . 'substitutionevent:'
                 ];
         }
     }
