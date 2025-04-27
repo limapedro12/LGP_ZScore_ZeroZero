@@ -167,10 +167,6 @@ try {
                 echo json_encode(["error" => "Method not allowed"]);
                 exit;
             }
-            else if ((is_null($team) || ($team !== "home" && $team !== "away"))) {
-                echo json_encode(["error" => "Missing valid team"]);
-                exit;
-            }
             else if (is_null($substitutionId)) {
                 echo json_encode(["error"=> "Missing substitutionId"]);
                 exit;
@@ -247,10 +243,6 @@ try {
             if (($requestMethod !== 'POST')) {
                 http_response_code(400);
                 echo json_encode(["error" => "Method not allowed"]);
-                exit;
-            }
-            else if ((is_null($team) || ($team !== "home" && $team !== "away"))) {
-                echo json_encode(["error" => "Missing valid team"]);
                 exit;
             }
             else if (is_null($substitutionId)) {
