@@ -81,12 +81,19 @@ class RequestUtils {
                     'home_points' => $prefix . 'home_points',
                     'away_points' => $prefix . 'away_points',
                 ];
+            case 'fouls':
+                return [
+                    'event_counter' => $prefix . 'eventcounter',
+                    'game_fouls' => $prefix . 'fouls',
+                    'foul_event' => "foulevent:",
+                    'accumulated_foul' => $prefix . 'team:'
+                ];    
         }
     }
 
-    public static function getGameTimePosition($placardId, $gameConfig) {
-        global $redis;
-        
+    public static function getGameTimePosition($placardId) {
+        global $redis, $gameConfig;
+
         $timerKeys = self::getRedisKeys($placardId, 'timer');
 
         if(!isset($gameConfig['periodDuration'])){
