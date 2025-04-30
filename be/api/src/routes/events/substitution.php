@@ -28,7 +28,7 @@ $sport =  $params['sport'] ?? null;
 $team = $params['team'] ?? null;
 $playerIn = $params['playerIn'] ?? null;
 $playerOut = $params['playerOut'] ?? null;
-$substitutionId = $params['substitutionId'] ?? null;
+$substitutionId = $params['eventId'] ?? null;
 
 
 $redis = RedistUtils::connect();
@@ -168,7 +168,7 @@ try {
                 exit;
             }
             else if (is_null($substitutionId)) {
-                echo json_encode(["error"=> "Missing substitutionId"]);
+                echo json_encode(["error"=> "Missing eventId"]);
                 exit;
             }
             else if (is_null($playerIn)) {
