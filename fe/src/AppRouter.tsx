@@ -6,6 +6,8 @@ import HomePage from './pages/home';
 import CardsPolling from './pages/cardsPolling';
 import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
+import GameList from './pages/gameList';
+
 
 /**
  * AppRouter component
@@ -20,6 +22,7 @@ const AppRouter = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
             <Route path="/cards/:sport/:placardId" element={<CardsPolling />} />
+            <Route path="/gameList" element={<GameList />} />
         </Routes>
     </BrowserRouter>
 );
