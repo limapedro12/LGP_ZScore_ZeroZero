@@ -1,3 +1,10 @@
+html, body {
+  background-color: #1e2b36; /* Replace with your desired background color */
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
 .scoreboard-container {
   display: grid;
   grid-template-columns: 300px 1fr; /* Sidebar on the left, game-section on the right */
@@ -9,18 +16,21 @@
 
 .sidebar {
   width: 300px;
-  background-color: #2b3a47;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  border-radius: 15px;
   margin: 15px;
 }
 
 .logo {
   font-size: 24px;
   font-weight: bold;
+}
+
+.filters {
+  background-color: #2b3a47;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-radius: 15px;
 }
 
 .filters h2 {
@@ -103,5 +113,10 @@
   font-weight: bold;
   font-size: 18px;
   margin: 5px 0;
+  text-align: center;
+}
+
+/* Center align text in game-info */
+.game-info {
   text-align: center;
 }
