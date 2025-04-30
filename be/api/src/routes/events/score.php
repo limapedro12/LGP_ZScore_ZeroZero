@@ -300,14 +300,18 @@ try {
         
             if (isset($params['pointValue'])) {
                 $newPointValue = $params['pointValue'];
-                if (!is_numeric($newPointValue)) {
-                    http_response_code(400);
-                    $response = ["error" => "pointValue must be numeric"];
-                    break;
-                }
-                if ($newPointValue != $currentPointData['pointValue']) {
-                    $updatedData['pointValue'] = $newPointValue;
-                    $isChanged = true;
+                if (is_array($gameConfig['points'])) {
+                    if (!is_numeric($newPointValue) || !in_array((int)$newPointValue, $gameConfig['points'])) {
+                        http_response_code(400);
+                        $response = ["error" => "For $sport, pointValue must be one of: " . implode(', ', $gameConfig['points'])];
+                        break;
+                    }
+                } else {
+                    if (!is_numeric($newPointValue) || $newPointValue != $gameConfig['points']) {
+                        http_response_code(400);
+                        $response = ["error" => "For $sport, pointValue must be " . $gameConfig['points']];
+                        break;
+                    }
                 }
             }
         
