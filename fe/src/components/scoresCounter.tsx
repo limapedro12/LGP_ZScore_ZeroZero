@@ -44,10 +44,10 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
         }
         try {
             const response = await apiManager.getScores(placardId, sport);
-            if (response) {
+            if (response.currentScore) {
                 setScores({
-                    home: response.homeScore || 0,
-                    away: response.awayScore || 0,
+                    home: response.currentScore.homeScore,
+                    away: response.currentScore.awayScore,
                 });
             }
         } catch (error) {
