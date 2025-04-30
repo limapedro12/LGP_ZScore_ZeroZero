@@ -80,6 +80,7 @@ class RequestUtils {
                     'point_event' => $prefix . 'point_event:',
                     'home_points' => $prefix . 'home_points',
                     'away_points' => $prefix . 'away_points',
+                    'set_points' => $prefix . 'set_points:',
                 ];
         }
     }

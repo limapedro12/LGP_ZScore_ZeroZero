@@ -49,6 +49,7 @@ $response = [];
 
 try {
     $keys = RequestUtils::getRedisKeys($placardId, 'points');
+    $timerKeys = RequestUtils::getRedisKeys($placardId, 'timer');
 
     $gameConfig = new GameConfig();
     $gameConfig = $gameConfig->getConfig($sport);
@@ -57,14 +58,23 @@ try {
     $eventCounterKey = $keys['event_counter'];
     $homePointsKey = $keys['home_points'];
     $awayPointsKey = $keys['away_points'];
+    $actualPeriodKey = $timerKeys['period'];
 
     $pipeline = $redis->pipeline();
     $pipeline->get($homePointsKey);
     $pipeline->get($awayPointsKey);
+    $pipeline->get($actualPeriodKey);
     $results = $pipeline->exec();
 
     $homePoints = $results[0] ?? 0;
     $awayPoints = $results[1] ?? 0;
+    $currentPeriod = (int)($results[2] ?? 1);
+
+    if (!$results[2] || $currentPeriod < 1) {
+        $currentPeriod = 1;
+        $redis->set($actualPeriodKey, $currentPeriod);
+    }
+
 
     switch ($action) {
         case 'create':
@@ -124,21 +134,29 @@ try {
 
             $currentHomePoints = ($team === 'home') ? $points : (int)$homePoints;
             $currentAwayPoints = ($team === 'away') ? $points : (int)$awayPoints;
-            $totalPoints = $currentHomePoints + $currentAwayPoints;
+            $totalGamePoints = (int)$currentHomePoints + (int)$currentAwayPoints;
+
+            for ($i = 1; $i < $currentPeriod; $i++) {
+                $setKey = $keys['set_points'] . $i;
+                if ($redis->exists($setKey)) {
+                    $periodData = $redis->hGetAll($setKey);
+                    $totalGamePoints += (int)$periodData['set_total_points'];
+                }
+            }
 
             $pointData = [
                 'eventId' => $eventId,
                 'placardId' => $placardId,
                 'team' => $team,
                 'playerId' => $playerId,
-                'teamPoints' => $points,
-                'totalPoints' => $totalPoints,
-                'timestamp' => $timestamp,
+                'teamPoints' => (int)$points,
+                'totalGamePoints' => $totalGamePoints,
+                'period' => $currentPeriod
             ];
 
             $redis->multi();
             $redis->hMSet($pointEventKey, $pointData);
-            $redis->zAdd($gamePointsKey, $totalPoints, $pointEventKey);
+            $redis->zAdd($gamePointsKey, $totalGamePoints, $pointEventKey);
             $result = $redis->exec();
 
             if ($result) {
@@ -312,13 +330,75 @@ try {
         case 'gameStatus':
             if ($requestMethod !== 'GET') {
                 http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for gameStatus action."];
+                break;
+            }
+        
+            $totalPeriods = (int)($gameConfig['periods'] ?? $currentPeriod);
+            
+            $pipeline = $redis->pipeline();
+            for ($i = 1; $i <= $totalPeriods; $i++) {
+                $setKey = $keys['set_points'] . $i;
+                $pipeline->hGetAll($setKey);
+            }
+            $periodsData = $pipeline->exec();
+            
+            $periods = [];
+            $totalHomePoints = 0;
+            $totalAwayPoints = 0;
+            
+            for ($i = 1; $i <= $totalPeriods; $i++) {
+                $periodData = $periodsData[$i-1] ?? [];
+                
+                if ($i == $currentPeriod) {
+                    $homePointsInPeriod = (int)$homePoints;
+                    $awayPointsInPeriod = (int)$awayPoints;
+                    $periodTotalPoints = $homePointsInPeriod + $awayPointsInPeriod;
+                } else if (!empty($periodData)) {
+                    $homePointsInPeriod = (int)($periodData['home_points'] ?? 0);
+                    $awayPointsInPeriod = (int)($periodData['away_points'] ?? 0);
+                    $periodTotalPoints = (int)($periodData['set_total_points'] ?? 0);
+                } else {
+                    $homePointsInPeriod = 0;
+                    $awayPointsInPeriod = 0;
+                    $periodTotalPoints = 0;
+                }
+                
+                $periods[] = [
+                    'period' => $i,
+                    'homePoints' => $homePointsInPeriod,
+                    'awayPoints' => $awayPointsInPeriod,
+                    'totalPoints' => $periodTotalPoints
+                ];
+                
+                $totalHomePoints += $homePointsInPeriod;
+                $totalAwayPoints += $awayPointsInPeriod;
+            }
+        
+            $response = [
+                "totalPeriods" => $totalPeriods,
+                "currentScore" => [
+                    "homeScore" => (int)$homePoints,
+                    "awayScore" => (int)$awayPoints
+                ],
+                "periods" => $periods
+            ];
+            break;
+        
+        case 'periodsStatus':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
                 $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
                 break;
             }
-
+            
+            
+            // Prepare pipeline to fetch all periods at once
+            
+        
             $response = [
-                "homeScore" => $redis->get($homePointsKey) ?: 0,
-                "awayScore" => $redis->get($awayPointsKey) ?: 0,
+                "totalPeriods" => (int)$totalPeriods,
+                "periods" => $periods
             ];
             break;
 

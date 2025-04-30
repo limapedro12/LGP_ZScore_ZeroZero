@@ -31,7 +31,7 @@ class PointValidationUtils {
         
         $homePoints = (int)($results[0] ?? 0);
         $awayPoints = (int)($results[1] ?? 0);
-        $currentPeriod = (int)($results[2] ?? 1);
+        $currentPeriod = (int)($results[2] ?? 1) ?? 1;
         $timerStatus = $results[3] ?? 'paused';
         
         if ($currentPeriod >= $gameConfig['periods']) {
@@ -50,10 +50,19 @@ class PointValidationUtils {
         }
         
         if ($endPeriod) {
+
+            $setData = [
+                'home_points' => $homePoints,
+                'away_points' => $awayPoints,
+                'set_total_points' => $homePoints + $awayPoints
+            ];
+
             $newPeriod = $currentPeriod + 1;
             
             $pipeline = $redis->pipeline();
             $pipeline->set($timerKeys['period'], $newPeriod);
+
+            $pipeline->hMSet($keys['set_points'] . $currentPeriod, $setData);
             
             if ($timerStatus === 'running') {
                 $pipeline->set($timerKeys['status'], 'paused');
@@ -94,9 +103,9 @@ class PointValidationUtils {
 
         $homePoints = (int)($results[0] ?? 0);
         $awayPoints = (int)($results[1] ?? 0);
-        $currentPeriod = (int)($results[2] ?? 1);
+        $currentPeriod = (int)($results[2] ?? 1) ?? 1;
 
-        if (($currentPeriod == $gameConfig['periods']) && ((($homePoints + $points) >= $gameConfig['periodEndScore']) || (($awayPoints + $points) >= $gameConfig['periodEndScore']))) {
+        if (($currentPeriod == $gameConfig['periods']) && ((($homePoints + $points) > $gameConfig['periodEndScore']) || (($awayPoints + $points) > $gameConfig['periodEndScore']))) {
             return false;
         }
         
