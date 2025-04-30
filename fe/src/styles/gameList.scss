@@ -1,5 +1,5 @@
 html, body {
-  background-color: #1e2b36; /* Replace with your desired background color */
+  background-color: #23323F; /* Replace with your desired background color */
   margin: 0;
   padding: 0;
   height: 100%;
@@ -9,7 +9,7 @@ html, body {
   display: grid;
   grid-template-columns: 300px 1fr; /* Sidebar on the left, game-section on the right */
   height: 100vh;
-  background-color: #1e2b36;
+  background-color: #23323F;
   color: white;
   font-family: sans-serif;
 }
@@ -22,10 +22,13 @@ html, body {
 .logo {
   font-size: 24px;
   font-weight: bold;
+  text-align: center;
+  margin: 0px 10px 40px 10px;
 }
 
 .filters {
-  background-color: #2b3a47;
+  background-color: white;//#2b3a47;
+  color: #23323F;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -41,9 +44,20 @@ html, body {
 .filters input {
   width: 100%;
   padding: 8px;
-  border-radius: 10px;
-  border: none;
+  border: 3px solid #ccc;
+  border-radius: 15px;
   margin-bottom: 10px;
+}
+
+// .filters input[type="text"] {
+//   border: 1px solid #ccc; /* Add a light gray border */
+//   border-radius: 4px; /* Optional: Add rounded corners */
+//   padding: 8px; /* Optional: Add padding for better appearance */
+// }
+
+.filters input:focus {
+  border-color: #23323F;
+  outline: none;
 }
 
 .teams {
