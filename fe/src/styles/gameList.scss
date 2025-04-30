@@ -1,5 +1,6 @@
 .scoreboard-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 300px 1fr; /* Sidebar on the left, game-section on the right */
   height: 100vh;
   background-color: #1e2b36;
   color: white;
