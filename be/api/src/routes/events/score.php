@@ -265,27 +265,27 @@ try {
                 $response = ["error" => "Missing eventId for update action"];
                 break;
             }
-
+        
             $pointEventKey = $keys['point_event'] . $eventId;
-
+        
             if (!$redis->exists($pointEventKey)) {
                 http_response_code(404); 
                 $response = ["error" => "Point event not found"];
                 break;
             }
-
+        
             $currentPointData = $redis->hGetAll($pointEventKey);
-
+        
             $updatedData = [];
             $isChanged = false;
-
+        
             if(isset($params['playerId'])){
                 if ($params['playerId'] != $currentPointData['playerId']) {
                     $updatedData['playerId'] = $params['playerId'];
                     $isChanged = true;
                 }
             }
-
+        
             if(isset($params['team'])) {
                 if ($params['team'] !== $currentPointData['team']) {
                     if (!in_array($params['team'], ['home', 'away'])) {
@@ -297,39 +297,45 @@ try {
                     $isChanged = true;
                 }
             }
-
-            $providedUpdateParams = isset($params['playerId']) || isset($params['timestamp']) || isset($params['team']);
-
+        
+            if (isset($params['pointValue'])) {
+                $newPointValue = $params['pointValue'];
+                if (!is_numeric($newPointValue)) {
+                    http_response_code(400);
+                    $response = ["error" => "pointValue must be numeric"];
+                    break;
+                }
+                if ($newPointValue != $currentPointData['pointValue']) {
+                    $updatedData['pointValue'] = $newPointValue;
+                    $isChanged = true;
+                }
+            }
+        
+            $providedUpdateParams = isset($params['playerId']) || isset($params['team']) || isset($params['pointValue']);
+        
             if (!$providedUpdateParams || !$isChanged) {
                 http_response_code(400);
                 $response = ["error" => "No data to update or new values are the same as current values"];
                 break;
             }
-
+        
             $updatedData['eventId'] = $eventId;
             $updatedData['placardId'] = $placardId;
             $updatedData['playerId'] = $updatedData['playerId'] ?? $currentPointData['playerId'];
             $updatedData['team'] = $updatedData['team'] ?? $currentPointData['team'];
-            $updatedData['timestamp'] = $updatedData['timestamp'] ?? $currentPointData['timestamp'];
-            $updatedData['teamPoints'] = $currentPointData['teamPoints'];
-            $updatedData['totalPoints'] = $currentPointData['totalPoints'];
-
-            $totalPointsForZadd = $updatedData['totalPoints'];
-
+            $updatedData['period'] = $currentPointData['period'];
+            $updatedData['pointValue'] = $updatedData['pointValue'] ?? $currentPointData['pointValue'];
+        
             $redis->multi();
             $redis->hMSet($pointEventKey, $updatedData);
-            $redis->zAdd($gamePointsKey, $totalPointsForZadd, $pointEventKey);
-            $result = $redis->exec();
-
-            if ($result) {
-                $response = [
-                    "message" => "Point event updated successfully",
-                    "event" => $updatedData
-                ];
-            } else {
-                http_response_code(500);
-                $response = ["error" => "Failed to update point event"];
-            }
+            $redis->exec();
+        
+            PointUtils::adjustPoints($placardId, $sport);
+        
+            $response = [
+                "message" => "Point event updated successfully",
+                "event" => $updatedData
+            ];
             break;
         
         case 'gameStatus':

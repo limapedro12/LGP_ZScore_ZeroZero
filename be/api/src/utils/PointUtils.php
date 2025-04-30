@@ -127,7 +127,10 @@ class PointUtils {
         $pointEventKeys = $redis->zRange($keys['game_points'], 0, -1);
         $events = [];
         foreach ($pointEventKeys as $eventKey) {
-            $events[] = $redis->hGetAll($eventKey);
+            $events[] = [
+                'key' => $eventKey,
+                'data' => $redis->hGetAll($eventKey)
+            ];
         }
     
         $redis->set($keys['home_points'], 0);
@@ -141,16 +144,23 @@ class PointUtils {
         $homePoints = 0;
         $awayPoints = 0;
         $currentPeriod = 1;
+        $totalGamePoints = 0;
     
         foreach ($events as $event) {
-            if (empty($event['team'])) continue;
-            $points = (int)($event['pointValue'] ?? 1);
+            $data = $event['data'];
+            if (empty($data['team'])) continue;
+            $points = (int)($data['pointValue'] ?? 1);
 
-            if ($event['team'] === 'home') {
+            if ($data['team'] === 'home') {
                 $homePoints += $points;
-            } else if ($event['team'] === 'away') {
+            } else if ($data['team'] === 'away') {
                 $awayPoints += $points;
             }
+
+            $totalGamePoints = $homePoints + $awayPoints;
+
+            $redis->hSet($event['key'], 'totalGamePoints', $totalGamePoints);
+            $redis->zAdd($keys['game_points'], $totalGamePoints, $event['key']);
     
             if (self::shouldChangePeriod($homePoints, $awayPoints, $currentPeriod, $gameConfig)) {
                 $setData = [
@@ -172,7 +182,7 @@ class PointUtils {
         $redis->set($keys['home_points'], $homePoints);
         $redis->set($keys['away_points'], $awayPoints);
         $redis->set($timerKeys['period'], $currentPeriod);
-        $redis->set($keys['total_game_points'], $homePoints + $awayPoints);
+        $redis->set($keys['total_game_points'], $totalGamePoints);
         $redis->exec();
     }
     
