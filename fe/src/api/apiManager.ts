@@ -3,10 +3,7 @@ import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
-/**
- * Defines the possible timer actions that can be sent to the API
- */
-type ActionType = 'start' | 'pause' | 'status' | 'reset' | 'adjust' | 'set' | 'get' | 'gameStatus' | 'delete';
+type ActionType = 'start' | 'pause' | 'status' | 'reset' | 'adjust' | 'set' | 'get' | 'gameStatus' | 'delete'  | 'create' | 'add' | 'update' | 'remove' | 'get_accumulated' | 'list_game_fouls' | 'get_player_fouls';
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'events';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
@@ -92,17 +89,8 @@ interface CardsResponse {
 }
 
 interface EventsResponse {
-    events: Event[];
-}
-
-interface Event {
-    id: number;
-    timestamp: string;
-    type: string;
-    description: string;
-    team?: string;
-    player?: string;
-}
+    events: Array<Record<string, any>>;
+  }
 
 /**
  * API Manager that handles all API requests
@@ -223,8 +211,8 @@ class ApiManager {
     getEvents = (placardId: string, sport: string): Promise<EventsResponse> =>
         this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
 
-    getEventDetails = (placardId: string, sport: string, eventId: number): Promise<Event> =>
-        this.makeRequest<Event>('events', 'get', { placardId, sport, eventId }, 'GET');
+    getEventDetails = (placardId: string, sport: string, eventId: number) =>
+        this.makeRequest<Record<string, any>>('events', 'get', { placardId, sport, eventId }, 'GET');
 }
 
 const apiManager = new ApiManager();

@@ -19,7 +19,7 @@ const ScoreBoard = () => {
                 <TimeoutTimer />
                 <Timer />
                 <TimeoutCounter />
-                {placardId && sport && <EventHistory />}
+                <EventHistory />
             </div>
         </div>
     );
