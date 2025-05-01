@@ -220,13 +220,11 @@ class ApiManager {
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
-    getEvents = (placardId: string, sport: string): Promise<EventsResponse> => {
-        return this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
-    }
+    getEvents = (placardId: string, sport: string): Promise<EventsResponse> =>
+        this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
 
-    getEventDetails = (placardId: string, sport: string, eventId: number): Promise<Event> => {
-        return this.makeRequest<Event>('events', 'get', { placardId, sport, eventId }, 'GET');
-    }
+    getEventDetails = (placardId: string, sport: string, eventId: number): Promise<Event> =>
+        this.makeRequest<Event>('events', 'get', { placardId, sport, eventId }, 'GET');
 }
 
 const apiManager = new ApiManager();
