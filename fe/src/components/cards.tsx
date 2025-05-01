@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import apiManager from '../api/apiManager';
+import '../styles/cards.scss'; // Import the SCSS file
 
 /**
  * An real-time update of cards with a menu to display the last 5 cards.
@@ -52,6 +53,33 @@ const Cards: React.FC = () => {
         'yellow_red_separately': 'Amarelo e Vermelho Separados',
     };
 
+    const renderCardVisual = (cardType: string) => {
+        switch (cardType) {
+            case 'yellow':
+                return <div className="card-visual yellow" />;
+            case 'red':
+                return <div className="card-visual red" />;
+            case 'yellow_red_together':
+                return (
+                    <div className="card-visual yellow-red-together">
+                        <div className="half yellow" />
+                        <div className="half red" />
+                    </div>
+                );
+            case 'yellow_red_separately':
+                return (
+                    <>
+                        <div className="card-visual yellow" />
+                        <div className="card-visual red" />
+                    </>
+                );
+            case 'white':
+                return <div className="card-visual white" />;
+            default:
+                return null;
+        }
+    };
+
     useEffect(() => {
         fetchCards();
         const intervalId = setInterval(fetchCards, 5000);
@@ -69,10 +97,11 @@ const Cards: React.FC = () => {
                 </p>
             ))}
             <div>
-                <h2>Últimos Cartões</h2>
+                <h2>Cartões</h2>
                 <ol>
                     {lastCards.map((card, index) => (
                         <li key={index}>
+                            {renderCardVisual(card.cardType)}
                             {labels[card.cardType] || card.cardType}
                             {' '}
                             -

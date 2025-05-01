@@ -1,0 +1,42 @@
+.card-visual {
+    width: 14px;
+    height: 30px;
+    display: inline-block;
+    margin-right: 5px;
+    border-radius: 3px;
+
+    &.yellow {
+        background-color: yellow;
+    }
+
+    &.red {
+        background-color: red;
+    }
+
+    &.white {
+        background-color: white;
+        border: 1px solid black;
+    }
+
+    &.yellow-red-together {
+        width: 14px;
+        height: 30px;
+        display: inline-block;
+
+        .half {
+            width: 7px;
+            height: 30px;
+            float: left;
+
+            &.yellow {
+                background-color: yellow;
+                border-radius: 3px 0 0 3px;
+            }
+
+            &.red {
+                background-color: red;
+                border-radius: 0 3px 3px 0;
+            }
+        }
+    }
+}
