@@ -4,39 +4,25 @@ import apiManager from '../api/apiManager';
 import '../styles/cards.scss'; // Import the SCSS file
 
 /**
- * An real-time update of cards with a menu to display the last 5 cards.
+ * Props for the Cards component.
+ */
+interface CardsProps {
+    direction?: 'left' | 'right';
+}
+
+/**
+ * A real-time update of cards with a menu to display the last 5 cards.
  *
+ * @param {CardsProps} props - The props for the component.
  * @returns {React.FC} Cards component
  */
-const Cards: React.FC = () => {
-    const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
+const Cards: React.FC<CardsProps> = ({ direction = 'left' }) => {
     const [lastCards, setLastCards] = useState<Array<any>>([]);
     const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
 
     const fetchCards = React.useCallback(async () => {
         try {
             const data = await apiManager.getCards(placardId!, sport!);
-            const counts: Record<string, number> = {};
-
-            if (sport === 'futsal') {
-                counts['yellow'] = 0;
-                counts['red'] = 0;
-            } else if (sport === 'volleyball') {
-                counts['white'] = 0;
-                counts['yellow'] = 0;
-                counts['red'] = 0;
-                counts['yellow_red_together'] = 0;
-                counts['yellow_red_separately'] = 0;
-            }
-
-            for (let i = 0; i < data.cards.length; i++) {
-                const cardType = data.cards[i].cardType;
-                if (Object.prototype.hasOwnProperty.call(counts, cardType)) {
-                    counts[cardType]++;
-                }
-            }
-
-            setCardCounts(counts);
             data.cards.sort((a, b) => b.timestamp - a.timestamp);
             const lastCards = data.cards.slice(0, 5);
             setLastCards(lastCards);
@@ -45,13 +31,13 @@ const Cards: React.FC = () => {
         }
     }, [placardId, sport]);
 
-    const labels: Record<string, string> = {
-        yellow: 'Amarelo',
-        red: 'Vermelho',
-        white: 'Branco',
-        'yellow_red_together': 'Amarelo e Vermelho Juntos',
-        'yellow_red_separately': 'Amarelo e Vermelho Separados',
-    };
+    // const labels: Record<string, string> = {
+    //     yellow: 'Amarelo',
+    //     red: 'Vermelho',
+    //     white: 'Branco',
+    //     'yellow_red_together': 'Amarelo e Vermelho Juntos',
+    //     'yellow_red_separately': 'Amarelo e Vermelho Separados',
+    // };
 
     const renderCardVisual = (cardType: string) => {
         switch (cardType) {
@@ -68,10 +54,10 @@ const Cards: React.FC = () => {
                 );
             case 'yellow_red_separately':
                 return (
-                    <>
+                    <div className="yellow_red_separately">
                         <div className="card-visual yellow" />
                         <div className="card-visual red" />
-                    </>
+                    </div>
                 );
             case 'white':
                 return <div className="card-visual white" />;
@@ -89,28 +75,33 @@ const Cards: React.FC = () => {
 
     return (
         <>
-            {Object.entries(cardCounts).map(([cardType, count]) => (
-                <p key={cardType}>
-                    {count}
-                    {' '}
-                    {labels[cardType] || cardType}
-                </p>
-            ))}
             <div>
-                <h2>Cartões</h2>
-                <ol>
-                    {lastCards.map((card, index) => (
-                        <li key={index}>
-                            {renderCardVisual(card.cardType)}
-                            {labels[card.cardType] || card.cardType}
-                            {' '}
-                            -
-                            {' '}
-                            {card.playerId}
-                        </li>
-                    ))}
-                    {lastCards.length === 0 && <p>No cards available</p>}
-                </ol>
+                <h2 className="cartoes-title">Cartões</h2>
+                {lastCards.map((card, index) => (
+                    <div key={index} className="card-row">
+                        {direction === 'right' ? (
+                            <>
+                                <div className="card-visual-outside al-right">
+                                    {renderCardVisual(card.cardType)}
+                                </div>
+                                <div className="card-name">
+                                    {`Nome Jogador ${card.playerId}`}
+                                </div>
+                                <div className="card-number">No.</div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="card-number">No.</div>
+                                <div className="card-name">
+                                    {`Nome Jogador ${card.playerId}`}
+                                </div>
+                                <div className="card-visual">
+                                    {renderCardVisual(card.cardType)}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                ))}
             </div>
         </>
     );

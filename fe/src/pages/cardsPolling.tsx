@@ -10,7 +10,7 @@ import '../styles/scoreBoard.scss';
 const CardsPolling = () => (
     <div className="scoreboard-container">
         <div className="text-white">
-            <Cards />
+            <Cards direction="left" />
         </div>
     </div>
 );
