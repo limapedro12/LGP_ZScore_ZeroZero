@@ -12,11 +12,21 @@ type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score';
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
 
+
+interface PeriodScore {
+    period: number;
+    homePoints: number;
+    awayPoints: number;
+    totalPoints: number;
+}
+
 interface ScoreResponse {
-    message?: string;
-    homeScore?: number;
-    awayScore?: number;
-    error?: string;
+    totalPeriods: number;
+    currentScore: {
+        homeScore: number;
+        awayScore: number;
+    };
+    periods: PeriodScore[];
 }
 
 interface RequestParams {

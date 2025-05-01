@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../utils/redisUtils.php';
 require_once __DIR__ . '/../../utils/requestUtils.php';
 require_once __DIR__ . '/../../config/gameConfig.php';
-require_once __DIR__ . '/../../utils/PointValidationUtils.php';
+require_once __DIR__ . '/../../utils/PointUtils.php';
 
 header('Content-Type: application/json');
 
@@ -59,6 +59,7 @@ try {
     $homePointsKey = $keys['home_points'];
     $awayPointsKey = $keys['away_points'];
     $actualPeriodKey = $timerKeys['period'];
+    $totalGamePointsKey = $keys['total_game_points'];
 
     $pipeline = $redis->pipeline();
     $pipeline->get($homePointsKey);
@@ -85,6 +86,7 @@ try {
             }
 
             $points = null;
+            $pointValue = null;
             $playerId = $params['playerId'] ?? null;
 
             if(!$playerId) {
@@ -102,12 +104,20 @@ try {
                     break;
                 }
                 
-                $points = (int)$pointValue;
             } else {
-                $points = $gameConfig['points'];
+                $pointValue = $gameConfig['points'];
             }
 
-            if (!PointValidationUtils::canModifyPoints($placardId, $sport, $team, $points)) {
+            if (is_numeric($pointValue)) {
+                $points = (int)$pointValue;
+            } else {
+                http_response_code(400);
+                $response = ["error" => "Invalid point value"];
+                break;
+            }
+
+
+            if (!PointUtils::canModifyPoints($placardId, $sport, $team, $points)) {
                 http_response_code(400);
                 $response = ["error" => "Cannot add points at this time."];
                 break;
@@ -128,7 +138,7 @@ try {
                 break;
             }
 
-            PointValidationUtils::changePeriod($placardId, $sport, $team);
+            PointUtils::changePeriod($placardId, $sport, $team);
 
             $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
@@ -149,14 +159,14 @@ try {
                 'placardId' => $placardId,
                 'team' => $team,
                 'playerId' => $playerId,
-                'teamPoints' => (int)$points,
-                'totalGamePoints' => $totalGamePoints,
-                'period' => $currentPeriod
+                'period' => $currentPeriod,
+                'pointValue' => $pointValue,
             ];
 
             $redis->multi();
             $redis->hMSet($pointEventKey, $pointData);
             $redis->zAdd($gamePointsKey, $totalGamePoints, $pointEventKey);
+            $redis->set($totalGamePointsKey, $totalGamePoints);
             $result = $redis->exec();
 
             if ($result) {
@@ -199,11 +209,13 @@ try {
            $redis->zRem($gamePointsKey, $pointEventKey);
            $result = $redis->exec();
 
+           PointUtils::adjustPoints($placardId, $sport);
+
            if ($result && isset($result[0]) && $result[0] > 0 && isset($result[1]) && $result[1] > 0) {
                 $response = [
-                   "message" => "Point event deleted successfully",
-                   "eventId" => $eventId
-               ];
+                    "message" => "Point event deleted successfully",
+                    "eventId" => $eventId
+                ];
            } else {
                 http_response_code(500);
                 $response = ["error" => "Failed to delete point event"];
@@ -253,34 +265,27 @@ try {
                 $response = ["error" => "Missing eventId for update action"];
                 break;
             }
-
+        
             $pointEventKey = $keys['point_event'] . $eventId;
-
+        
             if (!$redis->exists($pointEventKey)) {
                 http_response_code(404); 
                 $response = ["error" => "Point event not found"];
                 break;
             }
-
+        
             $currentPointData = $redis->hGetAll($pointEventKey);
-
+        
             $updatedData = [];
             $isChanged = false;
-
+        
             if(isset($params['playerId'])){
                 if ($params['playerId'] != $currentPointData['playerId']) {
                     $updatedData['playerId'] = $params['playerId'];
                     $isChanged = true;
                 }
             }
-
-            if(isset($params['timestamp'])){
-                if ((string)$params['timestamp'] !== (string)$currentPointData['timestamp']) {
-                    $updatedData['timestamp'] = $params['timestamp'];
-                    $isChanged = true;
-                }
-            }
-
+        
             if(isset($params['team'])) {
                 if ($params['team'] !== $currentPointData['team']) {
                     if (!in_array($params['team'], ['home', 'away'])) {
@@ -292,39 +297,49 @@ try {
                     $isChanged = true;
                 }
             }
-
-            $providedUpdateParams = isset($params['playerId']) || isset($params['timestamp']) || isset($params['team']);
-
+        
+            if (isset($params['pointValue'])) {
+                $newPointValue = $params['pointValue'];
+                if (is_array($gameConfig['points'])) {
+                    if (!is_numeric($newPointValue) || !in_array((int)$newPointValue, $gameConfig['points'])) {
+                        http_response_code(400);
+                        $response = ["error" => "For $sport, pointValue must be one of: " . implode(', ', $gameConfig['points'])];
+                        break;
+                    }
+                } else {
+                    if (!is_numeric($newPointValue) || $newPointValue != $gameConfig['points']) {
+                        http_response_code(400);
+                        $response = ["error" => "For $sport, pointValue must be " . $gameConfig['points']];
+                        break;
+                    }
+                }
+            }
+        
+            $providedUpdateParams = isset($params['playerId']) || isset($params['team']) || isset($params['pointValue']);
+        
             if (!$providedUpdateParams || !$isChanged) {
                 http_response_code(400);
                 $response = ["error" => "No data to update or new values are the same as current values"];
                 break;
             }
-
+        
             $updatedData['eventId'] = $eventId;
             $updatedData['placardId'] = $placardId;
             $updatedData['playerId'] = $updatedData['playerId'] ?? $currentPointData['playerId'];
             $updatedData['team'] = $updatedData['team'] ?? $currentPointData['team'];
-            $updatedData['timestamp'] = $updatedData['timestamp'] ?? $currentPointData['timestamp'];
-            $updatedData['teamPoints'] = $currentPointData['teamPoints'];
-            $updatedData['totalPoints'] = $currentPointData['totalPoints'];
-
-            $totalPointsForZadd = $updatedData['totalPoints'];
-
+            $updatedData['period'] = $currentPointData['period'];
+            $updatedData['pointValue'] = $updatedData['pointValue'] ?? $currentPointData['pointValue'];
+        
             $redis->multi();
             $redis->hMSet($pointEventKey, $updatedData);
-            $redis->zAdd($gamePointsKey, $totalPointsForZadd, $pointEventKey);
-            $result = $redis->exec();
-
-            if ($result) {
-                $response = [
-                    "message" => "Point event updated successfully",
-                    "event" => $updatedData
-                ];
-            } else {
-                http_response_code(500);
-                $response = ["error" => "Failed to update point event"];
-            }
+            $redis->exec();
+        
+            PointUtils::adjustPoints($placardId, $sport);
+        
+            $response = [
+                "message" => "Point event updated successfully",
+                "event" => $updatedData
+            ];
             break;
         
         case 'gameStatus':
@@ -384,24 +399,6 @@ try {
                 "periods" => $periods
             ];
             break;
-        
-        case 'periodsStatus':
-            if ($requestMethod !== 'GET') {
-                http_response_code(405);
-                $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
-                break;
-            }
-            
-            
-            // Prepare pipeline to fetch all periods at once
-            
-        
-            $response = [
-                "totalPeriods" => (int)$totalPeriods,
-                "periods" => $periods
-            ];
-            break;
-
         default:
             http_response_code(400);
             $response = ["error" => "Invalid action specified"];
