@@ -75,7 +75,7 @@ const Cards: React.FC<CardsProps> = ({ direction = 'left' }) => {
 
     return (
         <>
-            <div>
+            <div className="cards">
                 <h2 className="cartoes-title">Cartões</h2>
                 {lastCards.map((card, index) => (
                     <div key={index} className="card-row">
@@ -95,7 +95,7 @@ const Cards: React.FC<CardsProps> = ({ direction = 'left' }) => {
                                 <div className="card-name">
                                     {`Nome Jogador ${card.playerId}`}
                                 </div>
-                                <div className="card-visual">
+                                <div className="card-visual-outside">
                                     {renderCardVisual(card.cardType)}
                                 </div>
                             </>

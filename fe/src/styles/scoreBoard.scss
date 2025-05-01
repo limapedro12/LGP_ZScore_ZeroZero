@@ -2,9 +2,31 @@
 
 .scoreboard-container {
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
+}
+
+.scoreboard-layout {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    height: 100vh;
     background-color: config.$background-color;
+    padding: 10vw;
+}
+
+.cards-container {
+    flex: 1; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.center-container {
+    flex: 2; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }

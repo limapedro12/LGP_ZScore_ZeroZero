@@ -2,6 +2,7 @@ import React from 'react';
 import Timer from '../components/timer';
 import TimeoutTimer from '../components/timeoutTimer';
 import TimeoutCounter from '../components/timeoutCounter';
+import Cards from '../components/cards';
 import '../styles/scoreBoard.scss';
 
 /**
@@ -10,10 +11,18 @@ import '../styles/scoreBoard.scss';
  * @returns {JSX.Element} ScoreBoard component
  */
 const ScoreBoard = () => (
-    <div className="scoreboard-container">
-        <TimeoutTimer />
-        <Timer />
-        <TimeoutCounter />
+    <div className="scoreboard-layout">
+        <div className="cards-container">
+            <Cards direction="left" />
+        </div>
+        <div className="center-container">
+            <TimeoutTimer />
+            <Timer />
+            <TimeoutCounter />
+        </div>
+        <div className="cards-container">
+            <Cards direction="right" />
+        </div>
     </div>
 );
 
