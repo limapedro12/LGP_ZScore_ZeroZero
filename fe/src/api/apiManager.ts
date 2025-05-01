@@ -6,12 +6,11 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score';
+type ActionType = 'start' | 'pause' | 'status' | 'reset' | 'adjust' | 'set' | 'get' | 'gameStatus' | 'delete';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'events';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
-
 
 interface PeriodScore {
     period: number;
@@ -32,16 +31,13 @@ interface ScoreResponse {
 interface RequestParams {
     placardId: string;
     sport: string;
-    [key: string]: string | number;
+    [key: string]: string | number | undefined;
 }
 
 interface ApiParams {
     action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
     username?: string;
     password?: string;
-    cookie?: string;
-    placardId?: string;
-    teamId?: string;
 }
 
 interface TimerResponse {
@@ -85,7 +81,6 @@ interface TimeoutResponse {
     error?: string;
 }
 
-
 interface CardsResponse {
     cards: Array<{
         eventId: number;
@@ -94,6 +89,19 @@ interface CardsResponse {
         cardType: string;
         timestamp: number;
     }>;
+}
+
+interface EventsResponse {
+    events: Event[];
+}
+
+interface Event {
+    id: number;
+    timestamp: string;
+    type: string;
+    description: string;
+    team?: string;
+    player?: string;
 }
 
 /**
@@ -202,6 +210,7 @@ class ApiManager {
 
     resetTimeouts = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });
+
     login = (username: string, password: string) =>
         this.ApiRequest({ action: 'login', username: username, password: password });
 
@@ -210,6 +219,14 @@ class ApiManager {
 
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
+
+    getEvents = (placardId: string, sport: string): Promise<EventsResponse> => {
+        return this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
+    }
+
+    getEventDetails = (placardId: string, sport: string, eventId: number): Promise<Event> => {
+        return this.makeRequest<Event>('events', 'get', { placardId, sport, eventId }, 'GET');
+    }
 }
 
 const apiManager = new ApiManager();

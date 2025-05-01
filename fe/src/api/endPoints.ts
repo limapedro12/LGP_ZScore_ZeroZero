@@ -4,6 +4,7 @@ const ENDPOINTS = {
     TIMEOUT: () => '/events/timeout',
     SCORE: () => '/events/score',
     CARDS: () => '/events/card',
+    EVENTS: () => '/events'
 };
 
 export default ENDPOINTS;
