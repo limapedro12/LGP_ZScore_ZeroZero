@@ -22,6 +22,13 @@ export default defineConfig(({ mode }) => {
             host: true, // needed for the Docker Container port mapping to work
             strictPort: true,
             port: parseInt(env.PORT, 10), // you can replace this port with any port
-        }
+        },
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    silenceDeprecations: ['mixed-decls', 'color-functions', 'global-builtin', 'import'],
+                },
+            },
+        },
     };
 });

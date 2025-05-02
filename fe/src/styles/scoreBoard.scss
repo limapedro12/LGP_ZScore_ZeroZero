@@ -3,19 +3,17 @@
 .scoreboard-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    background-color: config.$background-color;
-}
-
-.scoreboard-top {
-    width: 100%;
-    padding-top: 2rem;
-}
-
-.scoreboard-center {
-    display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex: 1;
+    height: 100vh;
+    background-color: config.$background-color;
+    min-width: 300px;
+}
+
+.timeout-timer-wrapper {
+    margin-bottom: 6rem; 
+}
+
+.timeout-counter-wrapper {
+    margin-top: 6rem; 
 }

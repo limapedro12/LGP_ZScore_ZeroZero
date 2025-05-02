@@ -42,7 +42,7 @@ const TimeoutCounter: React.FC = () => {
     }, [placardId, fetchTeamsTimeouts]);
 
     return (
-        <div className="timeout-counter">
+        <div className="timeout-counter w-100 d-flex justify-content-center mt-3">
             <BoxCounter
                 label="TO"
                 homeCount={teamsTimeouts.home}
