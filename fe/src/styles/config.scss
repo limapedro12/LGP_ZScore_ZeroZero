@@ -14,6 +14,7 @@ $font-secondary: 'Inter', sans-serif;
 body, html {
     width: 100%;
     font-feature-settings: "tnum";
+    background-color: $background-color;
 }
 
 $breakpoint-xs: 0px;      
@@ -63,4 +64,10 @@ $breakpoint-placard4: 2800px;
 
 @mixin placard4 {
   @media (min-width: #{$breakpoint-placard4}) { @content; }
+}
+
+@mixin xs-sm {
+  @media (max-width: #{$breakpoint-md - 1}) {
+    @content;
+  }
 }

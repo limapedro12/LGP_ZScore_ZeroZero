@@ -6,8 +6,8 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus';
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score';
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'noTimer'
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
@@ -30,9 +30,9 @@ interface ScoreResponse {
 }
 
 interface RequestParams {
-    placardId: string;
-    sport: string;
-    [key: string]: string | number;
+    placardId?: string;
+    sport?: string;
+    [key: string]: string | number | undefined;
 }
 
 interface ApiParams {
@@ -96,6 +96,10 @@ interface CardsResponse {
     }>;
 }
 
+interface SportsResponse {
+    sports?: string[];
+}
+
 /**
  * API Manager that handles all API requests
  */
@@ -104,7 +108,7 @@ class ApiManager {
     makeRequest = async <T>(
         endpoint: EndpointType,
         action: ActionType,
-        params: RequestParams,
+        params: RequestParams = {},
         method: 'GET' | 'POST' = 'POST'
     ): Promise<T> => {
 
@@ -112,14 +116,19 @@ class ApiManager {
         let url = `${BASE_URL}${ENDPOINTS[endpointKey]()}`;
 
         if (method === 'GET') {
-            const queryParams = new URLSearchParams({
-                action,
-                placardId: params.placardId,
-                sport: params.sport,
-                ...Object.fromEntries(
-                    Object.entries(params).filter(([key]) => !['placardId', 'sport'].includes(key))
-                ),
+            const queryObj: Record<string, string> = { action };
+
+            if (params.placardId !== undefined) queryObj.placardId = params.placardId;
+            if (params.sport !== undefined) queryObj.sport = params.sport;
+
+            // Add any other params
+            Object.entries(params).forEach(([key, value]) => {
+                if (!['placardId', 'sport'].includes(key) && value !== undefined) {
+                    queryObj[key] = String(value);
+                }
             });
+
+            const queryParams = new URLSearchParams(queryObj);
             url = `${url}?${queryParams.toString()}`;
         }
 
@@ -210,6 +219,9 @@ class ApiManager {
 
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
+
+    getNonTimerSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
 }
 
 const apiManager = new ApiManager();

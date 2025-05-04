@@ -12,14 +12,29 @@ const Timer: React.FC = () => {
     const [period, setPeriod] = useState(0);
     const [placardId, setplacardId] = useState<string>('default');
     const [sport, setsport] = useState<string>('default');
-    const nonTimerSports = ['volleyball'];
+    const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
 
     const { placardId: urlplacardId, sport: urlsport } = useParams<{ placardId: string, sport: string }>();
+
+    const fetchNonTimerSports = React.useCallback(async () => {
+        try {
+            const response = await apiManager.getNonTimerSports();
+            if (response && Array.isArray(response.sports)) {
+                setNonTimerSports(response.sports);
+            } else {
+                setNonTimerSports([]);
+            }
+        } catch (error) {
+            console.error('Error fetching non-timer sports:', error);
+            setNonTimerSports([]);
+        }
+    }, []);
 
     useEffect(() => {
         if (urlplacardId) setplacardId(urlplacardId);
         if (urlsport) setsport(urlsport);
-    }, [urlplacardId, urlsport]);
+        fetchNonTimerSports();
+    }, [urlplacardId, urlsport, fetchNonTimerSports]);
 
     const fetchTimerStatus = React.useCallback(async () => {
         if (!placardId || !sport || placardId === 'default' || sport === 'default') {
@@ -38,7 +53,7 @@ const Timer: React.FC = () => {
     }, [placardId, sport]);
 
     useEffect(() => {
-        if (placardId && sport && placardId !== 'default' && (sport !== 'default' && !nonTimerSports.includes(sport))) {
+        if (placardId && sport && placardId !== 'default' && (sport !== 'default' && !nonTimerSports?.includes(sport))) {
             fetchTimerStatus();
             const intervalId = setInterval(fetchTimerStatus, 1000);
             return () => clearInterval(intervalId);
@@ -46,7 +61,7 @@ const Timer: React.FC = () => {
         return undefined;
     }, [placardId, fetchTimerStatus, sport, nonTimerSports]);
 
-    if (!nonTimerSports.includes(sport)) {
+    if (!nonTimerSports?.includes(sport)) {
         return (
             <Container className="timer d-flex flex-column align-items-center justify-content-center py-3">
                 <Row className="w-100">

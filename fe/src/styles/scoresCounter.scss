@@ -1,179 +1,104 @@
 @use "./config.scss";
-@import "bootstrap/scss/bootstrap";
 
-// Variables
-$team-logo-size-xxl: 200px;
-$team-logo-size-xl: 160px; // Added size for xl breakpoint
-$team-logo-size-lg: 120px;
-$team-logo-size-md: 60px;
-$team-logo-size-sm: 40px;
+.scores-row-container {
+    max-width: 100vw;
+}
 
-$font-size-xxl: 4rem;
-$font-size-xl: 3.5rem; // Added size for xl breakpoint
-$font-size-lg: 3rem;
-$font-size-md: 2rem;
-$font-size-sm: 1.5rem;
-
-$score-box-width-xxl: 150px;
-$score-box-width-xl: 120px; // Added width for xl breakpoint
-$score-box-width-lg: 100px;
-$score-box-width-md: 80px;
-$score-box-width-sm: 60px;
-
-.scores-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  color: white;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-  
-  @include media-breakpoint-down(sm) {
-    padding: 0.75rem;
-  }
-  
-  .team {
+.team-col {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    flex: 1;
-    transition: all 0.3s ease;
-    
-    .team-logo-container {
-      width: $team-logo-size-xxl;
-      height: $team-logo-size-xxl;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      
-      @include media-breakpoint-down(xl) {
-        width: $team-logo-size-xl;
-        height: $team-logo-size-xl;
-      }
-      
-      @include media-breakpoint-down(lg) {
-        width: $team-logo-size-lg;
-        height: $team-logo-size-lg;
-      }
-      
-      @include media-breakpoint-down(md) {
-        width: $team-logo-size-md;
-        height: $team-logo-size-md;
-      }
-      
-      @include media-breakpoint-down(sm) {
-        width: $team-logo-size-sm;
-        height: $team-logo-size-sm;
-      }
-      
-      .team-logo {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2));
-        transition: transform 0.3s ease;
-        
-        &:hover {
-          transform: scale(1.05);
-        }
-      }
-    }
-    
-    .team-abbreviation {
-      font-size: $font-size-xxl;
-      font-weight: bold;
-      margin: 0 1.5rem;
-      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-      transition: all 0.3s ease;
-      
-      @include media-breakpoint-down(xl) {
-        font-size: $font-size-xl;
-        margin: 0 1.25rem;
-      }
-      
-      @include media-breakpoint-down(lg) {
-        font-size: $font-size-lg;
-        margin: 0 1rem;
-      }
-      
-      @include media-breakpoint-down(md) {
-        font-size: $font-size-md;
-        margin: 0 0.75rem;
-      }
-      
-      @include media-breakpoint-down(sm) {
-        font-size: $font-size-sm;
-        margin: 0 0.5rem;
-      }
-    }
-  }
-  
-  .home-team {
-    justify-content: flex-start;
-  }
-  
-  .away-team {
     justify-content: flex-end;
-    text-align: right;
-  }
-  
-  .scores-container {
+}
+
+.team-logo {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    object-fit: contain;
+    @include config.placard1 { max-width: 170px; }
+    @include config.placard2 { max-width: 210px; }
+    @include config.placard3 { max-width: 260px; }
+    @include config.placard4 { max-width: 400px; }
+    max-width: 12vw;
+    min-width: 60px;
+}
+
+.team-abbr {
+    color: config.$text-color;
+    font-family: config.$font-secondary;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    @include config.placard1 { font-size: 3rem; }
+    @include config.placard2 { font-size: 3.5rem; }
+    @include config.placard3 { font-size: 4.5rem; }
+    @include config.placard4 { font-size: 6rem; }
+}
+
+.score-col {
     display: flex;
     align-items: center;
-    gap: 5rem;
-    transition: all 0.3s ease;
-    
-    @include media-breakpoint-down(xl) {
-      gap: 0.75rem;
-    }
-    
-    @include media-breakpoint-down(sm) {
-      gap: 0.5rem;
-    }
-    
-    .score-box {
-      background-color: white;
-      color: black;
-      font-size: $font-size-xxl;
-      font-weight: bold;
-      border-radius: 8px;
-      width: $score-box-width-xxl;
-      padding: 1rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      
-      @include media-breakpoint-down(xl) {
-        font-size: $font-size-xl;
-        width: $score-box-width-xl;
-        padding: 0.85rem;
-      }
-      
-      @include media-breakpoint-down(lg) {
-        font-size: $font-size-lg;
-        width: $score-box-width-lg;
-        padding: 0.75rem;
-      }
-      
-      @include media-breakpoint-down(md) {
-        font-size: $font-size-md;
-        width: $score-box-width-md;
-        padding: 0.5rem;
-      }
-      
-      @include media-breakpoint-down(sm) {
-        font-size: $font-size-sm;
-        width: $score-box-width-sm;
-        padding: 0.3rem;
-      }
-      
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      }
-    }
+    justify-content: center;
+}
+
+.score-center-col {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
+
+.score-box {
+    background: #fff;
+    color: config.$secondary-text-color;
+    border-radius: 1.5rem;
+    font-size: 5rem;
+    font-family: config.$font-secondary;
+    font-weight: bold;
+    min-width: 180px;
+    min-height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @include config.placard1 { font-size: 7rem; min-width: 240px; min-height: 180px; }
+    @include config.placard2 { font-size: 9rem; min-width: 320px; min-height: 240px; }
+    @include config.placard3 { font-size: 12rem; min-width: 420px; min-height: 320px; }
+    @include config.placard4 { font-size: 12rem; min-width: 450px; min-height: 400px; }
+}
+
+.scores-gap {
+  gap: 4rem;
+  @include config.placard1 { gap: 8rem; }
+  @include config.placard2 { gap: 8rem; }
+  @include config.placard3 { gap: 8rem; }
+  @include config.placard4 { gap: 8rem; }
+}
+
+@include config.xs-sm {
+  .scores-row-container {
+    padding: 1rem 0 !important;
+  }
+
+  .score-center-col {
+    flex-direction: column !important;
+    gap: 0.5rem;
+  }
+
+  .score-box {
+    font-size: 2.5rem !important;
+    min-width: 90px !important;
+    min-height: 65px !important;
+    margin-bottom: 0.5rem;
+  }
+
+  .team-logo {
+    width: 80px !important;
+    height: 80px !important;
+    margin-top: 0.5rem;
+  }
+
+  .team-abbr {
+    font-size: 1.2rem !important;
+    margin-top: 0.2rem;
   }
 }

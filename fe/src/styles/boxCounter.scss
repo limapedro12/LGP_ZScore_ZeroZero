@@ -36,3 +36,23 @@
     align-items: center;
     height: 2rem;
 }
+
+@include config.xs {
+
+    .box-counter-container {
+        flex-direction: row;
+        gap: 0.5rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .box-counter-team {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .box-counter-label {
+        margin: 0 0.5rem;
+    }
+
+}

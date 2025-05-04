@@ -13,7 +13,7 @@ class GameConfig {
         'basketball' => [
             'periods' => 4,
             'periodDuration' => 10 * 60,
-            'timeoutDuration' => 60*100,
+            'timeoutDuration' => 60,
             'timeoutsPerTeam' => 5,
             'points' => [1, 2, 3],
         ],

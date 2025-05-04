@@ -5,7 +5,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
     background-color: config.$background-color;
     min-width: 300px;
 }
@@ -16,4 +15,13 @@
 
 .timeout-counter-wrapper {
     margin-top: 6rem; 
+}
+
+.scores-row-wrapper {
+    margin-top: 2rem !important;
+
+    @include config.placard1 {margin-top: 5rem !important;}
+    @include config.placard2 {margin-top: 5rem !important;}
+    @include config.placard3 {margin-top: 5rem !important;}
+    @include config.placard4 {margin-top: 5rem !important;}
 }
