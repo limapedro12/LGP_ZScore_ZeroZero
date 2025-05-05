@@ -6,7 +6,28 @@
     border: 2px solid white;
     border-radius: 4px;
     display: inline-block;
-    margin: 0 4px;
+    margin: 0 0.4rem;
+
+    @include config.placard1 {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-width: 3px;
+    }
+    @include config.placard2 {
+        width: 3rem;
+        height: 3rem;
+        border-width: 4px;
+    }
+    @include config.placard3 {
+        width: 4rem;
+        height: 4rem;
+        border-width: 5px;
+    }
+    @include config.placard4 {
+        width: 5rem;
+        height: 5rem;
+        border-width: 6px;
+    }
     
     &--empty {
         background-color: transparent;
@@ -35,6 +56,12 @@
     display: flex;
     align-items: center;
     height: 2rem;
+    margin: 0 1rem;
+
+    @include config.placard1 { font-size: 2.5rem; height: 2.5rem; }
+    @include config.placard2 { font-size: 3rem; height: 3rem; }
+    @include config.placard3 { font-size: 4rem; height: 4rem; }
+    @include config.placard4 { font-size: 5rem; height: 5rem; }
 }
 
 @include config.xs {
@@ -56,3 +83,4 @@
     }
 
 }
+

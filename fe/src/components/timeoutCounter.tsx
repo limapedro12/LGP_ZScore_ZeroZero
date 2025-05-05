@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useMediaQuery } from 'react-responsive';
 import apiManager from '../api/apiManager';
 import BoxCounter from './boxCounter';
 import '../styles/timeoutCounter.scss';
+import { BREAKPOINTS } from '../media-queries/index';
 
 const TimeoutCounter: React.FC = () => {
     const [placardId, setplacardId] = useState<string>('default');
@@ -41,6 +43,8 @@ const TimeoutCounter: React.FC = () => {
         return () => clearInterval(intervalId);
     }, [placardId, fetchTeamsTimeouts]);
 
+    const isVertical = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
+
     return (
         <div className="timeout-counter w-100 d-flex justify-content-center mt-3">
             <BoxCounter
@@ -48,7 +52,8 @@ const TimeoutCounter: React.FC = () => {
                 homeCount={teamsTimeouts.home}
                 awayCount={teamsTimeouts.away}
                 maxCount={maxTimeouts}
-                className="timeout-counter-container"
+                className={'timeout-counter-container'}
+                vertical={isVertical}
             />
         </div>
     );

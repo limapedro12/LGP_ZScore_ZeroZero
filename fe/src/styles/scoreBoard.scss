@@ -11,6 +11,7 @@
 
 .timeout-timer-wrapper {
     margin-bottom: 6rem; 
+    margin-top: 3rem;
 }
 
 .timeout-counter-wrapper {
@@ -19,9 +20,4 @@
 
 .scores-row-wrapper {
     margin-top: 2rem !important;
-
-    @include config.placard1 {margin-top: 5rem !important;}
-    @include config.placard2 {margin-top: 5rem !important;}
-    @include config.placard3 {margin-top: 5rem !important;}
-    @include config.placard4 {margin-top: 5rem !important;}
 }
