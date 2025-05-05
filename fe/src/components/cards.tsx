@@ -91,15 +91,23 @@ const Cards: React.FC<CardsProps> = ({ direction = 'left' }) => {
                                     {renderCardVisual(card.cardType)}
                                 </div>
                                 <div className="card-name">
-                                    {`Nome Jogador ${card.playerId}`}
+                                    Thayara Nunes
+                                    {/* getPlayer(card.playerId) */}
                                 </div>
-                                <div className="card-number">No.</div>
+                                <div className="card-number">
+                                    8
+                                    {/* getNumber(card.playerId) */}
+                                </div>
                             </>
                         ) : (
                             <>
-                                <div className="card-number">No.</div>
+                                <div className="card-number">
+                                    8
+                                    {/* getNumber(card.playerId) */}
+                                </div>
                                 <div className="card-name">
-                                    {`Nome Jogador ${card.playerId}`}
+                                    Thayara Nunes
+                                    {/* getPlayer(card.playerId) */}
                                 </div>
                                 <div className="card-visual-outside">
                                     {renderCardVisual(card.cardType)}

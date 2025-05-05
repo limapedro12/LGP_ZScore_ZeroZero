@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import config from './config/config';
 import HomePage from './pages/home';
-import CardsPolling from './pages/cardsPolling';
 import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
 
@@ -19,7 +18,6 @@ const AppRouter = () => (
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
-            <Route path="/cards/:sport/:placardId" element={<CardsPolling />} />
         </Routes>
     </BrowserRouter>
 );
