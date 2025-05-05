@@ -2,22 +2,14 @@
 
 .scoreboard-container {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.scoreboard-layout {
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
-    height: 100vh;
     background-color: config.$background-color;
-    padding: 10vw;
+    min-width: 300px;
 }
 
 .slider-container {
-    flex: 1; 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -29,4 +21,17 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+.timeout-timer-wrapper {
+    margin-bottom: 6rem; 
+    margin-top: 3rem;
+}
+
+.timeout-counter-wrapper {
+    margin-top: 6rem; 
+}
+
+.scores-row-wrapper {
+    margin-top: 2rem !important;
 }

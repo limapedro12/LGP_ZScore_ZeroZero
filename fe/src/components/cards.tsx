@@ -10,6 +10,12 @@ interface CardsProps {
     direction?: 'left' | 'right';
 }
 
+interface Card {
+    cardType: string;
+    playerId: string;
+    timestamp: number;
+}
+
 /**
  * A real-time update of cards with a menu to display the last 5 cards.
  *
@@ -17,8 +23,8 @@ interface CardsProps {
  * @returns {React.FC} Cards component
  */
 const Cards: React.FC<CardsProps> = ({ direction = 'left' }) => {
-    const [lastCards, setLastCards] = useState<Array<any>>([]);
     const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
+    const [lastCards, setLastCards] = useState<Array<Card>>([]);
 
     const fetchCards = React.useCallback(async () => {
         try {
@@ -76,7 +82,7 @@ const Cards: React.FC<CardsProps> = ({ direction = 'left' }) => {
     return (
         <>
             <div className="cards">
-                <h2 className="cartoes-title">Cartões</h2>
+                <h2 className="cards-title">Cartões</h2>
                 {lastCards.map((card, index) => (
                     <div key={index} className="card-row">
                         {direction === 'right' ? (

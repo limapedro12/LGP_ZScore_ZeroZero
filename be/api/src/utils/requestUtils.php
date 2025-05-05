@@ -73,6 +73,16 @@ class RequestUtils {
                     'event_counter' => $prefix . 'eventcounter',
                     'card_event' => 'cardevent:'
                 ];
+            case 'points':
+                return [
+                    'game_points' => $prefix . 'points',
+                    'event_counter' => $prefix . 'eventcounter',
+                    'point_event' => $prefix . 'point_event:',
+                    'home_points' => $prefix . 'home_points',
+                    'away_points' => $prefix . 'away_points',
+                    'total_game_points' => $prefix . 'total_game_points',
+                    'set_points' => $prefix . 'set_points:',
+                ];
             case 'fouls':
                 return [
                     'event_counter' => $prefix . 'eventcounter',
@@ -87,6 +97,10 @@ class RequestUtils {
         global $redis, $gameConfig;
 
         $timerKeys = self::getRedisKeys($placardId, 'timer');
+
+        if(!isset($gameConfig['periodDuration'])){
+            return 0;
+        }
         
         $pipeline = $redis->pipeline();
         $pipeline->get($timerKeys['period']);

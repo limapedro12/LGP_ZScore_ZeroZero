@@ -51,6 +51,7 @@
     align-items: center;
     gap: 20px; 
     margin-bottom: 10px; 
+    font-size: 1.5vw;
 }
 
 .card-visual {
@@ -83,11 +84,28 @@
   width: 50px;
 }
 
-h2.cartoes-title {
+h2.cards-title {
     text-align: center; 
-    margin-bottom: 20px;
+    margin-bottom: 5vh;
+    font-size: 3vw;
 }
 
 .cards {
   color: white;
+  margin: 2vw;
+}
+
+@media (max-aspect-ratio: 1) {
+    .card-row {
+        font-size: 1.5vh;
+    }
+    
+    h2.cards-title {
+        margin-bottom: 5vh;
+        font-size: 3vh;
+    }
+    
+    .cards {
+      margin: 2vh;
+    }
 }

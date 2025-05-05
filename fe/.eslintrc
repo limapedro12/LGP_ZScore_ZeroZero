@@ -23,14 +23,14 @@
         "import",
         "react-hooks",
         "@typescript-eslint",
-        "react-refresh",
-        "vitest"
+        "react-refresh"
+        //"vitest"
     ],
     "extends": [
         "eslint:recommended",
         "plugin:react/recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:vitest/recommended"
+        "plugin:@typescript-eslint/recommended"
+        //"plugin:vitest/recommended"
     ],
     "settings": {
         "react": {
