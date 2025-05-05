@@ -26,6 +26,9 @@ const ScoreBoard = () => (
                 <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                     <TimeoutCounter />
                 </div>
+                <div className="event-history-wrapper w-100 d-flex justify-content-center">
+                    <EventHistory />
+                </div>
             </Col>
         </Row>
     </Container>

@@ -7,7 +7,7 @@ type Sport = 'futsal' | 'basketball' | 'volleyball';
 
 interface Event {
   id: number;
-  timestamp: number;           // como número para facilitar o sort
+  timestamp: number; // aqui o atributo como número para facilitar o sort
   type: 'card' | 'foul' | 'score' | 'timeout';
   description: string;
   team?: string;

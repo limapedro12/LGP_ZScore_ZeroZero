@@ -3,11 +3,10 @@ import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
-
 /**
- * Defines the possible timer actions that can be sent to the API
+ * Defines the possible timer and also event actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'status' | 'reset' | 'adjust' | 'set' | 'get' | 'gameStatus' | 'noTimer' | 'delete'  | 'create' | 'add' | 'update' | 'remove' | 'get_accumulated' | 'list_game_fouls' | 'get_player_fouls';
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'noTimer' | 'delete'  | 'create' | 'add' | 'update' | 'remove' | 'get_accumulated' | 'list_game_fouls' | 'get_player_fouls';
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports' | 'events';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
@@ -30,9 +29,6 @@ interface ScoreResponse {
 }
 
 interface RequestParams {
-    placardId: string;
-    sport: string;
-    [key: string]: string | number | undefined;
     placardId?: string;
     sport?: string;
     [key: string]: string | number | undefined;
@@ -98,8 +94,6 @@ interface CardsResponse {
 interface EventsResponse {
     events: Array<Record<string, any>>;
   }
-}
-
 interface SportsResponse {
     sports?: string[];
 }
@@ -225,14 +219,14 @@ class ApiManager {
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
+    getNonTimerSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
+
     getEvents = (placardId: string, sport: string): Promise<EventsResponse> =>
         this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
 
     getEventDetails = (placardId: string, sport: string, eventId: number) =>
         this.makeRequest<Record<string, any>>('events', 'get', { placardId, sport, eventId }, 'GET');
-
-    getNonTimerSports = () =>
-        this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
 }
 
 const apiManager = new ApiManager();
