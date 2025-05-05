@@ -12,7 +12,7 @@ import '../styles/scoreBoard.scss';
  */
 const ScoreBoard = () => (
     <div className="scoreboard-layout">
-        <div className="cards-container">
+        <div className="slider-container">
             <Cards direction="left" />
         </div>
         <div className="center-container">
@@ -20,7 +20,7 @@ const ScoreBoard = () => (
             <Timer />
             <TimeoutCounter />
         </div>
-        <div className="cards-container">
+        <div className="slider-container">
             <Cards direction="right" />
         </div>
     </div>
