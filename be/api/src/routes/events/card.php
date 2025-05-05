@@ -141,7 +141,7 @@ try {
             $updatedData = [];
             $isChanged = false;
 
-            if(isset($params['new_playerId'])){
+            if(isset($params['playerId'])){
                 //need to check if playerId exists, only possible when there is players data
                 if ($params['new_playerId'] != $currentCardData['playerId']) {
                     $updatedData['playerId'] = $params['new_playerId'];
@@ -149,22 +149,22 @@ try {
                 }
             }
 
-            if(isset($params['new_cardType'])){
-                if(!in_array($params['new_cardType'], $gameConfig['cards'])) {
+            if(isset($params['cardType'])){
+                if(!in_array($params['cardType'], $gameConfig['cards'])) {
                     http_response_code(400);
                     $response = ["error" => "Invalid card type"];
                     break;
                 }
                 
-                if ($params['new_cardType'] != $currentCardData['cardType']) {
-                    $updatedData['cardType'] = $params['new_cardType'];
+                if ($params['cardType'] != $currentCardData['cardType']) {
+                    $updatedData['cardType'] = $params['cardType'];
                     $isChanged = true;
                 }
             }
 
-            if(isset($params['new_timestamp'])){
-                if ((string)$params['new_timestamp'] !== (string)$currentCardData['timestamp']) {
-                    $updatedData['timestamp'] = $params['new_timestamp'];
+            if(isset($params['timestamp'])){
+                if ((string)$params['timestamp'] !== (string)$currentCardData['timestamp']) {
+                    $updatedData['timestamp'] = $params['timestamp'];
                     $isChanged = true;
                 }
             }
