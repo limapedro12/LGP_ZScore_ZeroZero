@@ -14,4 +14,60 @@ $font-secondary: 'Inter', sans-serif;
 body, html {
     width: 100%;
     font-feature-settings: "tnum";
+    background-color: $background-color;
+}
+
+$breakpoint-xs: 0px;      
+$breakpoint-sm: 576px;    
+$breakpoint-md: 768px;    
+$breakpoint-lg: 992px;    
+$breakpoint-xl: 1200px;   
+$breakpoint-xxl: 1400px;  
+
+$breakpoint-placard1: 1600px; 
+$breakpoint-placard2: 2000px;
+$breakpoint-placard3: 2400px;
+$breakpoint-placard4: 2800px;
+
+
+// Bootstrap-like mixins
+@mixin xs {
+  @media (max-width: #{$breakpoint-sm - 1}) { @content; }
+}
+@mixin sm {
+  @media (min-width: #{$breakpoint-sm}) and (max-width: #{$breakpoint-md - 1}) { @content; }
+}
+@mixin md {
+  @media (min-width: #{$breakpoint-md}) and (max-width: #{$breakpoint-lg - 1}) { @content; }
+}
+@mixin lg {
+  @media (min-width: #{$breakpoint-lg}) and (max-width: #{$breakpoint-xl - 1}) { @content; }
+}
+@mixin xl {
+  @media (min-width: #{$breakpoint-xl}) and (max-width: #{$breakpoint-xxl - 1}) { @content; }
+}
+@mixin xxl {
+  @media (min-width: #{$breakpoint-xxl}) and (max-width: #{$breakpoint-placard1 - 1}) { @content; }
+}
+
+@mixin placard1 {
+  @media (min-width: #{$breakpoint-placard1}) and (max-width: #{$breakpoint-placard2 - 1}) { @content; }
+}
+
+@mixin placard2 {
+  @media (min-width: #{$breakpoint-placard2}) and (max-width: #{$breakpoint-placard3 - 1}) { @content; }
+}
+
+@mixin placard3 {
+  @media (min-width: #{$breakpoint-placard3}) and (max-width: #{$breakpoint-placard4 - 1}) { @content; }
+}
+
+@mixin placard4 {
+  @media (min-width: #{$breakpoint-placard4}) { @content; }
+}
+
+@mixin xs-sm {
+  @media (max-width: #{$breakpoint-md - 1}) {
+    @content;
+  }
 }

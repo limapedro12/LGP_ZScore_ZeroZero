@@ -3,8 +3,12 @@ import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
-type ActionType = 'start' | 'pause' | 'status' | 'reset' | 'adjust' | 'set' | 'get' | 'gameStatus' | 'delete'  | 'create' | 'add' | 'update' | 'remove' | 'get_accumulated' | 'list_game_fouls' | 'get_player_fouls';
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'events';
+
+/**
+ * Defines the possible timer actions that can be sent to the API
+ */
+type ActionType = 'start' | 'pause' | 'status' | 'reset' | 'adjust' | 'set' | 'get' | 'gameStatus' | 'noTimer' | 'delete'  | 'create' | 'add' | 'update' | 'remove' | 'get_accumulated' | 'list_game_fouls' | 'get_player_fouls';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports' | 'events';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
@@ -28,6 +32,9 @@ interface ScoreResponse {
 interface RequestParams {
     placardId: string;
     sport: string;
+    [key: string]: string | number | undefined;
+    placardId?: string;
+    sport?: string;
     [key: string]: string | number | undefined;
 }
 
@@ -91,6 +98,11 @@ interface CardsResponse {
 interface EventsResponse {
     events: Array<Record<string, any>>;
   }
+}
+
+interface SportsResponse {
+    sports?: string[];
+}
 
 /**
  * API Manager that handles all API requests
@@ -100,7 +112,7 @@ class ApiManager {
     makeRequest = async <T>(
         endpoint: EndpointType,
         action: ActionType,
-        params: RequestParams,
+        params: RequestParams = {},
         method: 'GET' | 'POST' = 'POST'
     ): Promise<T> => {
 
@@ -108,14 +120,19 @@ class ApiManager {
         let url = `${BASE_URL}${ENDPOINTS[endpointKey]()}`;
 
         if (method === 'GET') {
-            const queryParams = new URLSearchParams({
-                action,
-                placardId: params.placardId,
-                sport: params.sport,
-                ...Object.fromEntries(
-                    Object.entries(params).filter(([key]) => !['placardId', 'sport'].includes(key))
-                ),
+            const queryObj: Record<string, string> = { action };
+
+            if (params.placardId !== undefined) queryObj.placardId = params.placardId;
+            if (params.sport !== undefined) queryObj.sport = params.sport;
+
+            // Add any other params
+            Object.entries(params).forEach(([key, value]) => {
+                if (!['placardId', 'sport'].includes(key) && value !== undefined) {
+                    queryObj[key] = String(value);
+                }
             });
+
+            const queryParams = new URLSearchParams(queryObj);
             url = `${url}?${queryParams.toString()}`;
         }
 
@@ -213,6 +230,9 @@ class ApiManager {
 
     getEventDetails = (placardId: string, sport: string, eventId: number) =>
         this.makeRequest<Record<string, any>>('events', 'get', { placardId, sport, eventId }, 'GET');
+
+    getNonTimerSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
 }
 
 const apiManager = new ApiManager();
