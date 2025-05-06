@@ -9,12 +9,22 @@ import apiManager from '../api/apiManager';
  */
 const Cards: React.FC = () => {
     const [cardCounts, setCardCounts] = useState<Record<string, number>>({});
-    const [lastCards, setLastCards] = useState<Array<any>>([]);
+    interface Card {
+        cardType: string;
+        playerId: string;
+        timestamp: number;
+    }
+
+    const [lastCards, setLastCards] = useState<Array<Card>>([]);
     const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
 
     const fetchCards = React.useCallback(async () => {
         try {
-            const data = await apiManager.getCards(placardId!, sport!);
+            if (!placardId || !sport) {
+                console.error('Missing placardId or sport');
+                return;
+            }
+            const data = await apiManager.getCards(placardId, sport);
             const counts: Record<string, number> = {};
 
             if (sport === 'futsal') {

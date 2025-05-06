@@ -72,7 +72,7 @@ try {
                 $response = ["error" => "Invalid card type"];
                 break;
             }
-            $timestamp = RequestUtils::getGameTimePosition($placardId);
+            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
             if (!$playerId || !$cardType || ($timestamp === null)) {
                 http_response_code(400);
@@ -115,7 +115,7 @@ try {
             break;
 
         case 'update':
-             if ($requestMethod !== 'POST') {
+            if ($requestMethod !== 'POST') {
                 http_response_code(405); 
                 $response = ["error" => "Invalid request method. Only POST is allowed for update action."];
                 break;

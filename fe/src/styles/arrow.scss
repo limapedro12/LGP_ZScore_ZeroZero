@@ -8,41 +8,37 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    
+
     &-left {
         border-right: 25px solid config.$secondary-text-color;
         left: 20px;
     }
-    
+
     &-right {
         border-left: 25px solid config.$secondary-text-color;
         right: 20px;
     }
-    
-    &--white {
-        &.arrow-left {
-            border-right-color: white;
-        }
-        &.arrow-right {
-            border-left-color: white;
-        }
+
+    @include config.placard1 {
+        border-top-width: 22px;
+        border-bottom-width: 22px;
     }
-    
-    &--relative {
-        position: relative;
-        top: auto;
-        transform: none;
+    @include config.placard2 {
+        border-top-width: 36px;
+        border-bottom-width: 36px;
+        &.arrow-left { border-right-width: 50px; }
+        &.arrow-right { border-left-width: 50px; }
     }
-    
-    &--small {
-        border-top-width: 10px;
-        border-bottom-width: 10px;
-        
-        &.arrow-left {
-            border-right-width: 15px;
-        }
-        &.arrow-right {
-            border-left-width: 15px;
-        }
+    @include config.placard3 {
+        border-top-width: 48px;
+        border-bottom-width: 48px;
+        &.arrow-left { border-right-width: 60px; }
+        &.arrow-right { border-left-width: 60px; }
+    }
+    @include config.placard4 {
+        border-top-width: 60px;
+        border-bottom-width: 60px;
+        &.arrow-left { border-right-width: 80px; }
+        &.arrow-right { border-left-width: 80px; }
     }
 }

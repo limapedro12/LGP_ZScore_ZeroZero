@@ -6,16 +6,33 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete';
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards';
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete' | 'noTimer';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
 
+
+interface PeriodScore {
+    period: number;
+    homePoints: number;
+    awayPoints: number;
+    totalPoints: number;
+}
+
+interface ScoreResponse {
+    totalPeriods: number;
+    currentScore: {
+        homeScore: number;
+        awayScore: number;
+    };
+    periods: PeriodScore[];
+}
+
 interface RequestParams {
-    placardId: string;
-    sport: string;
-    [key: string]: string | number;
+    placardId?: string;
+    sport?: string;
+    [key: string]: string | number | undefined;
 }
 
 interface ApiParams {
@@ -89,6 +106,10 @@ interface CardsResponse {
     }>;
 }
 
+interface SportsResponse {
+    sports?: string[];
+}
+
 /**
  * API Manager that handles all API requests
  */
@@ -97,7 +118,7 @@ class ApiManager {
     makeRequest = async <T>(
         endpoint: EndpointType,
         action: ActionType,
-        params: RequestParams,
+        params: RequestParams = {},
         method: 'GET' | 'POST' = 'POST'
     ): Promise<T> => {
 
@@ -105,14 +126,19 @@ class ApiManager {
         let url = `${BASE_URL}${ENDPOINTS[endpointKey]()}`;
 
         if (method === 'GET') {
-            const queryParams = new URLSearchParams({
-                action,
-                placardId: params.placardId,
-                sport: params.sport,
-                ...Object.fromEntries(
-                    Object.entries(params).filter(([key]) => !['placardId', 'sport'].includes(key))
-                ),
+            const queryObj: Record<string, string> = { action };
+
+            if (params.placardId !== undefined) queryObj.placardId = params.placardId;
+            if (params.sport !== undefined) queryObj.sport = params.sport;
+
+            // Add any other params
+            Object.entries(params).forEach(([key, value]) => {
+                if (!['placardId', 'sport'].includes(key) && value !== undefined) {
+                    queryObj[key] = String(value);
+                }
             });
+
+            const queryParams = new URLSearchParams(queryObj);
             url = `${url}?${queryParams.toString()}`;
         }
 
@@ -190,13 +216,16 @@ class ApiManager {
     getTimeoutEvents = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'get', { placardId, sport }, 'GET');
 
-    getGameStatus = (placardId: string, sport: string) =>
+    getGameTimeoutStatus = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'gameStatus', { placardId, sport }, 'GET');
 
     resetTimeouts = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });
     login = (username: string, password: string) =>
         this.ApiRequest({ action: 'login', username: username, password: password });
+
+    getScores = (placardId: string, sport: string) =>
+        this.makeRequest<ScoreResponse>('score', 'gameStatus', { placardId, sport }, 'GET');
 
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
@@ -226,6 +255,9 @@ class ApiManager {
 
         return this.makeRequest<CardsResponse>('cards', 'update', filteredParams);
     }
+    
+    getNonTimerSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
 }
 
 const apiManager = new ApiManager();
