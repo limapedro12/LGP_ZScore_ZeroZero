@@ -1,12 +1,10 @@
-/**
- * This file contains the API endpoints for the application.
- */
-
 const ENDPOINTS = {
     TIMER: () => '/timer/timer',
     API: () => '/api/api',
     TIMEOUT: () => '/events/timeout',
+    SCORE: () => '/events/score',
     CARDS: () => '/events/card',
+    SPORTS: () => '/utils/sports',
 };
 
 export default ENDPOINTS;

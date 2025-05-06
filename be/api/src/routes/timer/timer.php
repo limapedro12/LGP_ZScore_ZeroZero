@@ -47,7 +47,11 @@ try {
     $period = (int)$redis->get($periodKey) ?: 1;
     
     if ($storedRemaining === 0) {
-        $storedRemaining = $gameConfig['periodDuration'];
+        if(isset($gameConfig['periodDuration'])) {
+            $storedRemaining = $gameConfig['periodDuration'];
+        } else {
+            $storedRemaining = 0;
+        }
     }
     
     $remainingTime = $storedRemaining;

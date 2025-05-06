@@ -7,6 +7,7 @@ interface BoxCounterProps {
   awayCount: number;
   maxCount: number;
   className?: string;
+  vertical?: boolean;
 }
 
 const BoxCounter: React.FC<BoxCounterProps> = ({
@@ -15,6 +16,7 @@ const BoxCounter: React.FC<BoxCounterProps> = ({
     awayCount,
     maxCount,
     className = '',
+    vertical = false,
 }) => {
     const renderBoxes = (count: number, side: 'home' | 'away') => {
         const boxes = [];
@@ -28,11 +30,16 @@ const BoxCounter: React.FC<BoxCounterProps> = ({
                 />
             );
 
-            if (side === 'home') {
-                boxes.unshift(boxElement);
-            } else {
+            if (vertical) {
                 boxes.push(boxElement);
+            } else {
+                if (side === 'home') {
+                    boxes.unshift(boxElement);
+                } else {
+                    boxes.push(boxElement);
+                }
             }
+
         }
 
         return boxes;

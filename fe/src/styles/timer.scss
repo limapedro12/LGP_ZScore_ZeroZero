@@ -3,19 +3,48 @@
 .timer {
     font-family: config.$font-secondary;
     color: config.$text-color;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    
+
     .period {
-        font-size: 4rem;
+        font-size: 3rem;
         font-weight: bold;
         line-height: 1;
+
+        @include config.xxl {
+            font-size: 3.5rem;
+        }
+        @include config.placard1 {
+            font-size: 4rem;
+        }
+        @include config.placard2 {
+            font-size: 5rem;
+        }
+        @include config.placard3 {
+            font-size: 7rem;
+        }
+        @include config.placard4 {
+            font-size: 9rem;
+        }
+
     }
-    
     .time {
-        font-size: 6rem;
+        font-size: 4.5rem;
         font-weight: bold;
         line-height: 1;
+
+        @include config.xxl {
+            font-size: 5.5rem;
+        }
+        @include config.placard1 {
+            font-size: 7rem;
+        }
+        @include config.placard2 {
+            font-size: 9rem;
+        }
+        @include config.placard3 {
+            font-size: 11rem;
+        }
+        @include config.placard4 {
+            font-size: 13rem;
+        }
     }
 }
