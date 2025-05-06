@@ -6,7 +6,7 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'noTimer'
+type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete' | 'noTimer';
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
@@ -42,6 +42,16 @@ interface ApiParams {
     cookie?: string;
     placardId?: string;
     teamId?: string;
+}
+
+interface UpdateCardParams {
+    placardId: string;
+    sport: string;
+    eventId: string;
+    playerId?: string; 
+    cardType?: string; 
+    timestamp?: number;
+    [key: string]: string | number | undefined;
 }
 
 interface TimerResponse {
@@ -220,6 +230,32 @@ class ApiManager {
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
+    createCard = (placardId: string, sport: string, playerId: string, cardType: string) =>
+        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, playerId, cardType });
+
+    deleteCard = (placardId: string, sport: string, eventId: string) =>
+        this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });
+
+    updateCard = (params: UpdateCardParams) =>{
+        const filteredParams: RequestParams = {
+            placardId: params.placardId,
+            sport: params.sport,
+            eventId: params.eventId 
+        };
+
+        if (params.playerId !== undefined) {
+            filteredParams.playerId = params.playerId;
+        }
+        if (params.cardType !== undefined) {
+            filteredParams.cardType = params.cardType;
+        }
+        if (params.timestamp !== undefined) {
+            filteredParams.timestamp = params.timestamp;
+        }
+
+        return this.makeRequest<CardsResponse>('cards', 'update', filteredParams);
+    }
+    
     getNonTimerSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
 }
