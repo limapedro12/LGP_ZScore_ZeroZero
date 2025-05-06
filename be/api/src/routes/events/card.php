@@ -24,6 +24,21 @@ if ($validationError) {
 $placardId = $params['placardId'] ?? null;
 $action = $params['action'] ?? null;
 $sport = $params['sport'] ?? null;
+$team = $params['team'] ?? null;
+
+if ((($action === 'update') || ($action === 'create')) && empty($team)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Team parameter is required for create and update action"]);
+    exit;
+}
+
+if (!empty($team) && !in_array($team, ['home', 'away'])) {
+    http_response_code(400);
+    echo json_encode(["error" => "Team parameter must be 'home' or 'away'"]);
+    exit;
+} else if (!empty($team)) {
+    $team = strtolower($team);
+}
 
 $gameConfig = new GameConfig();
 try {
@@ -94,6 +109,7 @@ try {
                 'placardId' => $placardId,
                 'playerId' => $playerId,
                 'cardType' => $cardType,
+                'team' => $team,
                 'timestamp' => $timestamp
             ];
 
@@ -143,8 +159,8 @@ try {
 
             if(isset($params['playerId'])){
                 //need to check if playerId exists, only possible when there is players data
-                if ($params['new_playerId'] != $currentCardData['playerId']) {
-                    $updatedData['playerId'] = $params['new_playerId'];
+                if ($params['playerId'] != $currentCardData['playerId']) {
+                    $updatedData['playerId'] = $params['playerId'];
                     $isChanged = true;
                 }
             }
@@ -158,6 +174,13 @@ try {
                 
                 if ($params['cardType'] != $currentCardData['cardType']) {
                     $updatedData['cardType'] = $params['cardType'];
+                    $isChanged = true;
+                }
+            }
+
+            if(isset($params['team'])){
+                if ($params['team'] != $currentCardData['team']) {
+                    $updatedData['team'] = $params['team'];
                     $isChanged = true;
                 }
             }
@@ -178,9 +201,7 @@ try {
                 break;
             }
 
-            $providedUpdateParams = isset($params['new_playerId']) || isset($params['new_cardType']) || isset($params['new_timestamp']);
-
-            if (!$providedUpdateParams || !$isChanged) {
+            if (!$isChanged) {
                 http_response_code(400);
                 $response = ["error" => "No data to update or new values are the same as current values"];
                 break;
@@ -190,6 +211,7 @@ try {
             $updatedData['placardId'] = $placardId;
             $updatedData['playerId'] = $updatedData['playerId'] ?? $currentCardData['playerId'];
             $updatedData['cardType'] = $updatedData['cardType'] ?? $currentCardData['cardType'];
+            $updatedData['team'] = $updatedData['team'] ?? $currentCardData['team'];
             $updatedData['timestamp'] = $updatedData['timestamp'] ?? $currentCardData['timestamp'];
 
             $timestampForZadd = $updatedData['timestamp'];
