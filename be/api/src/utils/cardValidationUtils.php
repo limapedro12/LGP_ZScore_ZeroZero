@@ -93,21 +93,22 @@ class CardValidationUtils {
 
             case'volleyball':
                 $sanctionLevels = [
+                    'white' => 0,
                     'yellow' => 1, 
                     'red' => 2,
                     'yellow_red_together' => 3,
                     'yellow_red_separately' => 4,
                 ];
 
-                $currentMaxLevel = 0;
+                $currentMaxLevel = -1;
                 foreach ($playerCards as $card) {
-                    $level = $sanctionLevels[$card['cardType']] ?? 0;
+                    $level = $sanctionLevels[$card['cardType']] ?? -1;
                     if ($level > $currentMaxLevel) {
                         $currentMaxLevel = $level;
                     }
                 }
 
-                $levelToAssign = $sanctionLevels[$cardTypeToAssign] ?? 0;
+                $levelToAssign = $sanctionLevels[$cardTypeToAssign] ?? -1;
 
                 return $levelToAssign > $currentMaxLevel;
 
