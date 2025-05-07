@@ -9,10 +9,26 @@ import TimeoutTimer from '../components/timeoutTimer';
 import TimeoutCounter from '../components/timeoutCounter';
 import ScoresRow from '../components/scoresCounter';
 import SetBox from '../components/setBox';
+import TeamInfo from '../components/teamInfo';
+// You will need to create these components:
 
 const ScoreBoard = () => {
     const { placardId, sport } = useParams<{ placardId: string, sport: string }>();
     const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
+    const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
+
+    const fetchNoPeriodSports = useCallback(async () => {
+        try {
+            const response = await apiManager.getNoPeriodSports();
+            if (response && Array.isArray(response.sports)) {
+                setNoPeriodBoxSports(response.sports);
+            } else {
+                setNoPeriodBoxSports([]);
+            }
+        } catch (error) {
+            setNoPeriodBoxSports([]);
+        }
+    }, []);
 
     const fetchScores = useCallback(async () => {
         if (!placardId || !sport) return;
@@ -26,33 +42,32 @@ const ScoreBoard = () => {
 
     useEffect(() => {
         fetchScores();
+        fetchNoPeriodSports();
         const intervalId = setInterval(fetchScores, 5000);
         return () => clearInterval(intervalId);
-    }, [fetchScores]);
+    }, [fetchScores, fetchNoPeriodSports]);
 
     return (
-        <Container fluid className="scoreboard-container d-flex flex-column align-items-center justify-content-center min-vh-100 p-0">
+        <Container fluid className="scoreboard-container d-flex flex-column align-items-center justify-content-center min-vh-100">
             <Row className="scores-row-wrapper w-100">
-                <Col xs={12} className="p-0">
+                <Col xs={12}>
                     <ScoresRow scoreData={scoreData} />
                 </Col>
             </Row>
-            <Row className="set-box-wrapper w-100 justify-content-center">
-                <Col xs={12} md={8} lg={6} className="p-0">
-                    <SetBox scoreData={scoreData} />
+            <Row className="info-row w-100 flex-grow-1">
+                <Col xs={12} md={3} className="team-info-col">
+                    <TeamInfo team="home" />
                 </Col>
-            </Row>
-            <Row className="w-100 justify-content-center flex-grow-1">
-                <Col xs={12} md={8} lg={6} className="d-flex flex-column align-items-center justify-content-center">
-                    <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                        <TimeoutTimer />
-                    </div>
-                    <div className="timer-wrapper w-100 d-flex justify-content-center">
-                        <Timer />
-                    </div>
-                    <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
-                        <TimeoutCounter />
-                    </div>
+                <Col xs={12} md={6} className="general-info-col d-flex flex-column align-items-center justify-content-center">
+                    {sport && !noPeriodBoxSports.includes(sport) && (
+                        <SetBox scoreData={scoreData} />
+                    )}
+                    <TimeoutTimer />
+                    <Timer />
+                    <TimeoutCounter />
+                </Col>
+                <Col xs={12} md={3} className="team-info-col">
+                    <TeamInfo team="away" />
                 </Col>
             </Row>
         </Container>

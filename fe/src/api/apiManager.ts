@@ -7,7 +7,7 @@ const BASE_URL = `${config.API_HOSTNAME}`;
  * Defines the possible timer actions that can be sent to the API
  */
 type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set'
-| 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete' | 'noTimer';
+| 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete' | 'noTimer' | 'noPeriodBox'
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
@@ -261,6 +261,9 @@ class ApiManager {
 
     getNonTimerSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
+
+    getNoPeriodSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noPeriodBox', { }, 'GET');
 }
 
 const apiManager = new ApiManager();

@@ -29,7 +29,6 @@
     font-family: config.$font-secondary;
     font-size: 2.5rem;
     font-weight: bold;
-    margin-top: 0.5rem;
     @include config.placard1 { font-size: 3rem; }
     @include config.placard2 { font-size: 3.5rem; }
     @include config.placard3 { font-size: 4.5rem; }
@@ -88,17 +87,14 @@
     font-size: 2.5rem !important;
     min-width: 90px !important;
     min-height: 65px !important;
-    margin-bottom: 0.5rem;
   }
 
   .team-logo {
     width: 80px !important;
     height: 80px !important;
-    margin-top: 0.5rem;
   }
 
   .team-abbr {
     font-size: 1.2rem !important;
-    margin-top: 0.2rem;
   }
 }

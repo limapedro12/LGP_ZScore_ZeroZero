@@ -71,3 +71,9 @@ $breakpoint-placard4: 2800px;
     @content;
   }
 }
+
+@mixin below-xl {
+  @media (max-width: #{$breakpoint-xl - 1}) {
+    @content;
+  }
+}

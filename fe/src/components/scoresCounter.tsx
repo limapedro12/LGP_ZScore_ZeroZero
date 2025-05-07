@@ -45,7 +45,7 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
     }, [scoreData]);
 
     return (
-        <Container fluid className="scores-row-container py-3">
+        <Container fluid className="scores-row-container">
             <Row className="align-items-center justify-content-between">
                 <Col xs={0} md={3} lg={2} className="text-center team-col d-none d-md-flex flex-column">
                     <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo" />
@@ -54,9 +54,9 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                     </div>
                 </Col>
                 <Col xs={12} md={6} lg={8} className="score-center-col">
-                    <div className="d-flex d-md-none flex-row align-items-start justify-content-center w-100 score-logo-group mt-3">
+                    <div className="d-flex d-md-none flex-row align-items-start justify-content-center w-100 score-logo-group">
                         <div className="d-flex flex-column align-items-center mx-4 flex-fill">
-                            <div className="score-box mb-2">
+                            <div className="score-box">
                                 {scores.home}
                             </div>
                             <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo" />
@@ -65,7 +65,7 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                             </div>
                         </div>
                         <div className="d-flex flex-column align-items-center mx-4 flex-fill">
-                            <div className="score-box mb-2">
+                            <div className="score-box">
                                 {scores.away}
                             </div>
                             <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo" />
