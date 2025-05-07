@@ -49,7 +49,7 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
                 </div>
             </div>
             <div className="current-period-outer">
-                <div className="current-period-box d-flex align-items-center justify-content-center position-relative">
+                <div className="current-period-box">
                     {currentServer === 'home' && <div className="arrow arrow-left" />}
                     <span className="current-period">
                         {`SET ${currentPeriod ?? 1}`}
@@ -62,15 +62,18 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
                     <tbody>
                         {periods.slice(0, periods.length - 1).map((set) => {
                             const isFinished = currentPeriod !== undefined && set.period < currentPeriod;
+                            const homeWinner = set.winner === 'home';
+                            const awayWinner = set.winner === 'away';
+
                             return (
                                 <tr key={set.period}>
-                                    <td className="set-home">
+                                    <td className={`set-home ${homeWinner ? 'winner-score' : ''}`}>
                                         {isFinished ? set.homePoints : '-'}
                                     </td>
                                     <td className="set-label">
                                         {`SET ${set.period}`}
                                     </td>
-                                    <td className="set-away">
+                                    <td className={`set-away ${awayWinner ? 'winner-score' : ''}`}>
                                         {isFinished ? set.awayPoints : '-'}
                                     </td>
                                 </tr>

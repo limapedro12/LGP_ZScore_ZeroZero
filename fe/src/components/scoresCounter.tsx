@@ -25,10 +25,12 @@ interface ScoresRowProps {
 const ScoresRow: React.FC<ScoresRowProps> = ({
     scoreData,
     homeTeam = {
+        name: 'Sport Lisboa e Benfica',
         abbreviation: 'SLB',
         logo: slbLogo,
     },
     awayTeam = {
+        name: 'Sporting Clube de Portugal',
         abbreviation: 'SCP',
         logo: scpLogo,
     },
@@ -47,13 +49,19 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
     return (
         <Container fluid className="scores-row-container">
             <Row className="align-items-center justify-content-between">
-                <Col xs={0} md={3} lg={2} className="text-center team-col d-none d-md-flex flex-column">
-                    <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo" />
-                    <div className="team-abbr">
-                        {homeTeam.abbreviation}
+                {/* Home Team - Desktop */}
+                <Col xs={0} md={3} lg={2} xl={2} className="team-col d-none d-md-flex">
+                    <div className="team-display home-team">
+                        <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo" />
+                        <div className="team-abbr">
+                            {homeTeam.abbreviation}
+                        </div>
                     </div>
                 </Col>
-                <Col xs={12} md={6} lg={8} className="score-center-col">
+
+                {/* Scores - Desktop & Mobile */}
+                <Col xs={12} md={6} lg={8} xl={8} className="score-center-col">
+                    {/* Mobile View */}
                     <div className="d-flex d-md-none flex-row align-items-start justify-content-center w-100 score-logo-group">
                         <div className="d-flex flex-column align-items-center mx-4 flex-fill">
                             <div className="score-box">
@@ -74,6 +82,8 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                             </div>
                         </div>
                     </div>
+
+                    {/* Desktop View */}
                     <div className="d-none d-md-flex flex-row align-items-center justify-content-center w-100 scores-gap">
                         <div className="score-box">
                             {scores.home}
@@ -83,10 +93,14 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                         </div>
                     </div>
                 </Col>
-                <Col xs={0} md={3} lg={2} className="text-center team-col d-none d-md-flex flex-column">
-                    <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo" />
-                    <div className="team-abbr">
-                        {awayTeam.abbreviation}
+
+                {/* Away Team - Desktop */}
+                <Col xs={0} md={3} lg={2} xl={2} className="team-col d-none d-md-flex">
+                    <div className="team-display away-team">
+                        <div className="team-abbr">
+                            {awayTeam.abbreviation}
+                        </div>
+                        <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo" />
                     </div>
                 </Col>
             </Row>

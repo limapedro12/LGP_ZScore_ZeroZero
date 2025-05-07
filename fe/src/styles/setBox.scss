@@ -5,13 +5,13 @@
     background: rgba(255,255,255,0.05);
     border-radius: 12px;
     padding: 1rem 2rem;
-    display: inline-block;
-    margin: 0 auto;
+    margin: 0.5rem auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 75%;
+    width: 100%;
+    max-width: 500px;
 
     table {
         width: 100%;
@@ -19,22 +19,87 @@
         font-family: config.$font-secondary;
         color: config.$text-color;
         table-layout: fixed;
-
     }
+    
     td {
-        padding: 0.3rem 1.2rem;
+        padding: 0.3rem 0.5rem;
         font-size: 1.5rem;
         text-align: center;
         font-weight: bold;
-
+        vertical-align: middle;
     }
+    .winner-score {
+        color: white; /* Gold color */
+        text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        position: relative;
+        font-weight: 1200;
+        transform: scale(1.1);
+    }
+    
+    .set-home, .set-away {
+        width: 20%;
+        min-width: 40px;
+    }
+    
     .set-label {
+        width: 60%;
         font-size: 1.2rem;
         font-weight: 600;
         color: config.$text-color;
         letter-spacing: 0.1em;
-        justify-content: center;
         text-align: center;
+    }
+    
+    @include config.placard1 {
+        max-width: 600px;
+        
+        td {
+            padding: 0.4rem 0.8rem;
+            font-size: 1.7rem;
+        }
+        
+        .set-label {
+            font-size: 1.4rem;
+        }
+    }
+    
+    @include config.placard2 {
+        max-width: 700px;
+        
+        td {
+            padding: 0.5rem 1rem;
+            font-size: 1.9rem;
+        }
+        
+        .set-label {
+            font-size: 1.6rem;
+        }
+    }
+    
+    @include config.placard3 {
+        max-width: 800px;
+        
+        td {
+            padding: 0.6rem 1.2rem;
+            font-size: 2.1rem;
+        }
+        
+        .set-label {
+            font-size: 1.8rem;
+        }
+    }
+    
+    @include config.placard4 {
+        max-width: 900px;
+        
+        td {
+            padding: 0.7rem 1.4rem;
+            font-size: 2.4rem;
+        }
+        
+        .set-label {
+            font-size: 2rem;
+        }
     }
 }
 
@@ -45,27 +110,55 @@
     font-size: 2.2rem;
     font-weight: bold;
     background: config.$text-color;
+    color: black;
     border-radius: 12px;
     padding: 0.2rem 1.5rem;
-
+    min-width: 130px;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 4 / 1;
+    
     .sets-home, .sets-away {
         min-width: 2.5rem;
         text-align: center;
     }
+    
     .sets-separator {
         margin: 0 0.5rem;
     }
+    
+    @include config.placard1 {
+        font-size: 3rem;
+        min-width: 160px;
+    }
+    
+    @include config.placard2 {
+        font-size: 3.5rem;
+        min-width: 220px;
+        max-width: 400px;
+    }
+    
+    @include config.placard3 {
+        font-size: 4.5rem;
+        min-width: 300px;
+        max-width: 500px;
+    }
+    
+    @include config.placard4 {
+        font-size: 6rem;
+        min-width: 380px;
+        max-width: 700px;
+    }
 }
-
 
 .current-period-outer {
-    width: 100%;
     display: flex;
     justify-content: center;
-    align-items: center;
+    width: 100%;
+    margin: 0.5rem 0;
 }
 
-.current-period-box  {
+.current-period-box {
     min-width: 130px;
     width: 100%;
     max-width: 300px;
@@ -74,25 +167,51 @@
     align-items: center;
     justify-content: center;
     position: relative;
-
     --arrow-color: #fff;
 
-    @include config.placard1 {
-        border-radius: 2rem;
-        min-width: 160px;
-        max-width: 300px;
+    .arrow-left {
+        position: absolute;
+        left: -40px;
+        top: 50%;
+        transform: translateY(-50%);
     }
+
+    .arrow-right {
+        position: absolute;
+        right: -40px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    @include config.placard1 {
+        min-width: 160px;
+        
+        .arrow-left { left: -50px; }
+        .arrow-right { right: -50px; }
+    }
+    
     @include config.placard2 {
         min-width: 220px;
         max-width: 400px;
+        
+        .arrow-left { left: -60px; }
+        .arrow-right { right: -60px; }
     }
+    
     @include config.placard3 {
         min-width: 300px;
         max-width: 500px;
+        
+        .arrow-left { left: -75px; }
+        .arrow-right { right: -75px; }
     }
+    
     @include config.placard4 {
         min-width: 380px;
         max-width: 700px;
+        
+        .arrow-left { left: -90px; }
+        .arrow-right { right: -90px; }
     }
 }
 
@@ -111,7 +230,3 @@
     @include config.placard3 { font-size: 5rem !important; }
     @include config.placard4 { font-size: 7rem !important; }
 }
-
-
-
-
