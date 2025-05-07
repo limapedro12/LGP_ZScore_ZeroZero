@@ -33,7 +33,7 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
 
             const transformedEvents: TransformedCardEventData[] = teamFilteredCards.map((apiCard) => ({
                 id: apiCard.eventId,
-                playerName: `Player ${apiCard.playerId}`,
+                playerName: `Player ${apiCard.playerId} Nome longo`,
                 playerNumber: 10,
                 cardType: apiCard.cardType,
             }));
@@ -57,11 +57,11 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
     }
 
     return (
-        <div className={'d-flex flex-column w-100 gy-2'}>
+        <div className={'d-flex flex-column w-100 h-100 gy-2 justify-content-around pb-2 overflow-y-auto'}>
             {displayedCards.map((eventData) => (
                 <div
                     key={eventData.id}
-                    className="w-100 d-flex justify-content-center align-items-center mb-3"
+                    className="w-100 d-flex justify-content-center align-items-center"
                 >
                     <CardEvent
                         sport={sport}

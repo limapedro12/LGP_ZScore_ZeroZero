@@ -20,24 +20,27 @@ const CardEvent = <S extends Sport>({
     const cardIconSrc = getCardIconPath(sport, cardType);
 
     const jerseyElement = (
-        <div className={`col-3 d-flex align-items-center ${team === 'home' ? 'justify-content-start' : 'justify-content-end'}`}>
+        <div className="w-50 d-flex align-items-center justify-content-center">
             <PlayerJersey number={playerNumber} />
         </div>
     );
 
+    const nameElementAlignClass = team === 'home' ? 'justify-content-start' : 'justify-content-end';
     const nameElement = (
-        <div className="col-4 text-center fw-bold text-white">
-            {playerName}
+        <div className={`w-50 w-lg-25 d-flex align-items-center text-center text-white ${nameElementAlignClass}`}>
+            <span className="fw-bold small text-truncate">
+                {playerName}
+            </span>
         </div>
     );
 
     const cardIconElement = (
-        <div className={`col-auto d-flex align-items-center ${team === 'home' ? 'ps-2' : 'pe-2'}`}>
+        <div className={`w-25 d-flex align-items-center ${team === 'home' ? 'justify-content-start ps-2' : 'justify-content-end pe-2'}`}>
             {cardIconSrc ? (
                 <img
                     src={cardIconSrc}
                     alt={`${cardType} card for ${sport}`}
-                    className="img-fluid rounded"
+                    className="img-fluid rounded w-75"
                 />
             ) : (
                 <span className="badge bg-secondary p-2">?</span>

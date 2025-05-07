@@ -31,8 +31,14 @@ const ScoreBoard = () => {
         </>
     );
 
+    const containerClassName =
+        'scoreboard-container d-flex flex-column justify-content-start vh-100 p-0 overflow-y-auto overflow-md-y-hidden overflow-x-hidden';
+
     return (
-        <Container fluid className="scoreboard-container d-flex flex-column align-items-center justify-content-center min-vh-100 p-0">
+        <Container
+            fluid
+            className={containerClassName}
+        >
             {/* SCORE ROW */}
             <Row className="scores-row-wrapper w-100">
                 <Col xs={12} className="p-0">
@@ -43,17 +49,17 @@ const ScoreBoard = () => {
             {/* The following show when the screen is big */}
             <Row className="w-100 justify-content-center flex-grow-1 d-none d-md-flex">
                 {/* HOME TEAM SLIDER */}
-                <Col xs={12} md={3} lg={4}>
+                <Col xs={12} md={4} lg={4} className="ps-0">
                     <Slider sport={sport} team="home" placardId={placardId} />
                 </Col>
 
                 {/* CENTRAL INFORMATION */}
-                <Col xs={12} md={6} lg={4} className="d-flex flex-column align-items-center justify-content-center">
+                <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center">
                     {Center}
                 </Col>
 
                 {/* AWAY TEAM SLIDER */}
-                <Col xs={12} md={3} lg={4}>
+                <Col xs={12} md={4} lg={4} className="pe-0">
                     <Slider sport={sport} team="away" placardId={placardId} />
                 </Col>
             </Row>
@@ -65,14 +71,14 @@ const ScoreBoard = () => {
                         {Center}
                     </Col>
                 </Row>
-                <Row>
+                <Row className="px-0 pt-2">
                     {/* HOME TEAM SLIDER */}
-                    <Col>
+                    <Col className="ps-0">
                         <Slider sport={sport} team="home" placardId={placardId} />
                     </Col>
 
                     {/* AWAY TEAM SLIDER */}
-                    <Col>
+                    <Col className="pe-0">
                         <Slider sport={sport} team="away" placardId={placardId} />
                     </Col>
                 </Row>
