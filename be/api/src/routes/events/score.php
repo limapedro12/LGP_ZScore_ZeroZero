@@ -60,6 +60,7 @@ try {
     $awayPointsKey = $keys['away_points'];
     $actualPeriodKey = $timerKeys['period'];
     $totalGamePointsKey = $keys['total_game_points'];
+    $currentServerKey = $keys['current_server'];
 
     $pipeline = $redis->pipeline();
     $pipeline->get($homePointsKey);
@@ -138,9 +139,13 @@ try {
                 break;
             }
 
-            PointUtils::changePeriod($placardId, $sport, $team);
+            $periodChanged = PointUtils::changePeriod($placardId, $sport, $team);
 
-            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            if ($periodChanged) {
+                $redis->set($currentServerKey, null);
+            } else {
+                $redis->set($currentServerKey, $team);
+            }
 
             $currentHomePoints = ($team === 'home') ? $points : (int)$homePoints;
             $currentAwayPoints = ($team === 'away') ? $points : (int)$awayPoints;
@@ -379,24 +384,38 @@ try {
                     $periodTotalPoints = 0;
                 }
                 
+                if ($i == $currentPeriod) {
+                    $winner = null;
+                } else if ($homePointsInPeriod > $awayPointsInPeriod) {
+                    $winner = 'home';
+                } else if ($awayPointsInPeriod > $homePointsInPeriod) {
+                    $winner = 'away';
+                } else {
+                    $winner = null;
+                }
+            
                 $periods[] = [
                     'period' => $i,
                     'homePoints' => $homePointsInPeriod,
                     'awayPoints' => $awayPointsInPeriod,
-                    'totalPoints' => $periodTotalPoints
+                    'totalPoints' => $periodTotalPoints,
+                    'winner' => $winner
                 ];
-                
+            
                 $totalHomePoints += $homePointsInPeriod;
                 $totalAwayPoints += $awayPointsInPeriod;
             }
-        
+
+            $currentServer = $redis->get($currentServerKey);
+
             $response = [
                 "totalPeriods" => $totalPeriods,
                 "currentScore" => [
                     "homeScore" => (int)$homePoints,
                     "awayScore" => (int)$awayPoints
                 ],
-                "periods" => $periods
+                "periods" => $periods,
+                "currentServer" => $currentServer
             ];
             break;
         default:
