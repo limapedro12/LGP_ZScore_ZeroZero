@@ -19,7 +19,7 @@ const GameList = () => {
             away: 'Sporting CP',
         },
         {
-            date: '30/03/2025',
+            date: '22/03/2025',
             time: '18:00',
             home: 'Vitória SC',
             away: 'Benfica',

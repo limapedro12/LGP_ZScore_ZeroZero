@@ -12,6 +12,7 @@ const Filters = ({ games, onFilter }) => {
 
     const teamLabels = getUniqueTeams(games);
     const [selectedTeams, setSelectedTeams] = useState([]);
+    const [selectedDate, setSelectedDate] = useState('');
 
     const handleFilterClick = (team) => {
         const updatedTeams = selectedTeams.includes(team)
@@ -20,9 +21,24 @@ const Filters = ({ games, onFilter }) => {
 
         setSelectedTeams(updatedTeams);
 
-        const filteredGames = games.filter((game) =>
-            updatedTeams.every((team) => game.home === team || game.away === team)
-        );
+        const filteredGames = games.filter((game) => {
+            const matchesTeams = updatedTeams.every((team) => game.home === team || game.away === team);
+            const matchesDate = selectedDate ? game.date === selectedDate : true;
+            return matchesTeams && matchesDate;
+        });
+
+        onFilter(filteredGames);
+    };
+
+    const handleDateChange = (event) => {
+        const date = event.target.value;
+        setSelectedDate(date);
+
+        const filteredGames = games.filter((game) => {
+            const matchesDate = date ? game.date === date : true;
+            const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
+            return matchesDate && matchesTeams;
+        });
 
         onFilter(filteredGames);
     };
@@ -31,7 +47,12 @@ const Filters = ({ games, onFilter }) => {
         <div className="filters">
             <h2>Filtros</h2>
             <label>Data</label>
-            <input type="text" placeholder="DD-MM-AA" />
+            <input
+                type="text"
+                placeholder="DD/MM/AA"
+                value={selectedDate}
+                onChange={handleDateChange}
+            />
             <div className="teams">
                 {teamLabels.map((team, index) => (
                     <button
@@ -43,7 +64,7 @@ const Filters = ({ games, onFilter }) => {
                     </button>
                 ))}
             </div>
-            <button className="submit">Submit</button>
+            {/* <button className="submit">Submit</button> */}
         </div>
     );
 };
