@@ -14,12 +14,13 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
 
     useEffect(() => {
         if (scoreData) {
+            console.log('scoreData', scoreData);
             setPeriods(scoreData.periods || []);
             if ('currentPeriod' in scoreData && typeof scoreData.currentPeriod === 'number') {
                 setCurrentPeriod(scoreData.currentPeriod);
             } else if (scoreData.periods && scoreData.periods.length > 0) {
                 const lastActive = [...scoreData.periods].reverse().find((p) => p.homePoints > 0 || p.awayPoints > 0);
-                setCurrentPeriod(lastActive?.period ?? undefined);
+                setCurrentPeriod(lastActive?.period ?? 1);
             }
             setCurrentServer(scoreData.currentServer);
         }
@@ -31,16 +32,6 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
         setWins({ home: homeWins, away: awayWins });
     }, [periods]);
 
-
-    const renderPoints = (points: number, isFinished: boolean) => {
-        if (isFinished) {
-            return points;
-        }
-        if (points > 0) {
-            return points;
-        }
-        return '-';
-    };
 
     return (
         <>
@@ -61,7 +52,7 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
                 <div className="current-period-box d-flex align-items-center justify-content-center position-relative">
                     {currentServer === 'home' && <div className="arrow arrow-left" />}
                     <span className="current-period">
-                        {currentPeriod !== undefined ? `SET ${currentPeriod}` : 'SET 0'}
+                        {`SET ${currentPeriod ?? 1}`}
                     </span>
                     {currentServer === 'away' && <div className="arrow arrow-right" />}
                 </div>
@@ -69,18 +60,18 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
             <div className="set-box">
                 <table>
                     <tbody>
-                        {periods.map((set) => {
+                        {periods.slice(0, periods.length - 1).map((set) => {
                             const isFinished = currentPeriod !== undefined && set.period < currentPeriod;
                             return (
-                                <tr key={set.period} className={currentPeriod === set.period ? 'active-set' : ''}>
+                                <tr key={set.period}>
                                     <td className="set-home">
-                                        {renderPoints(set.homePoints, isFinished)}
+                                        {isFinished ? set.homePoints : '-'}
                                     </td>
                                     <td className="set-label">
                                         {`SET ${set.period}`}
                                     </td>
                                     <td className="set-away">
-                                        {renderPoints(set.awayPoints, isFinished)}
+                                        {isFinished ? set.awayPoints : '-'}
                                     </td>
                                 </tr>
                             );

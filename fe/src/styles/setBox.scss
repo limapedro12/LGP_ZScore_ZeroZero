@@ -18,22 +18,24 @@
         border-collapse: collapse;
         font-family: config.$font-secondary;
         color: config.$text-color;
+        table-layout: fixed;
+
     }
     td {
         padding: 0.3rem 1.2rem;
         font-size: 1.5rem;
         text-align: center;
         font-weight: bold;
+
     }
     .set-label {
         font-size: 1.2rem;
         font-weight: 600;
         color: config.$text-color;
         letter-spacing: 0.1em;
-    }
-    .active-set {
-        background: rgba(255,255,255,0.15);
-        border-radius: 8px;
+        justify-content: center;
+        text-align: center;
+
     }
 }
 
