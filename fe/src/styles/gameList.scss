@@ -76,6 +76,12 @@ html, body {
   cursor: pointer;
 }
 
+.teams button.active {
+  background-color: white;
+  color: #23323F;
+  border: 2px solid #23323F;
+}
+
 .submit {
   padding: 10px;
   background-color: #333;
