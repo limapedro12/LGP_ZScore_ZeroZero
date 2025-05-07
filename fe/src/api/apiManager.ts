@@ -114,6 +114,7 @@ interface CardsResponse {
         placardId: string;
         playerId: string;
         cardType: string;
+        team: 'home' | 'away';
         timestamp: number;
     }>;
 }
