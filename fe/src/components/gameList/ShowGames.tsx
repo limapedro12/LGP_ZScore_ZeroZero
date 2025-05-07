@@ -16,7 +16,6 @@ const ShowGames = ({ games }) => {
 
     return (
         <div className="games-section">
-            <h1>Os seus jogos</h1>
             {sortedGames.map((game, index) => (
                 <div className="game-card" key={index}>
                     <div className="team">

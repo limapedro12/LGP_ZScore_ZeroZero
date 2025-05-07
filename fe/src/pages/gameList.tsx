@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import '../styles/scoreBoard.scss';
 import '../styles/gameList.scss';
 import Filters from '../components/gameList/Filters';
@@ -45,17 +48,30 @@ const GameList = () => {
     };
 
     return (
-        <div className="scoreboard-container">
-            <div className="sidebar">
-                <div className="logo">
-                    LOGO
-                    <br />
-                    ZScore
-                </div>
-                <Filters games={games} onFilter={handleFilter} />
-            </div>
-            <ShowGames games={filteredGames} />
-        </div>
+        <Container fluid className="scoreboard-container d-flex">
+            <Row>
+                <Col>
+                    {/* xs={5} md={5} lg={5}> */}
+                    <div className="logo">
+                        LOGO
+                        <br />
+                        ZScore
+                    </div>
+                </Col>
+                <Col>
+                    {/* xs={7} md={7} lg={7}> */}
+                    <h1>Os seus jogos</h1>
+                </Col>
+            </Row>
+            <Row>
+                <Col xs={3} md={3} lg={3}>
+                    <Filters games={games} onFilter={handleFilter} />
+                </Col>
+                <Col xs={5} md={5} lg={5}>
+                    <ShowGames games={filteredGames} />
+                </Col>
+            </Row>
+        </Container>
     );
 };
 
