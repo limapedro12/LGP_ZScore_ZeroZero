@@ -1,8 +1,8 @@
 import React from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col'; // Added Col for layout
-import Image from 'react-bootstrap/Image'; // Added Image for the logo
+import Col from 'react-bootstrap/Col';
+import Image from 'react-bootstrap/Image';
 
 interface TeamLogoProps {
     logoSrc: string;
