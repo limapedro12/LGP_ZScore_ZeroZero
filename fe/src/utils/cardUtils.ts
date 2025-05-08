@@ -22,7 +22,7 @@ const sportCardRules: Record<Sport, Partial<Record<AnyCardType, CardInfo>>> = {
     },
     volleyball: {
         white: { iconPath: '/icons/white-card-icon.png' },
-        yellow: { iconPath: '/icons/yellow-card-icon.png' }, // Assuming same icons for now
+        yellow: { iconPath: '/icons/yellow-card-icon.png' },
         red: { iconPath: '/icons/red-card-icon.png' },
         yellowRedTogether: { iconPath: '/icons/yellow-red-together-card-icon.png' },
         yellowRedSeparately: { iconPath: '/icons/yellow-red-separately-card-icon.png' },

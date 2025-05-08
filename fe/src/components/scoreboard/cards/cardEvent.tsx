@@ -20,7 +20,7 @@ const CardEvent = <S extends Sport>({
     const cardIconSrc = getCardIconPath(sport, cardType);
 
     const jerseyElement = (
-        <div className="w-50 d-flex align-items-center justify-content-center">
+        <div className="w-50 w-xl-25 d-flex align-items-center justify-content-center">
             <PlayerJersey number={playerNumber} />
         </div>
     );
