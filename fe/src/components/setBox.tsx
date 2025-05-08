@@ -4,9 +4,10 @@ import '../styles/setBox.scss';
 
 interface SetBoxProps {
     scoreData?: ScoreResponse | null;
+    timeoutActive?: boolean;
 }
 
-const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
+const SetBox: React.FC<SetBoxProps> = ({ scoreData, timeoutActive = false }) => {
     const [periods, setPeriods] = useState<PeriodScore[]>([]);
     const [currentPeriod, setCurrentPeriod] = useState<number>(1);
     const [wins, setWins] = useState<{ home: number, away: number }>({ home: 0, away: 0 });
@@ -35,19 +36,21 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
 
     return (
         <>
-            <div className="row justify-content-center">
-                <div className="col-12 d-flex justify-content-center align-items-center">
-                    <div className="sets-results mb-2">
-                        <span className="sets-home">
-                            {wins.home}
-                        </span>
-                        <span className="sets-separator"> - </span>
-                        <span className="sets-away">
-                            {wins.away}
-                        </span>
+            {!timeoutActive && (
+                <div className="row justify-content-center">
+                    <div className="col-12 d-flex justify-content-center align-items-center">
+                        <div className="sets-results mb-2">
+                            <span className="sets-home">
+                                {wins.home}
+                            </span>
+                            <span className="sets-separator"> - </span>
+                            <span className="sets-away">
+                                {wins.away}
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
             <div className="current-period-outer">
                 <div className="current-period-box">
                     {currentServer === 'home' && <div className="arrow arrow-left" />}

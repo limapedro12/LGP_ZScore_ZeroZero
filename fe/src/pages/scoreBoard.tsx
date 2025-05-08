@@ -10,12 +10,12 @@ import TimeoutCounter from '../components/timeoutCounter';
 import ScoresRow from '../components/scoresCounter';
 import SetBox from '../components/setBox';
 import TeamInfo from '../components/teamInfo';
-// You will need to create these components:
 
 const ScoreBoard = () => {
     const { placardId, sport } = useParams<{ placardId: string, sport: string }>();
     const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
     const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
+    const [timeoutStatus, setTimeoutStatus] = useState('inactive');
 
     const fetchNoPeriodSports = useCallback(async () => {
         try {
@@ -40,6 +40,10 @@ const ScoreBoard = () => {
         }
     }, [placardId, sport]);
 
+    const handleTimeoutStatusChange = (status: string) => {
+        setTimeoutStatus(status);
+    };
+
     useEffect(() => {
         fetchScores();
         fetchNoPeriodSports();
@@ -59,11 +63,15 @@ const ScoreBoard = () => {
                     <TeamInfo team="home" />
                 </Col>
                 <Col xs={12} md={6} className="general-info-col d-flex flex-column align-items-center justify-content-center">
+                    <TimeoutTimer onStatusChange={handleTimeoutStatusChange} />
                     {sport && !noPeriodBoxSports.includes(sport) && (
-                        <SetBox scoreData={scoreData} />
+                        <SetBox
+                            scoreData={scoreData}
+                            timeoutActive={timeoutStatus !== 'inactive'}
+                        />
                     )}
-                    <TimeoutTimer />
                     <Timer />
+                    <TimeoutCounter />
                     <TimeoutCounter />
                 </Col>
                 <Col xs={12} md={3} className="team-info-col">
