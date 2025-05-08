@@ -5,6 +5,7 @@ const ENDPOINTS = {
     SCORE: () => '/events/score',
     CARDS: () => '/events/card',
     SPORTS: () => '/utils/sports',
+    FOUL: () => '/events/foul',
     EVENTS: () => '/events',
 };
 

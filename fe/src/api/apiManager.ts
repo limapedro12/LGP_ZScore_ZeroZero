@@ -7,7 +7,7 @@ const BASE_URL = `${config.API_HOSTNAME}`;
  * Defines the possible timer and also event actions that can be sent to the API
  */
 type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'noTimer' | 'delete'  | 'create' | 'add' | 'update' | 'remove' | 'get_accumulated' | 'list_game_fouls' | 'get_player_fouls';
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports' | 'events';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports' | 'foul' | 'events';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
