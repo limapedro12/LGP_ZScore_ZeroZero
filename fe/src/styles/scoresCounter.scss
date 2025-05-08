@@ -1,7 +1,7 @@
 @use "./config.scss";
 
 .scores-row-container {
-    max-width: 100vw;
+    max-width: 85vw;
     padding: 2rem 1rem;
 }
 
@@ -27,41 +27,42 @@
 }
 
 .team-logo {
-    width: 100%;
-    max-width: 150px;
+    width: auto;
+    max-width: 100%;
     height: auto;
+    max-height: 80px;
     object-fit: contain;
     
     @include config.md { 
-        max-width: 100px;
+        max-height: 100px;
     }
     
     @include config.lg { 
-        max-width: 120px;
+        max-height: 120px;
     }
     
     @include config.xl { 
-        max-width: 140px;
+        max-height: 140px;
     }
     
     @include config.xxl { 
-        max-width: 170px;
+        max-height: 170px;
     }
     
     @include config.placard1 { 
-        max-width: 200px;
+        max-height: 200px;
     }
     
     @include config.placard2 { 
-        max-width: 240px;
+        max-height: 240px;
     }
     
     @include config.placard3 { 
-        max-width: 280px;
+        max-height: 280px;
     }
     
     @include config.placard4 { 
-        max-width: 320px;
+        max-height: 320px;
     }
 }
 
@@ -214,6 +215,11 @@
         gap: 0.5rem;
     }
 
+    .score-logo-group {
+        width: 100%;
+        padding: 0 10px;
+    }
+
     .score-box {
         font-size: 2rem !important;
         min-width: 68px !important;
@@ -221,8 +227,10 @@
     }
 
     .team-logo {
-        width: 90px !important;
-        height: 90px !important;
+        width: auto !important;
+        max-width: 70px !important;
+        height: auto !important;
+        max-height: 70px !important;
     }
 
     .team-abbr {

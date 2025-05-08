@@ -8,7 +8,7 @@ interface SetBoxProps {
 
 const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
     const [periods, setPeriods] = useState<PeriodScore[]>([]);
-    const [currentPeriod, setCurrentPeriod] = useState<number | undefined>(undefined);
+    const [currentPeriod, setCurrentPeriod] = useState<number>(1);
     const [wins, setWins] = useState<{ home: number, away: number }>({ home: 0, away: 0 });
     const [currentServer, setCurrentServer] = useState<'home' | 'away' | null>(null);
 
@@ -16,12 +16,12 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
         if (scoreData) {
             console.log('scoreData', scoreData);
             setPeriods(scoreData.periods || []);
-            if ('currentPeriod' in scoreData && typeof scoreData.currentPeriod === 'number') {
+
+            // Directly use the currentPeriod from the API response
+            if (scoreData.currentPeriod !== undefined) {
                 setCurrentPeriod(scoreData.currentPeriod);
-            } else if (scoreData.periods && scoreData.periods.length > 0) {
-                const lastActive = [...scoreData.periods].reverse().find((p) => p.homePoints > 0 || p.awayPoints > 0);
-                setCurrentPeriod(lastActive?.period ?? 1);
             }
+
             setCurrentServer(scoreData.currentServer);
         }
     }, [scoreData]);
@@ -52,7 +52,7 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
                 <div className="current-period-box">
                     {currentServer === 'home' && <div className="arrow arrow-left" />}
                     <span className="current-period">
-                        {`SET ${currentPeriod ?? 1}`}
+                        {`SET ${currentPeriod}`}
                     </span>
                     {currentServer === 'away' && <div className="arrow arrow-right" />}
                 </div>
@@ -61,7 +61,7 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData }) => {
                 <table>
                     <tbody>
                         {periods.slice(0, periods.length - 1).map((set) => {
-                            const isFinished = currentPeriod !== undefined && set.period < currentPeriod;
+                            const isFinished = set.period < currentPeriod;
                             const homeWinner = set.winner === 'home';
                             const awayWinner = set.winner === 'away';
 

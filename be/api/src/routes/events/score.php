@@ -407,9 +407,11 @@ try {
             }
 
             $currentServer = $redis->get($currentServerKey);
+            $currentPeriod = (int)($redis->get($actualPeriodKey) ?? 1);
 
             $response = [
                 "totalPeriods" => $totalPeriods,
+                "currentPeriod" => $currentPeriod,
                 "currentScore" => [
                     "homeScore" => (int)$homePoints,
                     "awayScore" => (int)$awayPoints

@@ -24,6 +24,7 @@ export interface PeriodScore {
 
 export interface ScoreResponse {
     totalPeriods: number;
+    currentPeriod: number;
     currentScore: {
         homeScore: number;
         awayScore: number;
