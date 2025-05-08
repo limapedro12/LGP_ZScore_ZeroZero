@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom'; // Assumindo que você usa react-r
 import apiManager from '../api/apiManager';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrashAlt, faFutbol, faBasketballBall, faVolleyballBall, faPauseCircle, faExchangeAlt } from '@fortawesome/free-solid-svg-icons'; // Adicionando mais ícones
+import { useNavigate } from 'react-router-dom'; // Adicionar para navegação programática
+import { EndpointType, ActionType } from '../api/apiManager'; // Corrigido: Importar de apiManager
 
 import '../styles/eventHistory.scss';
 
@@ -38,6 +40,7 @@ const eventTypeToTabMap: Record<Event['type'], string> = {
 
 const EventHistory: React.FC = () => {
   const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: Sport, placardId: string }>();
+  const navigate = useNavigate(); // Hook para navegação
 
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
@@ -45,10 +48,10 @@ const EventHistory: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('recentes');
 
-  const sport = sportParam;
+  const sport = sportParam as Sport; // Fazer cast para Sport se tiver a certeza que é um dos tipos
   const placardId = placardIdParam;
 
-  const getEventIcon = (event: Event, currentSport: Sport): React.ReactNode => {
+  const getEventIcon = useCallback((event: Event, currentSport: Sport): React.ReactNode => {
     // Ícones baseados no tipo de evento e esporte
     switch (event.type) {
       case 'score':
@@ -57,20 +60,17 @@ const EventHistory: React.FC = () => {
         if (currentSport === 'volleyball') return <FontAwesomeIcon icon={faVolleyballBall} />;
         return null;
       case 'card':
-        // Para cartões, podemos usar uma div colorida como nas imagens
         return <div className={`card-display-icon ${event.details?.cardType?.toLowerCase()}`}></div>;
       case 'foul':
-        // Adicionar um ícone genérico para falta ou específico se tiver
-        return null; // Ex: <FontAwesomeIcon icon={someFoulIcon} />;
+        return null; // Adicionar ícone se desejado
       case 'timeout':
         return <FontAwesomeIcon icon={faPauseCircle} />;
       case 'substitution':
-        return <FontAwesomeIcon icon={faExchangeAlt} />; // Ícone de substituição
+        return <FontAwesomeIcon icon={faExchangeAlt} />;
       default:
         return null;
     }
-  };
-
+  }, []);
 
   const normalizeEventData = useCallback((fetchedItems: any[], type: Event['type'], currentSport: Sport): Event[] => {
     if (!Array.isArray(fetchedItems)) {
@@ -80,7 +80,7 @@ const EventHistory: React.FC = () => {
     return fetchedItems.map((item: any, index: number) => {
       let description = '';
       let playerInfo = item.playerName || (item.playerId ? `Jogador ${item.playerId}` : '');
-      let teamInfo = item.teamId || item.team; // 'home', 'away' ou ID
+      let teamInfo = item.teamId || item.team;
 
       switch (type) {
         case 'score':
@@ -106,7 +106,8 @@ const EventHistory: React.FC = () => {
         default:
           description = `Evento desconhecido`;
       }
-      const eventId = item.id || item.eventId || `${type}-${item.timestamp}-${index}`; // ID único
+      // É crucial que item.eventId (ou item.id) seja o ID que o backend espera.
+      const eventId = item.eventId || item.id || `${type}-${item.timestamp}-${index}-${Math.random().toString(36).substring(7)}`;
       const eventTimestamp = parseInt(item.timestamp || item.recordedAt || Date.now(), 10);
 
       return {
@@ -116,8 +117,8 @@ const EventHistory: React.FC = () => {
         description: description,
         team: teamInfo,
         player: playerInfo,
-        details: item, // Armazena todos os detalhes originais
-        icon: null, // O ícone será adicionado depois com base no esporte
+        details: item,
+        icon: null,
         teamLogo: item.teamLogo,
         playerNumber: item.playerNumber,
       };
@@ -136,36 +137,41 @@ const EventHistory: React.FC = () => {
       const [
         scoresResponse,
         foulsResponse,
-        cardsResponse,
-        timeoutsResponse,
-        // substitutionsResponse, // Exemplo para substituições
+        cardsData,
+        timeoutEventsData,
       ] = await Promise.allSettled([
         apiManager.makeRequest('score', 'get', { placardId, sport }, 'GET'),
-        apiManager.makeRequest('foul', 'list_game_fouls', { placardId, sport }, 'GET'), // Assumindo que 'foul' é o endpoint para faltas
+        apiManager.makeRequest('foul', 'list_game_fouls', { placardId, sport }, 'GET'),
         apiManager.getCards(placardId, sport),
         apiManager.getTimeoutEvents(placardId, sport),
-        // apiManager.makeRequest('substitution', 'get', { placardId, sport }, 'GET'), // Exemplo
       ]);
 
       let allEvents: Event[] = [];
 
-      if (scoresResponse.status === 'fulfilled' && scoresResponse.value && (scoresResponse.value as { points: any }).points) {
-        allEvents = allEvents.concat(normalizeEventData((scoresResponse.value as { points: any }).points, 'score', sport));
+      if (scoresResponse.status === 'fulfilled' && scoresResponse.value && (scoresResponse.value as { points: any[] }).points) {
+        allEvents = allEvents.concat(normalizeEventData((scoresResponse.value as { points: any[] }).points, 'score', sport));
+      } else if (scoresResponse.status === 'rejected') {
+        console.error('Erro ao buscar scores:', scoresResponse.reason);
       }
-      if (foulsResponse.status === 'fulfilled' && foulsResponse.value && (foulsResponse.value as { data: any }).data) {
-        allEvents = allEvents.concat(normalizeEventData((foulsResponse.value as { data: any }).data, 'foul', sport));
-      }
-      if (cardsResponse.status === 'fulfilled' && cardsResponse.value.cards) {
-        allEvents = allEvents.concat(normalizeEventData(cardsResponse.value.cards, 'card', sport));
-      }
-      if (timeoutsResponse.status === 'fulfilled' && timeoutsResponse.value.events) {
-        allEvents = allEvents.concat(normalizeEventData(timeoutsResponse.value.events, 'timeout', sport));
-      }
-      // if (substitutionsResponse.status === 'fulfilled' && substitutionsResponse.value.substitutions) { // Exemplo
-      //   allEvents = allEvents.concat(normalizeEventData(substitutionsResponse.value.substitutions, 'substitution', sport));
-      // }
 
-      // Adicionar ícones após normalização e antes de ordenar
+      if (foulsResponse.status === 'fulfilled' && foulsResponse.value && (foulsResponse.value as { data: any[] }).data) {
+        allEvents = allEvents.concat(normalizeEventData((foulsResponse.value as { data: any[] }).data, 'foul', sport));
+      } else if (foulsResponse.status === 'rejected') {
+        console.error('Erro ao buscar fouls:', foulsResponse.reason);
+      }
+
+      if (cardsData.status === 'fulfilled' && cardsData.value.cards) {
+        allEvents = allEvents.concat(normalizeEventData(cardsData.value.cards, 'card', sport));
+      } else if (cardsData.status === 'rejected') {
+        console.error('Erro ao buscar cards:', cardsData.reason);
+      }
+
+      if (timeoutEventsData.status === 'fulfilled' && timeoutEventsData.value.events) {
+        allEvents = allEvents.concat(normalizeEventData(timeoutEventsData.value.events, 'timeout', sport));
+      } else if (timeoutEventsData.status === 'rejected') {
+        console.error('Erro ao buscar timeouts:', timeoutEventsData.reason);
+      }
+
       allEvents = allEvents.map(event => ({
         ...event,
         icon: getEventIcon(event, sport),
@@ -175,12 +181,12 @@ const EventHistory: React.FC = () => {
       setEvents(allEvents);
 
     } catch (e) {
-      console.error("Erro ao buscar eventos:", e);
+      console.error("Erro geral ao buscar eventos:", e);
       setError('Falha ao carregar o histórico de eventos.');
     } finally {
       setLoading(false);
     }
-  }, [placardId, sport, normalizeEventData]);
+  }, [placardId, sport, normalizeEventData, getEventIcon]);
 
   useEffect(() => {
     if (placardId && sport) {
@@ -211,9 +217,71 @@ const EventHistory: React.FC = () => {
 
 
   const handleEdit = (event: Event) => {
+    console.log('Iniciar edição para o evento:', event);
+    // A navegação para a view de edição específica ocorreria aqui.
+    // Exemplo: navigate(`/scoreboard/${sport}/${placardId}/event/${event.type}/${event.id}/edit`, { state: { eventDetails: event.details } });
+    // A view de edição conteria o formulário e a lógica para chamar apiManager.makeRequest com a ação 'update'.
+    alert(`Edição para "${event.description}" iniciada.\nImplementar navegação para formulário de edição específico.`);
+    // Não faremos a chamada 'update' aqui, pois os dados editados viriam do formulário na view de edição.
   };
 
   const handleDelete = async (event: Event) => {
+    if (window.confirm(`Tem certeza que deseja excluir este evento: ${event.description}?`)) {
+      try {
+        let endpointType: EndpointType;
+        let action: ActionType;
+        // Certifique-se que event.id é o identificador que o backend espera (geralmente eventId da API)
+        let params: any = { placardId, sport, eventId: event.id };
+
+        switch (event.type) {
+            case 'score':
+                endpointType = 'score';
+                action = 'delete'; // Conforme score.php
+                break;
+            case 'foul':
+                endpointType = 'foul';
+                action = 'delete'; // Conforme foul.php
+                break;
+            case 'card':
+                endpointType = 'cards'; // Endpoint é /events/card
+                action = 'remove';    // Ação em card.php para apagar é 'remove'
+                break;
+            case 'timeout':
+                endpointType = 'timeout';
+                action = 'delete';    // timeout.php tem ação 'delete' que espera eventId
+                // Se o backend para timeout->delete espera 'team', precisaria ser adicionado.
+                // params.team = event.team; // Exemplo se necessário
+                break;
+            case 'substitution':
+                console.warn(`A lógica de exclusão para 'substitution' não está implementada no backend.`);
+                alert('A exclusão de substituições ainda não é suportada.');
+                return;
+            default:
+                // Para garantir que todos os tipos de evento são tratados:
+                const exhaustiveCheck: never = event.type;
+                console.error(`Tipo de evento desconhecido para exclusão: ${exhaustiveCheck}`);
+                alert(`Não é possível excluir o tipo de evento: ${exhaustiveCheck}`);
+                return;
+        }
+
+        console.log(`A tentar excluir evento: type=${endpointType}, action=${action}, params=`, params);
+        await apiManager.makeRequest(endpointType, action, params, 'POST'); // Assumindo POST para todas as exclusões
+        
+        setEvents(prevEvents => prevEvents.filter(e => e.id !== event.id));
+        alert('Evento excluído com sucesso!');
+        // Considerar chamar fetchEvents() se houver lógica complexa no backend que possa afetar outros dados.
+
+      } catch (err) {
+        console.error('Erro ao excluir evento:', err);
+        let errorMessage = 'Falha ao excluir o evento.';
+        if (err instanceof Error) {
+            errorMessage += ` Detalhes: ${err.message}`;
+        } else if (typeof err === 'object' && err !== null && 'message' in err) {
+            errorMessage += ` Detalhes: ${(err as {message: string}).message}`;
+        }
+        alert(errorMessage);
+      }
+    }
   };
 
   if (!placardId || !sport) {
@@ -222,7 +290,7 @@ const EventHistory: React.FC = () => {
   if (loading) return <div className="event-history-loading">Carregando histórico de eventos...</div>;
   if (error) return <div className="event-history-error">Erro: {error}</div>;
   if (!tabs[sport]) return <div className="event-history-error">Esporte '{sport}' não suportado ou não definido.</div>;
-
+    // Verificar e alterar a função abaixo; é apenas uma função de teste
   const formatDisplayTime = (timestamp: number): string => {
     // Esta função precisa ser ajustada para refletir o tempo de jogo (ex: 51')
     // Por agora, formata como HH:MM
