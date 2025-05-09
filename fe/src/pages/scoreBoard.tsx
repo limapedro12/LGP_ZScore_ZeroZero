@@ -36,9 +36,12 @@ const ScoreBoard = () => {
                 <TimeoutCounter />
             </div>
             {/* Button to toggle Event History */}
-            <div className="mt-4">
-                <Button variant="info" onClick={handleToggleEventHistory}>
-                    {showEventHistory ? 'Ocultar Histórico' : 'Ver Histórico de Eventos'}
+            <div className="corrigir-button-custom">
+                <Button
+                    className="corrigir-button-custom" // Mova a classe para cá
+                    onClick={handleToggleEventHistory}
+                >
+                    {showEventHistory ? 'Ocultar Histórico' : 'Corrigir'}
                 </Button>
             </div>
         </>
@@ -51,9 +54,14 @@ const ScoreBoard = () => {
         // Render only EventHistory when it's shown, or integrate it into the layout
         return (
             <Container fluid className="p-0">
-                <Button variant="secondary" onClick={handleToggleEventHistory} className="m-2">
-                    Voltar à Mesa
-                </Button>
+                <div className="voltar-button-custom">
+                    <Button
+                        className="voltar-button-custom" // Mova a classe para cá
+                        onClick={handleToggleEventHistory}
+                    >
+                        ←
+                    </Button>
+                </div>
                 <EventHistory />
             </Container>
         );

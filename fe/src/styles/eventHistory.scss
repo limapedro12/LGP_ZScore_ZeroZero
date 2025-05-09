@@ -1,87 +1,249 @@
-@use "config.scss";
+@use "config.scss"; // Supondo que config.scss define variáveis globais
 
 .event-history {
-  background-color: config.$background-color;
-  color: config.$text-color;
-  padding: 1rem;
+  background-color: #ffffff; // Fundo branco para o card de histórico
+  color: #333333;           // Texto escuro para contraste no fundo branco
+  padding: 20px;
+  border-radius: 15px;       // Bordas arredondadas
+  margin: 20px auto;         // Adiciona margem e centraliza se for o único elemento principal
+  max-width: 900px;          // Largura máxima para o card
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); // Sombra suave
 
-  h2 {
-    font-size: 2rem;
-    color: config.$text-color;
+  .event-history-title { // Ajustado para corresponder à classe no TSX
+    font-size: 1.8rem; // Tamanho do título "Eventos"
+    color: #333333;
     text-align: center;
     text-transform: uppercase;
-    font-weight: lighter;
+    font-weight: 600; // Um pouco mais de peso
     letter-spacing: 1px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
+    margin-bottom: 25px;
   }
 
-  .tabs {
+  .tabs-container { // Classe do TSX para o container das abas
     display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
+    justify-content: flex-start; // Alinha abas à esquerda como nas imagens
+    margin-bottom: 20px;
+    background-color: #f0f0f0; // Fundo levemente cinza para a barra de abas
+    border-radius: 10px;
+    padding: 5px;
+    overflow-x: auto; // Permite scroll horizontal se houver muitas abas
 
-    .tab {
-      background: none;
-      border: 1px solid config.$text-color;
-      color: config.$text-color;
-      padding: 0.5rem 1rem;
-      margin: 0 0.5rem;
+    .tab-button { // Classe do TSX para os botões de aba
+      background-color: transparent;
+      border: none;
+      color: #555555;
+      padding: 10px 20px;
+      margin: 0 4px; // Espaçamento entre abas
       cursor: pointer;
-      font-family: config.$font-primary;
-      font-size: 1rem;
-      font-weight: 600;
+      font-family: config.$font-primary, sans-serif; // Usar variável de config ou fallback
+      font-size: 0.95rem;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: background-color 0.3s, color 0.3s;
+      white-space: nowrap; // Impede que o texto da aba quebre linha
+
+      &:hover {
+        background-color: #e0e0e0;
+        color: #333333;
+      }
 
       &.active {
-        background-color: config.$text-color;
-        color: config.$background-color;
+        background-color: #6c757d; // Cinza escuro para aba ativa (como nas imagens)
+        color: #ffffff;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
     }
   }
 
   .events-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .event-item-empty { // Estilo para quando não há eventos
+      text-align: center;
+      padding: 20px;
+      color: #888888;
+      font-style: italic;
+    }
+
     .event-item {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 0.5rem;
-      border-bottom: 1px solid white;
+      padding: 12px 8px;
+      border-bottom: 1px solid #eeeeee; // Linha separadora suave
+      gap: 10px; // Espaço entre os elementos do item
 
-      .event-time {
-        flex: 1;
-        font-family: config.$font-primary;
-        font-size: 1rem;
-        font-weight: 600;
+      &:last-child {
+        border-bottom: none;
       }
 
-      .event-description {
-        flex: 2;
-        font-family: config.$font-secondary;
-        font-size: 1rem;
-        font-weight: 400;
+      .event-time {
+        font-family: config.$font-primary, sans-serif;
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #555555;
+        min-width: 45px; // Largura mínima para alinhar
+      }
+
+      .event-icon-display {
+        font-size: 1.4rem; // Tamanho para emojis/ícones
+        min-width: 30px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        // Estilos específicos para ícones de cartão, se necessário
+        .card-display-icon {
+          padding: 2px 5px;
+          border-radius: 3px;
+          color: white; // O emoji já tem cor, mas isso pode ser usado para um fundo
+          &.yellow-card-icon { /* background-color: gold; */ } // Exemplo
+          &.red-card-icon { /* background-color: red; */ } // Exemplo
+        }
+      }
+
+      .event-details-main {
+        flex-grow: 1; // Ocupa o espaço restante
+        .event-description-text {
+          font-family: config.$font-secondary, sans-serif;
+          font-size: 1rem;
+          color: #333333;
+        }
+      }
+
+      .event-team-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .player-number-badge {
+          background-color: #343a40; // Fundo escuro para o número do jogador
+          color: #ffffff;
+          padding: 3px 8px;
+          border-radius: 4px;
+          font-size: 0.85rem;
+          font-weight: bold;
+        }
+
+        .team-logo-display {
+          width: 28px; // Tamanho do logo
+          height: 28px;
+          object-fit: contain;
+        }
       }
 
       .event-actions {
         display: flex;
-        gap: 0.5rem;
+        align-items: center;
+        gap: 12px;
 
-        .edit-button,
-        .delete-button {
+        .action-button {
           background: none;
-          border: 1px solid config.$text-color;
-          color: config.$text-color;
-          padding: 0.25rem 0.5rem;
+          border: none;
           cursor: pointer;
-          font-family: config.$font-primary;
-          font-size: 0.875rem;
-          font-weight: 600;
+          padding: 5px;
+          font-size: 1.3rem; // Tamanho para ícones de ação (✏️, 🗑️)
 
-          &:hover {
-            background-color: config.$text-color;
-            color: config.$background-color;
+          &.edit-button {
+            color: #007bff; // Azul para editar
+            &:hover {
+              color: #0056b3;
+            }
+          }
+
+          &.delete-button {
+            color: #dc3545; // Vermelho para excluir (como nas imagens)
+            &:hover {
+              color: #c82333;
+            }
           }
         }
       }
+    }
+  }
+}
+
+// Estilo para o botão "Corrigir"
+.corrigir-button-custom {
+  background-color: #ffffff; // Fundo branco
+  color: #000000;           // Texto preto
+  border: none;              // Sem borda
+  border-radius: 50px;       // Bordas arredondadas para formato de pílula
+  padding: 10px 25px;        // Espaçamento interno
+  font-weight: 700;          // Texto em negrito (equivalente a bold)
+  font-size: 2rem;           // Tamanho do texto dobrado (assumindo base de 1rem)
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  line-height: 1.5;
+
+  // Estilos para interação (hover, focus)
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: #f5f5f5; // Um branco levemente acinzentado para interação
+    color: #000000;
+    text-decoration: none;
+    outline: none;             // Remove o contorno padrão do navegador no foco
+    box-shadow: none;          // Remove quaisquer sombras padrão
+  }
+
+  // Se estiver usando com o Button do React-Bootstrap, ele herda a classe .btn
+  // Estes !important são necessários para sobrescrever os estilos do Bootstrap.
+  &.btn {
+    background-color: #ffffff !important; // Garante fundo branco
+    color: #000000 !important;           // Garante texto preto
+    border: none !important;              // Garante sem borda
+    background-image: none !important;
+    font-size: inherit !important;
+    // Remove box-shadow que o Bootstrap pode adicionar em :focus
+    &:focus {
+      box-shadow: none !important;
+    }
+  }
+}
+
+// Estilo para o botão "Voltar"
+.voltar-button-custom {
+  background-color: #9c9c9c; // Fundo branco
+  color: #ffffff;           // Texto preto
+  border: none;              // Sem borda
+  border-radius: 50px;       // Bordas arredondadas para formato de pílula
+  padding: 10px 25px;        // Espaçamento interno
+  font-weight: 700;          // Texto em negrito (equivalente a bold)
+  font-size: 2rem;           // Tamanho do texto dobrado (assumindo base de 1rem)
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  line-height: 1.5;
+
+  // Estilos para interação (hover, focus)
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: #6e6e6e; // Um branco levemente acinzentado para interação
+    color: #ffffff;
+    text-decoration: none;
+    outline: none;             // Remove o contorno padrão do navegador no foco
+    box-shadow: none;          // Remove quaisquer sombras padrão
+  }
+
+  // Se estiver usando com o Button do React-Bootstrap, ele herda a classe .btn
+  // Estes !important são necessários para sobrescrever os estilos do Bootstrap.
+  &.btn {
+    background-color: #9c9c9c !important; // Garante fundo branco
+    color: #ffffff !important;           // Garante texto preto
+    border: none !important;              // Garante sem borda
+    background-image: none !important;
+    font-size: inherit !important;
+    // Remove box-shadow que o Bootstrap pode adicionar em :focus
+    &:focus {
+      box-shadow: none !important;
     }
   }
 }
