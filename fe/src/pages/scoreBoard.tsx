@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react'; // Import useState
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
 import Timer from '../components/timer';
 import TimeoutTimer from '../components/timeoutTimer';
 import TimeoutCounter from '../components/timeoutCounter';
@@ -10,12 +11,18 @@ import ScoresRow from '../components/scoresCounter';
 import Slider from '../components/scoreboard/slider';
 import { useParams } from 'react-router-dom';
 import { Sport } from '../utils/cardUtils';
+import EventHistory from '../components/eventHistory';
 
 const ScoreBoard = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
+    const [showEventHistory, setShowEventHistory] = useState(false);
 
     const sport = sportParam as Sport || 'futsal';
     const placardId = placardIdParam || '1';
+
+    const handleToggleEventHistory = () => {
+        setShowEventHistory(!showEventHistory);
+    };
 
     const Center = (
         <>
@@ -28,11 +35,29 @@ const ScoreBoard = () => {
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
             </div>
+            {/* Button to toggle Event History */}
+            <div className="mt-4">
+                <Button variant="info" onClick={handleToggleEventHistory}>
+                    {showEventHistory ? 'Ocultar Histórico' : 'Ver Histórico de Eventos'}
+                </Button>
+            </div>
         </>
     );
 
     const containerClassName =
         'scoreboard-container d-flex flex-column justify-content-start vh-100 p-0 overflow-y-auto overflow-md-y-hidden overflow-x-hidden';
+
+    if (showEventHistory) {
+        // Render only EventHistory when it's shown, or integrate it into the layout
+        return (
+            <Container fluid className="p-0">
+                <Button variant="secondary" onClick={handleToggleEventHistory} className="m-2">
+                    Voltar à Mesa
+                </Button>
+                <EventHistory />
+            </Container>
+        );
+    }
 
     return (
         <Container
