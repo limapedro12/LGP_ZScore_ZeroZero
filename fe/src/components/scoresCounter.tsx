@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import apiManager from '../api/apiManager';
 import '../styles/scoresCounter.scss';
-import slbLogo from './slb.png';
-import scpLogo from './scp.png';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -24,11 +22,11 @@ interface ScoresRowProps {
 const ScoresRow: React.FC<ScoresRowProps> = ({
     homeTeam = {
         abbreviation: 'SLB',
-        logo: slbLogo,
+        logo: '/teamLogos/slb.png',
     },
     awayTeam = {
         abbreviation: 'SCP',
-        logo: scpLogo,
+        logo: '/teamLogos/scp.png',
     },
 }) => {
     const [placardId, setPlacardId] = useState<string>('default');
