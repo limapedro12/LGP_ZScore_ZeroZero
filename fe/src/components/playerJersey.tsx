@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface PlayerJerseyProps {
-  number: number;
+  number?: number;
 }
 
 const PlayerJersey: React.FC<PlayerJerseyProps> = ({ number }) => (
@@ -11,11 +11,13 @@ const PlayerJersey: React.FC<PlayerJerseyProps> = ({ number }) => (
             alt="Player Jersey"
             className="img-fluid"
         />
-        <div
-            className="position-absolute top-50 start-50 translate-middle text-white fw-bold fs-auto"
-        >
-            {number}
-        </div>
+        {number && number > 0 && (
+            <div
+                className="position-absolute top-50 start-50 translate-middle text-white fw-bold fs-auto"
+            >
+                {number}
+            </div>
+        )}
     </div>
 );
 

@@ -5,9 +5,9 @@ import { Sport, CardTypeForSport, getCardIconPath } from '../../../utils/cardUti
 interface CardEventProps<S extends Sport> {
   sport: S;
   playerName: string;
-  playerNumber: number; // For the PlayerJersey component
+  playerNumber?: number;
   cardType: CardTypeForSport<S>;
-  team: 'home' | 'away'; // Added team prop
+  team: 'home' | 'away';
 }
 
 const CardEvent = <S extends Sport>({

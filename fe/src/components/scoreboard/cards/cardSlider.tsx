@@ -7,7 +7,7 @@ import apiManager from '../../../api/apiManager';
 export interface TransformedCardEventData {
   id: string | number;
   playerName: string;
-  playerNumber: number;
+  playerNumber?: number;
   cardType: string;
 }
 
@@ -67,7 +67,7 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
                         sport={sport}
                         cardType={eventData.cardType as CardTypeForSport<typeof sport>}
                         playerName={eventData.playerName}
-                        playerNumber={eventData.playerNumber}
+                        playerNumber={undefined}
                         team={team}
                     />
                 </div>
