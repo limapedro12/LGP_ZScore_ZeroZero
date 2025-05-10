@@ -9,23 +9,29 @@ export type CardTypeForSport<S extends Sport> = S extends 'futsal'
   ? FutsalCardType
   : S extends 'volleyball'
   ? VolleyballCardType
-  : S
+  : never;
 
 interface CardInfo {
-  iconPath: string;
+    name: string;
+    iconPath: string;
+}
+
+export interface SportCard<S extends Sport> {
+  name: string;
+  type: CardTypeForSport<S>;
 }
 
 const sportCardRules: Record<Sport, Partial<Record<AnyCardType, CardInfo>>> = {
     futsal: {
-        yellow: { iconPath: '/icons/yellow-card-icon.png' },
-        red: { iconPath: '/icons/red-card-icon.png' },
+        yellow: { name: 'Amarelo', iconPath: '/icons/yellow-card-icon.png' },
+        red: { name: 'Vermelho', iconPath: '/icons/red-card-icon.png' },
     },
     volleyball: {
-        white: { iconPath: '/icons/white-card-icon.png' },
-        yellow: { iconPath: '/icons/yellow-card-icon.png' },
-        red: { iconPath: '/icons/red-card-icon.png' },
-        yellowRedTogether: { iconPath: '/icons/yellow-red-together-card-icon.png' },
-        yellowRedSeparately: { iconPath: '/icons/yellow-red-separately-card-icon.png' },
+        white: { name: 'Branco', iconPath: '/icons/white-card-icon.png' },
+        yellow: { name: 'Amarelo', iconPath: '/icons/yellow-card-icon.png' },
+        red: { name: 'Vermelho', iconPath: '/icons/red-card-icon.png' },
+        yellowRedTogether: { name: 'Expulsão', iconPath: '/icons/yellow-red-together-card-icon.png' },
+        yellowRedSeparately: { name: 'Desqualificação', iconPath: '/icons/yellow-red-separately-card-icon.png' },
     },
 };
 
@@ -58,4 +64,28 @@ export function getCardIconPath<S extends Sport>(
     }
     console.warn(`Card icon not found for sport: ${sport}, original card type: ${cardType}`);
     return undefined;
+}
+
+/**
+ * Gets all available cards for a given sport.
+ * @param sport The sport.
+ * @returns An array of SportCard for the specified sport.
+ */
+export function getAvailableCardsForSport<S extends Sport>(sport: S): SportCard<S>[] {
+    const rules = sportCardRules[sport];
+    if (!rules) return [];
+
+    const cards: SportCard<S>[] = [];
+    for (const type in rules) {
+        if (Object.prototype.hasOwnProperty.call(rules, type)) {
+            const cardInfo = rules[type as AnyCardType];
+            if (cardInfo) {
+                cards.push({
+                    name: cardInfo.name,
+                    type: type as unknown as CardTypeForSport<S>,
+                });
+            }
+        }
+    }
+    return cards;
 }

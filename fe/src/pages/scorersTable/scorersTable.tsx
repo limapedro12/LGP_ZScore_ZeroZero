@@ -4,9 +4,9 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import { useParams } from 'react-router-dom';
-import { Sport } from '../utils/scorersTableUtils';
-import TeamLogo from '../components/scorersTable/teamLogo';
-import CentralConsole from '../components/scorersTable/centralConsole';
+import { Sport } from '../../utils/scorersTableUtils';
+import TeamLogo from '../../components/scorersTable/teamLogo';
+import CentralConsole from '../../components/scorersTable/centralConsole';
 
 const ScorersTable = () => {
     const { sport: sportParam /* , placardId: placardIdParam */ } = useParams<{ sport: string, placardId: string }>();

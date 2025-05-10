@@ -43,7 +43,14 @@ export function getEventIconPath(category: EventCategory): string | undefined {
 export interface SportEventConfig {
     eventName: string;
     eventCategory: EventCategory;
-    onEventAction?: (teamTag: TeamTag) => void;
+
+    onEventAction?: (
+        teamTag: TeamTag,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigate?: any,
+        sport?: Sport,
+        placardId?: string
+    ) => void;
 }
 
 const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
@@ -61,7 +68,13 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Cartão',
             eventCategory: 'card',
-            onEventAction: (teamTag) => console.log(`Futsal Cartão - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/selectCard/${teamTag}`);
+                } else {
+                    console.warn('Navigation details missing for card event');
+                }
+            },
         },
         {
             eventName: 'Tempo',
@@ -83,7 +96,13 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Cartão',
             eventCategory: 'card',
-            onEventAction: (teamTag) => console.log(`Volleyball Cartão - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/selectCard/${teamTag}`);
+                } else {
+                    console.warn('Navigation details missing for card event');
+                }
+            },
         },
         {
             eventName: 'Tempo',
