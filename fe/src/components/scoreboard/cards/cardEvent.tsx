@@ -20,9 +20,14 @@ const CardEvent = <S extends Sport>({
     const cardIconSrc = getCardIconPath(sport, cardType);
 
     const jerseyElement = (
-        <div className="w-50 w-xl-25 d-flex align-items-center justify-content-center">
-            <PlayerJersey number={playerNumber} />
-        </div>
+        <>
+            <div className="w-50 d-flex d-lg-none align-items-center justify-content-center">
+                <PlayerJersey number={playerNumber} />
+            </div>
+            <div className="w-25 d-none d-lg-flex align-items-center justify-content-center">
+                <PlayerJersey number={playerNumber} />
+            </div>
+        </>
     );
 
     const nameElementAlignClass = team === 'home' ? 'justify-content-start' : 'justify-content-end';
@@ -35,17 +40,38 @@ const CardEvent = <S extends Sport>({
     );
 
     const cardIconElement = (
-        <div className={`w-25 d-flex align-items-center ${team === 'home' ? 'justify-content-start ps-2' : 'justify-content-end pe-2'}`}>
-            {cardIconSrc ? (
-                <img
-                    src={cardIconSrc}
-                    alt={`${cardType} card for ${sport}`}
-                    className="img-fluid rounded w-75"
-                />
-            ) : (
-                <span className="badge bg-secondary p-2">?</span>
-            )}
-        </div>
+        <>
+            <div
+                className={`w-25 d-flex d-lg-none align-items-center ${
+                    team === 'home' ? 'justify-content-start ps-2' : 'justify-content-end pe-2'
+                }`}
+            >
+                {cardIconSrc ? (
+                    <img
+                        src={cardIconSrc}
+                        alt={`${cardType} card for ${sport}`}
+                        className="img-fluid rounded w-75"
+                    />
+                ) : (
+                    <span className="badge bg-secondary p-2">?</span>
+                )}
+            </div>
+            <div
+                className={`w-25 d-none d-lg-flex align-items-center ${
+                    team === 'home' ? 'justify-content-start ps-2' : 'justify-content-end pe-2'}`}
+            >
+                {cardIconSrc ? (
+                    <img
+                        src={cardIconSrc}
+                        alt={`${cardType} card for ${sport}`}
+                        className="img-fluid rounded w-50"
+                    />
+                ) : (
+                    <span className="badge bg-secondary p-2">?</span>
+                )}
+            </div>
+        </>
+
     );
 
     return (
