@@ -77,3 +77,8 @@ $breakpoint-placard4: 2800px;
     @content;
   }
 }
+
+.thicker-arrow-icon path {
+  stroke: white; /* Or use currentColor to match the icon's color prop */
+  stroke-width: 1.5px; /* Adjust this value to get the desired thickness */
+}

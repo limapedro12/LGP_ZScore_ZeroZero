@@ -8,3 +8,18 @@
     background-color: config.$background-color;
     min-width: 300px;
 }
+
+.slider-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.center-container {
+    flex: 2; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}

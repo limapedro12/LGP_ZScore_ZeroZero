@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/scoresCounter.scss';
-import slbLogo from './slb.png';
-import scpLogo from './scp.png';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -27,12 +25,12 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
     homeTeam = {
         name: 'Sport Lisboa e Benfica',
         abbreviation: 'SLB',
-        logo: slbLogo,
+        logo: '/teamLogos/slb.png',
     },
     awayTeam = {
         name: 'Sporting Clube de Portugal',
         abbreviation: 'SCP',
-        logo: scpLogo,
+        logo: '/teamLogos/scp.png',
     },
 }) => {
     const [scores, setScores] = useState<{ home: number, away: number }>({ home: 0, away: 0 });

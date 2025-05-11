@@ -6,8 +6,22 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set'
-| 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete' | 'noTimer' | 'noPeriodBox'
+
+type ActionType =
+    | 'start'
+    | 'pause'
+    | 'reset'
+    | 'adjust'
+    | 'set'
+    | 'status'
+    | 'get'
+    | 'gameStatus'
+    | 'create'
+    | 'update'
+    | 'delete'
+    | 'noTimer'
+    | 'noPeriodBox';
+
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
@@ -106,6 +120,7 @@ interface CardsResponse {
         placardId: string;
         playerId: string;
         cardType: string;
+        team: 'home' | 'away';
         timestamp: number;
     }>;
 }

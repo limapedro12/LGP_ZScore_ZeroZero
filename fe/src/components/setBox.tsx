@@ -15,10 +15,8 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData, timeoutActive = false }) => 
 
     useEffect(() => {
         if (scoreData) {
-            console.log('scoreData', scoreData);
             setPeriods(scoreData.periods || []);
 
-            // Directly use the currentPeriod from the API response
             if (scoreData.currentPeriod !== undefined) {
                 setCurrentPeriod(scoreData.currentPeriod);
             }
