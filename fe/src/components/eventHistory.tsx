@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
-import apiManager, { EndpointType, ActionType } from '../api/apiManager';
+import { useParams, useNavigate } from 'react-router-dom';
+import apiManager, {
+    EndpointType,
+    ActionType,
+    FetchedEventItem, // Importar o novo tipo de união
+    ApiScoreEventData,  // Importar para type casting se necessário
+    ApiFoulEventData,   // Importar para type casting se necessário
+    ApiCardEventData,   // Importar para type casting se necessário
+    ApiTimeoutEventData, // Importar para type casting se necessário
+} from '../api/apiManager';
 import '../styles/eventHistory.scss';
+import Button from 'react-bootstrap/Button';
 
 type Sport = 'futsal' | 'basketball' | 'volleyball';
 
@@ -26,6 +35,7 @@ const tabs: Record<Sport, string[]> = {
 
 const EventHistory: React.FC = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: Sport, placardId: string }>();
+    const navigate = useNavigate();
 
     const [events, setEvents] = useState<Event[]>([]);
     const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
@@ -43,82 +53,94 @@ const EventHistory: React.FC = () => {
                 if (currentSport === 'basketball') return '🏀'; // Basketball icon
                 if (currentSport === 'volleyball') return '🏐'; // Volleyball icon
                 return '🥅'; // Generic score icon
-            case 'card': { // Added block scope for lexical declaration
-                const details = event.details as { cardType?: unknown }; // More specific type assertion
+            case 'card': {
+                const details = event.details as { cardType?: unknown };
                 const cardType = details && typeof details.cardType === 'string' ?
                     details.cardType.toLowerCase() : '';
                 if (cardType === 'yellow') return <div className="card-display-icon yellow-card-icon">🟨</div>;
                 if (cardType === 'red') return <div className="card-display-icon red-card-icon">🟥</div>;
-                return <div className="card-display-icon">📇</div>; // Generic card icon
+                return <div className="card-display-icon">📇</div>;
             }
             case 'foul':
-                return '✋'; // Foul icon (hand)
+                return '✋';
             case 'timeout':
-                return '⏱️'; // Timeout icon (stopwatch)
+                return '⏱️';
             case 'substitution':
-                return '🔄'; // Substitution icon
+                return '🔄';
             default:
                 return null;
         }
     }, []);
 
     const normalizeEventData = useCallback((
-        fetchedItems: unknown[],
+        fetchedItems: ReadonlyArray<FetchedEventItem>, // Usar o tipo FetchedEventItem
         type: Event['type'],
         currentSport: Sport,
-    ): Event[] => {
-        if (!Array.isArray(fetchedItems)) {
-            return [];
+    ): Event[] => fetchedItems.map((item: FetchedEventItem, index: number) => { // Fix for arrow-body-style
+        let description = '';
+        // Acesso seguro às propriedades, pois agora estão no tipo FetchedEventItem (maioria opcionais via BaseApiEvent)
+        const playerInfo = item.playerName || (item.playerId ? `Jogador ${item.playerId}` : '');
+        const teamInfo = item.teamId || item.team; // item.team é TeamType | null, item.teamId é string | undefined
+
+        let eventTimestamp: number; // eventId will be const now
+
+        const rawTimestamp = item.timestamp || item.recordedAt;
+        // Garantir que o timestamp é um número; usar Date.now() como fallback robusto
+        eventTimestamp = rawTimestamp ? parseInt(String(rawTimestamp), 10) : Date.now();
+        if (isNaN(eventTimestamp)) { // Se parseInt falhar (e.g. timestamp não numérico)
+            eventTimestamp = Date.now();
         }
-        return fetchedItems.map((item: any, index: number) => { // item can remain any for flexibility from API
-            let description = '';
-            const playerInfo = item.playerName || (item.playerId ? `Jogador ${item.playerId}` : '');
-            const teamInfo = item.teamId || item.team;
 
-            switch (type) {
-                case 'score':
-                    description = `${item.pointValue || 1} ${currentSport === 'volleyball' ? 'ponto(s)' : 'golo(s)'}`;
-                    if (playerInfo) description += ` por ${playerInfo}`;
-                    break;
-                case 'card':
-                    description = `Cartão ${item.cardType || ''}`; // Accessing item.cardType directly
-                    if (playerInfo) description += ` para ${playerInfo}`;
-                    break;
-                case 'foul':
-                    description = 'Falta';
-                    if (playerInfo) description += ` de ${playerInfo}`;
-                    if (item.period) description += ` (Período ${item.period})`;
-                    break;
-                case 'timeout':
-                    description = 'Pausa Técnica';
-                    if (teamInfo) description += ` (${teamInfo})`;
-                    break;
-                case 'substitution':
-                    description = `Substituição: Entra ${item.playerInName || item.playerInId}, Sai ${item.playerOutName
-                      || item.playerOutId}`;
-                    break;
-                default:
-                    description = 'Evento desconhecido';
+        const randomSuffix = Math.random().toString(36).substring(7);
+        const eventId: string | number = item.eventId || item.id || `${type}-${eventTimestamp}-${index}-${randomSuffix}`;
+
+
+        switch (type) {
+            case 'score': { // Fix for no-case-declarations
+                const scoreItem = item as ApiScoreEventData;
+                description = `${scoreItem.pointValue || 1} ${currentSport === 'volleyball' ? 'ponto(s)' : 'golo(s)'}`;
+                if (playerInfo) description += ` por ${playerInfo}`;
+                break;
             }
-            const randomSuffix = Math.random().toString(36).substring(7);
-            const eventId = item.eventId || item.id ||
-                `${type}-${item.timestamp}-${index}-${randomSuffix}`; // Broken into multiple lines
-            const eventTimestamp = parseInt(item.timestamp || item.recordedAt || Date.now().toString(), 10);
+            case 'card': { // Fix for no-case-declarations
+                const cardItem = item as ApiCardEventData; // cardType é obrigatório em ApiCardEventData
+                description = `Cartão ${cardItem.cardType}`;
+                if (playerInfo) description += ` para ${playerInfo}`;
+                break;
+            }
+            case 'foul': { // Fix for no-case-declarations
+                const foulItem = item as ApiFoulEventData;
+                description = 'Falta';
+                if (playerInfo) description += ` de ${playerInfo}`;
+                if (foulItem.period) description += ` (Período ${foulItem.period})`;
+                break;
+            }
+            case 'timeout':
+                // const timeoutItem = item as ApiTimeoutEventData; // Não usado diretamente para descrição
+                description = 'Pausa Técnica';
+                if (teamInfo) description += ` (${teamInfo})`;
+                break;
+            case 'substitution':
+                description = `Substituição: Entra ${item.playerInName || item.playerInId}, Sai ${item.playerOutName
+                  || item.playerOutId}`;
+                break;
+            default:
+                description = 'Evento desconhecido';
+        }
 
-            return {
-                id: eventId,
-                timestamp: eventTimestamp,
-                type,
-                description,
-                team: teamInfo,
-                player: playerInfo,
-                details: item,
-                icon: null, // Icon will be set later by getEventIcon
-                teamLogo: item.teamLogo,
-                playerNumber: item.playerNumber,
-            };
-        });
-    }, []);
+        return {
+            id: eventId,
+            timestamp: eventTimestamp,
+            type,
+            description,
+            team: teamInfo || undefined, // Garantir que é string ou undefined
+            player: playerInfo,
+            details: { ...item }, // Manter todos os detalhes originais do item
+            icon: null, // Será definido mais tarde por getEventIcon
+            teamLogo: item.teamLogo,
+            playerNumber: item.playerNumber,
+        };
+    }), []);
 
     const fetchEvents = useCallback(async () => {
         if (!placardId || !sport) {
@@ -145,7 +167,7 @@ const EventHistory: React.FC = () => {
 
             if (scoresResponse.status === 'fulfilled' && scoresResponse.value && (scoresResponse.value as { points: unknown[] }).points) {
                 allEvents = allEvents.concat(
-                    normalizeEventData((scoresResponse.value as { points: unknown[] }).points, 'score', sport),
+                    normalizeEventData((scoresResponse.value as { points: unknown[] }).points as ApiScoreEventData[], 'score', sport),
                 );
             } else if (scoresResponse.status === 'rejected') {
                 // console.error('Erro ao buscar scores:', scoresResponse.reason);
@@ -153,7 +175,7 @@ const EventHistory: React.FC = () => {
 
             if (foulsResponse.status === 'fulfilled' && foulsResponse.value && (foulsResponse.value as { data: unknown[] }).data) {
                 allEvents = allEvents.concat(
-                    normalizeEventData((foulsResponse.value as { data: unknown[] }).data, 'foul', sport),
+                    normalizeEventData((foulsResponse.value as { data: unknown[] }).data as ApiFoulEventData[], 'foul', sport),
                 );
             } else if (foulsResponse.status === 'rejected') {
                 // console.error('Erro ao buscar fouls:', foulsResponse.reason);
@@ -161,7 +183,7 @@ const EventHistory: React.FC = () => {
 
             if (cardsData.status === 'fulfilled' && cardsData.value.cards) {
                 allEvents = allEvents.concat(
-                    normalizeEventData(cardsData.value.cards, 'card', sport),
+                    normalizeEventData(cardsData.value.cards as ApiCardEventData[], 'card', sport),
                 );
             } else if (cardsData.status === 'rejected') {
                 // console.error('Erro ao buscar cards:', cardsData.reason);
@@ -169,7 +191,7 @@ const EventHistory: React.FC = () => {
 
             if (timeoutEventsData.status === 'fulfilled' && timeoutEventsData.value.events) {
                 allEvents = allEvents.concat(
-                    normalizeEventData(timeoutEventsData.value.events, 'timeout', sport),
+                    normalizeEventData(timeoutEventsData.value.events as ApiTimeoutEventData[], 'timeout', sport),
                 );
             } else if (timeoutEventsData.status === 'rejected') {
                 // console.error('Erro ao buscar timeouts:', timeoutEventsData.reason);
@@ -322,6 +344,12 @@ const EventHistory: React.FC = () => {
 
     return (
         <div className="event-history">
+            <Button
+                className="voltar-button-custom mb-3"
+                onClick={() => navigate(-1)}
+            >
+                ←
+            </Button>
             <h2 className="event-history-title">Eventos</h2>
             <div className="tabs-container">
                 {tabs[sport].map((tabName) => (

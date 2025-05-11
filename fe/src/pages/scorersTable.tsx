@@ -3,15 +3,16 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Sport } from '../utils/scorersTableUtils';
 import TeamLogo from '../components/scorersTable/teamLogo';
 import CentralConsole from '../components/scorersTable/centralConsole';
 
 const ScorersTable = () => {
-    const { sport: sportParam /* , placardId: placardIdParam */ } = useParams<{ sport: string, placardId: string }>();
+    const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
 
     const sport = (sportParam as Sport) || 'volleyball';
+    const placardId = placardIdParam || '1';
 
     const containerClassName =
         `scorers-table-container d-md-flex flex-column justify-content-start align-items-center vh-100 p-0 
@@ -19,18 +20,6 @@ const ScorersTable = () => {
 
     const mobileContainerClassName =
         'd-flex flex-column d-md-none justify-content-around align-items-center vh-100 p-3';
-
-    const correctionButtonStyle: React.CSSProperties = {
-        width: '60px',
-        height: '60px',
-        borderRadius: '50%',
-        backgroundColor: '#0d6efd',
-        borderColor: '#0d6efd',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '0',
-    };
 
     return (
         <>
@@ -51,8 +40,11 @@ const ScorersTable = () => {
 
                 <Row className="w-100 d-none d-md-flex align-items-center h-25">
                     <div className="d-flex flex-column align-items-center">
-                        <p className="text-white fw-bold fs-5 mb-2">Corrigir</p>
-                        <Button style={correctionButtonStyle} aria-label="Corrigir" />
+                        <Link to={`/eventhistory/${sport}/${placardId}`}>
+                            <Button className="corrigir-button-custom">
+                                Corrigir
+                            </Button>
+                        </Link>
                     </div>
                 </Row>
             </Container>
@@ -73,10 +65,13 @@ const ScorersTable = () => {
                         <CentralConsole sport={sport} />
                     </div>
                 </Row>
-                <Row className="w-100 py-3 justify-content-center">
+                <Row className="w-100 d-none d-md-flex align-items-center h-25">
                     <div className="d-flex flex-column align-items-center">
-                        <p className="text-white fw-bold fs-5 mb-2 text-center">Corrigir</p>
-                        <Button style={correctionButtonStyle} aria-label="Corrigir" />
+                        <Link to={`/eventhistory/${sport}/${placardId}`}>
+                            <Button className="corrigir-button-custom">
+                                Corrigir
+                            </Button>
+                        </Link>
                     </div>
                 </Row>
             </Container>

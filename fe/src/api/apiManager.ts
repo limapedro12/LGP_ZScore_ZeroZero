@@ -98,14 +98,7 @@ interface TimeoutResponse {
         awayTimeoutsUsed: number;
         totalTimeoutsPerTeam: number;
     };
-    events?: Array<{
-        eventId: string;
-        placardId: string;
-        team: TeamType | null;
-        homeTimeoutsUsed: string;
-        awayTimeoutsUsed: string;
-        totalTimeoutsPerTeam: string;
-    }>;
+    events?: Array<ApiTimeoutEventData>; // Lista de eventos de timeout
     error?: string;
 }
 
@@ -126,6 +119,52 @@ interface EventsResponse {
 interface SportsResponse {
     sports?: string[];
 }
+
+// Novas definições de tipo para eventos brutos da API
+export interface BaseApiEvent {
+    eventId?: number | string; // ID do evento vindo da API
+    id?: number | string;      // Alias para eventId, se usado pela API
+    timestamp?: number | string; // Timestamp do evento, pode ser string ou número
+    recordedAt?: string;     // Outra forma de timestamp que algumas APIs podem usar
+    teamId?: string;         // ID da equipa, se aplicável
+    team?: TeamType | null;  // 'home' ou 'away', se aplicável
+    playerId?: string | number;// ID do jogador
+    playerName?: string;     // Nome do jogador
+    teamLogo?: string;       // URL do logo da equipa
+    playerNumber?: string | number; // Número do jogador
+    [key: string]: any;      // Permite outras propriedades não explicitamente definidas
+}
+
+export interface ApiScoreEventData extends BaseApiEvent {
+    pointValue?: number | string; // Valor dos pontos/golos
+    // Outros campos específicos de eventos de pontuação...
+}
+
+export interface ApiFoulEventData extends BaseApiEvent {
+    period?: number | string; // Período em que a falta ocorreu
+    // Outros campos específicos de eventos de falta...
+}
+
+// Atualize ApiCardEventData para herdar de BaseApiEvent e manter campos obrigatórios
+export interface ApiCardEventData extends BaseApiEvent {
+    eventId: number;
+    placardId: string;
+    playerId: string;
+    cardType: string;
+    team: TeamType;
+    timestamp: number;
+}
+
+// Atualize ApiTimeoutEventData para herdar de BaseApiEvent
+export interface ApiTimeoutEventData extends BaseApiEvent {
+    eventId: string; // Campo obrigatório de TimeoutResponse.events
+    // team já está em BaseApiEvent
+    // Campos como homeTimeoutsUsed são mais para o sumário do timeout, não para o evento individual em si na normalização.
+}
+
+// Tipo de união para os itens que a função normalizeEventData irá processar
+export type FetchedEventItem = ApiScoreEventData | ApiFoulEventData | ApiCardEventData | ApiTimeoutEventData;
+
 
 /**
  * API Manager that handles all API requests

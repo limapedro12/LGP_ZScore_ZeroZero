@@ -6,6 +6,7 @@ import HomePage from './pages/home';
 import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
 import ScorersTable from './pages/scorersTable';
+import EventHistory from './components/eventHistory';
 
 /**
  * AppRouter component
@@ -20,6 +21,7 @@ const AppRouter = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
             <Route path="/scorersTable/:sport/:placardId" element={<ScorersTable />} />
+            <Route path="/eventhistory/:sport/:placardId" element={<EventHistory />} />
         </Routes>
     </BrowserRouter>
 );
