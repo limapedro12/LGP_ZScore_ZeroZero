@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CardSlider from './cards/cardSlider';
+import ScoreHistorySlider from './scores/scoreHistorySlider';
 import { Sport } from '../../utils/cardUtils';
 
 interface SliderProps {
@@ -11,11 +12,7 @@ interface SliderProps {
 const Slider: React.FC<SliderProps> = ({ sport, placardId, team }) => {
     const sliderItems: React.ReactNode[] = [
         <CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />,
-        // <div key="text-slider-item" className="d-flex justify-content-center align-items-center h-100">
-        //     <p className="text-white-50">
-        //         No events to display.
-        //     </p>
-        // </div>,
+        <ScoreHistorySlider sport={sport} team={team} placardId={placardId} key="score-history-item" />,
     ];
 
     const [currentSliderIndex, setCurrentSliderIndex] = useState(0);

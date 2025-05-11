@@ -149,6 +149,7 @@ try {
 
             $currentHomePoints = ($team === 'home') ? $points : (int)$homePoints;
             $currentAwayPoints = ($team === 'away') ? $points : (int)$awayPoints;
+            $currentSetTotalPoints = $currentHomePoints + $currentAwayPoints;
             $totalGamePoints = (int)$currentHomePoints + (int)$currentAwayPoints;
 
             for ($i = 1; $i < $currentPeriod; $i++) {
@@ -166,6 +167,7 @@ try {
                 'playerId' => $playerId,
                 'period' => $currentPeriod,
                 'pointValue' => $pointValue,
+                'periodTotalPoints' => $currentSetTotalPoints
             ];
 
             $redis->multi();

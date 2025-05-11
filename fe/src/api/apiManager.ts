@@ -47,6 +47,20 @@ export interface ScoreResponse {
     currentServer: TeamType | null;
 }
 
+export interface ScoreEvent {
+    eventId: number;
+    placardId: string;
+    team: TeamType | null;
+    playerId: string;
+    period: number;
+    pointValue: number;
+    periodTotalPoints: number;
+}
+
+export interface ScoreHistoryResponse {
+  points: ScoreEvent[];
+}
+
 interface RequestParams {
     placardId?: string;
     sport?: string;
@@ -245,6 +259,9 @@ class ApiManager {
 
     getScores = (placardId: string, sport: string) =>
         this.makeRequest<ScoreResponse>('score', 'gameStatus', { placardId, sport }, 'GET');
+
+    getScoreHistory = (placardId: string, sport: string) =>
+        this.makeRequest<ScoreHistoryResponse>('score', 'get', { placardId, sport }, 'GET');
 
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
