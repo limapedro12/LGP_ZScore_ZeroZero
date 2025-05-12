@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Sport } from '../../../utils/cardUtils';
 import apiManager, { ScoreEvent } from '../../../api/apiManager';
 import ScoreEventPoints from './scoreEventPoints';
-import '../../../styles/scoreEventPoints.scss';
-import { Col, Container, Row } from 'react-bootstrap';
+import BaseSlider from '../baseSlider';
+import '../../../styles/sliderComponents.scss';
 
 interface ScoresSliderProps {
   sport: Sport;
@@ -68,29 +68,22 @@ const ScoresSlider: React.FC<ScoresSliderProps> = ({ sport, team, placardId }) =
     }, [allScoreEvents, team]);
 
     return (
-        <Container fluid className="scores-slider d-flex flex-column h-100 mt-2">
-            <Row className="scores-slider-title text-center mb-2">
-                <Col>Histórico Pontos</Col>
-            </Row>
-            <Row className="flex-grow-1">
-                <Col className="d-flex flex-column align-items-center justify-content-start">
-                    <div className={`scores-slider-points ${team}-points d-flex flex-column align-items-center gap-2`}>
-                        {displayedScores.map((scoreEvent, index) => (
-                            <div key={index} className="score-event-position">
-                                {scoreEvent ? (
-                                    <ScoreEventPoints
-                                        scoreEvent={scoreEvent}
-                                        team={team}
-                                    />
-                                ) : (
-                                    <div className="score-event-placeholder" />
-                                )}
-                            </div>
-                        ))}
+        <BaseSlider title="Histórico Pontos" className="scores-slider">
+            <div className={`scores-slider-points ${team}-points d-flex flex-column align-items-center gap-2`}>
+                {displayedScores.map((scoreEvent, index) => (
+                    <div key={index} className="score-event-position">
+                        {scoreEvent ? (
+                            <ScoreEventPoints
+                                scoreEvent={scoreEvent}
+                                team={team}
+                            />
+                        ) : (
+                            <div className="score-event-placeholder" />
+                        )}
                     </div>
-                </Col>
-            </Row>
-        </Container>
+                ))}
+            </div>
+        </BaseSlider>
     );
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScoreEvent } from '../../../api/apiManager';
-import '../../../styles/scoreEventPoints.scss';
+import ScorePoint from './scorePoints';
 
 interface ScoreEventPointsProps {
   scoreEvent: ScoreEvent;
@@ -10,13 +10,7 @@ interface ScoreEventPointsProps {
 const ScoreEventPoints: React.FC<ScoreEventPointsProps> = ({ scoreEvent, team }) => {
     const { periodTotalPoints } = scoreEvent;
 
-    return (
-        <div className={`score-event-point ${team}`}>
-            <div className="score-event-point-value">
-                {periodTotalPoints}
-            </div>
-        </div>
-    );
+    return <ScorePoint value={periodTotalPoints} team={team} />;
 };
 
 export default ScoreEventPoints;
