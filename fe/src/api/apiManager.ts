@@ -1,4 +1,5 @@
 import config from '../config/config';
+import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
@@ -6,7 +7,19 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete' | 'noTimer';
+type ActionType =
+    | 'start'
+    | 'pause'
+    | 'reset'
+    | 'adjust'
+    | 'set'
+    | 'status'
+    | 'get'
+    | 'gameStatus'
+    | 'create'
+    | 'update'
+    | 'delete'
+    | 'noTimer';
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
@@ -48,8 +61,8 @@ interface UpdateCardParams {
     placardId: string;
     sport: string;
     eventId: string;
-    playerId?: string; 
-    cardType?: string; 
+    playerId?: string;
+    cardType?: string;
     timestamp?: number;
     [key: string]: string | number | undefined;
 }
@@ -102,6 +115,7 @@ interface CardsResponse {
         placardId: string;
         playerId: string;
         cardType: string;
+        team: 'home' | 'away';
         timestamp: number;
     }>;
 }
@@ -230,17 +244,17 @@ class ApiManager {
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
-    createCard = (placardId: string, sport: string, playerId: string, cardType: string) =>
-        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, playerId, cardType });
+    createCard = (placardId: string, sport: string, team: TeamTag, playerId: string, cardType: string) =>
+        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, team, playerId, cardType });
 
     deleteCard = (placardId: string, sport: string, eventId: string) =>
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });
 
-    updateCard = (params: UpdateCardParams) =>{
+    updateCard = (params: UpdateCardParams) => {
         const filteredParams: RequestParams = {
             placardId: params.placardId,
             sport: params.sport,
-            eventId: params.eventId 
+            eventId: params.eventId,
         };
 
         if (params.playerId !== undefined) {
@@ -254,8 +268,8 @@ class ApiManager {
         }
 
         return this.makeRequest<CardsResponse>('cards', 'update', filteredParams);
-    }
-    
+    };
+
     getNonTimerSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
 }
