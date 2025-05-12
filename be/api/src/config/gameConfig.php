@@ -9,14 +9,15 @@ class GameConfig {
             'timeoutsPerTeam' => 1,
             'timeoutsPerPeriod' => 1,
             'cards' => ['yellow', 'red'],
+            'points' => 1
         ],
         'basketball' => [
             'periods' => 4,
             'periodDuration' => 10 * 60,
             'substitutionsPerTeam' => 0, // unlimited
             'timeoutDuration' => 60,
-            'timeoutsPerTeam' => 6,
-            'timeoutsPerPeriod' => 2,
+            'timeoutsPerTeam' => 5,
+            'points' => [1, 2, 3],
         ],
         'volleyball' => [
             'periods' => 5,
@@ -26,7 +27,11 @@ class GameConfig {
             'timeoutsPerTeam' => 2,
             'timeoutsPerPeriod' => 2,
             'cards' => ['white', 'yellow', 'red', 'yellow_red_together', 'yellow_red_separately'],
-        ],
+            'points' => 1,
+            'periodEndScore' => 25,
+            'pointDifference' => 2,
+            'resetPointsEachPeriod' => true,
+        ]
     ];
     
     public function getConfig($sport) {
