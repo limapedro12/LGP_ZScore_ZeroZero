@@ -11,6 +11,7 @@ import apiManager, {
 } from '../api/apiManager';
 import '../styles/eventHistory.scss';
 import Button from 'react-bootstrap/Button';
+import { formatTime } from '../utils/timeUtils'; // Import formatTime
 
 type Sport = 'futsal' | 'basketball' | 'volleyball';
 
@@ -86,17 +87,29 @@ const EventHistory: React.FC = () => {
         const playerInfo = item.playerName || (item.playerId ? `Jogador ${item.playerId}` : '');
         const teamInfo = item.teamId || item.team; // item.team é TeamType | null, item.teamId é string | undefined
 
-        let eventTimestamp: number; // eventId will be const now
+        let gameTimeSeconds = 0; // Default to 0 seconds
 
-        const rawTimestamp = item.timestamp || item.recordedAt;
-        // Garantir que o timestamp é um número; usar Date.now() como fallback robusto
-        eventTimestamp = rawTimestamp ? parseInt(String(rawTimestamp), 10) : Date.now();
-        if (isNaN(eventTimestamp)) { // Se parseInt falhar (e.g. timestamp não numérico)
-            eventTimestamp = Date.now();
+        // Prioritize item.timestamp, fallback to item.timeSpan (especially for timeouts)
+        let rawGameTimeValue: number | string | undefined | null = item.timestamp;
+
+        if (rawGameTimeValue === undefined || rawGameTimeValue === null) {
+            // Check if timeSpan exists. Values from Redis (like timeSpan) are often strings.
+            // The parseInt later will handle conversion.
+            if ('timeSpan' in item && item.timeSpan !== null && item.timeSpan !== undefined) {
+                rawGameTimeValue = item.timeSpan as string | number; // Accessing via index signature from BaseApiEvent
+            }
+        }
+
+        if (rawGameTimeValue !== undefined && rawGameTimeValue !== null) {
+            const parsedTimestamp = parseInt(String(rawGameTimeValue), 10);
+            if (!isNaN(parsedTimestamp)) {
+                gameTimeSeconds = parsedTimestamp;
+            }
         }
 
         const randomSuffix = Math.random().toString(36).substring(7);
-        const eventId: string | number = item.eventId || item.id || `${type}-${eventTimestamp}-${index}-${randomSuffix}`;
+        // Ensure eventId generation is robust. Using gameTimeSeconds in fallback.
+        const eventId: string | number = item.eventId || item.id || `${type}-${gameTimeSeconds}-${index}-${randomSuffix}`;
 
 
         switch (type) {
@@ -134,7 +147,7 @@ const EventHistory: React.FC = () => {
 
         return {
             id: eventId,
-            timestamp: eventTimestamp,
+            timestamp: gameTimeSeconds, // Store game time in seconds
             type,
             description,
             team: teamInfo || undefined, // Garantir que é string ou undefined
@@ -270,11 +283,13 @@ const EventHistory: React.FC = () => {
         try {
             let endpointType: EndpointType;
             let action: ActionType;
+            // Adicionar 'amount' à tipagem de params e garantir que 'team' pode ser incluído.
             const params: {
                 placardId?: string,
                 sport?: Sport,
                 eventId: string | number,
-                team?: string
+                team?: string, // Adicionado para o caso de timeout
+                amount?: number // Adicionado para o caso de timeout
             } = { placardId, sport, eventId: eventToDelete.id };
 
             switch (eventToDelete.type) {
@@ -288,11 +303,20 @@ const EventHistory: React.FC = () => {
                     break;
                 case 'card':
                     endpointType = 'cards';
-                    action = 'remove';
+                    action = 'delete';
                     break;
                 case 'timeout':
                     endpointType = 'timeout';
-                    action = 'delete';
+                    action = 'adjust';
+
+                    // 'adjust' requer 'team' e 'amount'
+                    if (!eventToDelete.team || (eventToDelete.team !== 'home' && eventToDelete.team !== 'away')) {
+                        alert('Erro: Equipa inválida ou não especificada para o evento de timeout a ser excluído.');
+                        cancelDelete();
+                        return;
+                    }
+                    params.team = eventToDelete.team;
+                    params.amount = -1; // Para remover um timeout
                     break;
                 case 'substitution':
                     alert('A exclusão de substituições ainda não é suportada.');
@@ -307,7 +331,13 @@ const EventHistory: React.FC = () => {
             }
 
             await apiManager.makeRequest(endpointType, action, params, 'POST');
+            // A lógica de atualização do estado local assume que o evento específico foi excluído.
+            // Se o backend com 'adjust' e amount: -1 remove o *último* evento da equipa,
+            // e não necessariamente eventToDelete, pode haver uma ligeira inconsistência
+            // visual temporária se o evento clicado não for o último da equipa.
+            // A lista será corrigida na próxima busca de fetchEvents.
             setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventToDelete.id));
+            // Removido o alert de sucesso daqui para ser colocado no 'finally' ou após a confirmação visual da remoção.
         } catch (err) {
             let errorMessage = 'Falha ao excluir o evento.';
             if (err instanceof Error) {
@@ -318,6 +348,9 @@ const EventHistory: React.FC = () => {
             alert(errorMessage);
         } finally {
             cancelDelete();
+            // Considerar mover o alert de sucesso para cá, após a UI ser atualizada,
+            // ou depender da atualização automática da lista.
+            // alert('Tentativa de exclusão processada.'); // Exemplo
         }
     };
 
@@ -349,11 +382,6 @@ const EventHistory: React.FC = () => {
         );
     }
 
-    const formatDisplayTime = (timestamp: number): string => {
-        const date = new Date(timestamp);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
-
     return (
         <div className="event-history">
             <Button
@@ -383,7 +411,10 @@ const EventHistory: React.FC = () => {
                 {filteredEvents.map((event) => (
                     <li key={event.id} className={`event-item event-type-${event.type}`}>
                         <div className="event-time">
-                            {formatDisplayTime(event.timestamp)}
+                            {/* Use formatTime utility. Handle volleyball special case if needed. */}
+                            {sport === 'volleyball' && event.timestamp === 0
+                                ? '-'
+                                : formatTime(event.timestamp)}
                         </div>
                         <div className="event-icon-display">
                             {event.icon}
