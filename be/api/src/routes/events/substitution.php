@@ -28,7 +28,7 @@ $sport =  $params['sport'] ?? null;
 $team = $params['team'] ?? null;
 $playerIn = $params['playerIn'] ?? null;
 $playerOut = $params['playerOut'] ?? null;
-$substitutionId = $params['eventId'] ?? null;
+$eventId = $params['eventId'] ?? null;
 
 
 $redis = RedistUtils::connect();
@@ -117,8 +117,8 @@ try {
             else {
                 $currentSubstitutionIDs = $redis->zRange($substitutionsKey, 0, -1);
                 $currentSubstitutions = [];
-                foreach ($currentSubstitutionIDs as $substitutionIdKey) {
-                    $substitutionInfo = $redis->hGetAll($substitutionIdKey);
+                foreach ($currentSubstitutionIDs as $eventIdKey) {
+                    $substitutionInfo = $redis->hGetAll($eventIdKey);
                     if (!empty($substitutionInfo) && $substitutionInfo["team"] === $team) {
                         $currentSubstitutions[] = $substitutionInfo["eventId"];
                     }
@@ -167,7 +167,7 @@ try {
                 echo json_encode(["error" => "Method not allowed"]);
                 exit;
             }
-            else if (is_null($substitutionId)) {
+            else if (is_null($eventId)) {
                 echo json_encode(["error"=> "Missing eventId"]);
                 exit;
             }
@@ -180,10 +180,10 @@ try {
                 exit;
             }
 
-            $substitutionEventKey = $keys['substitution_event'] . $substitutionId;
+            $substitutionEventKey = $keys['substitution_event'] . $eventId;
             $oldSubstitution = $redis->hGetAll($substitutionEventKey);
             if (empty($oldSubstitution)) {
-                $response = ["error"=> "Substitution with ID $substitutionId not found"];
+                $response = ["error"=> "Substitution with ID $eventId not found"];
                 break;
             }
 
@@ -216,7 +216,7 @@ try {
             $newTimestamp = $params['newTimestamp'] ?? $oldSubstitution["timestamp"];
 
             $substitutionData = [
-                "eventId" => $substitutionId,
+                "eventId" => $eventId,
                 "team" => $team,
                 "playerInId" => $playerIn,
                 "playerOutId" => $playerOut,
@@ -246,16 +246,16 @@ try {
                 echo json_encode(["error" => "Method not allowed"]);
                 exit;
             }
-            else if (is_null($substitutionId)) {
-                echo json_encode(["error"=> "Missing substitutionId"]);
+            else if (is_null($eventId)) {
+                echo json_encode(["error"=> "Missing eventId"]);
                 exit;
             }
 
-            $substitutionEventKey = $keys['substitution_event'] . $substitutionId;
+            $substitutionEventKey = $keys['substitution_event'] . $eventId;
             $oldSubstitution = $redis->hGetAll($substitutionEventKey);
 
             if (empty($oldSubstitution)) {
-                $response = ["error"=> "Substitution with ID $substitutionId not found"];
+                $response = ["error"=> "Substitution with ID $eventId not found"];
                 break;
             }
 
@@ -280,7 +280,7 @@ try {
             if ($result && isset($result[0]) && $result[0] > 0 && isset($result[1]) && $result[1] > 0) {
                 $response = [
                     "message"=> "Substitution deleted successfully",
-                    "substitutionId"=> $substitutionId,
+                    "eventId"=> $eventId,
                     "ingamePlayers" => $ingamePlayers,
                 ];
             } else {
