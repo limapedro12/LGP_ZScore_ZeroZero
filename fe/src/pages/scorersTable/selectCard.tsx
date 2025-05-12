@@ -7,7 +7,8 @@ import { ArrowLeft } from 'react-bootstrap-icons';
 import '../../styles/arrow.scss';
 
 const SelectCardPage = () => {
-    const { sport: sportParam, placardId, teamTag } = useParams<{ sport: string, placardId: string, teamTag: string }>();
+    const { sport: sportParam, placardId, teamTag } = useParams<{
+        sport: string, placardId: string, teamTag: string}>();
     const navigate = useNavigate();
 
     const sport = sportParam as Sport;
@@ -30,9 +31,13 @@ const SelectCardPage = () => {
     };
 
     const handleSelectPlayer = () => {
-        if (selectedCardType) {
-            console.log(`Card selected: ${selectedCardType}, Sport: ${sport}, 
-                Team: ${teamTag}, PlacardID: ${placardId}. Proceed to player selection.`);
+        if (selectedCardType && sport && placardId && teamTag) {
+
+            console.log(`Card selected: ${selectedCardType}, Sport: ${sport}, Team: ${teamTag}, PlacardID: 
+                ${placardId}. Proceed to player selection.`);
+            navigate(`/scorersTable/${sport}/${placardId}/selectCard/${teamTag}/${selectedCardType}/cardSelectPlayer`);
+        } else {
+            console.warn('Cannot proceed to player selection. Missing details.');
         }
     };
 

@@ -4,7 +4,7 @@ import { Sport, getSportEvents, TeamTag } from '../../utils/scorersTableUtils';
 import EventInput from './eventInput';
 
 interface CentralConsoleProps {
-  sport: Sport;
+    sport: Sport;
 }
 
 const CentralConsole: React.FC<CentralConsoleProps> = ({ sport }) => {
@@ -21,7 +21,6 @@ const CentralConsole: React.FC<CentralConsoleProps> = ({ sport }) => {
                     eventCategory={eventConfig.eventCategory}
                     onEventAction={(teamTag: TeamTag) => {
                         if (eventConfig.onEventAction) {
-                            // Pass navigate, sport, and placardId to the action
                             eventConfig.onEventAction(teamTag, navigate, sport, placardId);
                         } else {
                             console.warn(`No event action defined for ${eventConfig.eventName}`);

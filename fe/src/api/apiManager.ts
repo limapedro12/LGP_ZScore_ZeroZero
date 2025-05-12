@@ -1,4 +1,5 @@
 import config from '../config/config';
+import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
@@ -243,8 +244,8 @@ class ApiManager {
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
-    createCard = (placardId: string, sport: string, playerId: string, cardType: string) =>
-        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, playerId, cardType });
+    createCard = (placardId: string, sport: string, team: TeamTag, playerId: string, cardType: string) =>
+        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, team, playerId, cardType });
 
     deleteCard = (placardId: string, sport: string, eventId: string) =>
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });

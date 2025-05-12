@@ -7,6 +7,7 @@ import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
 import ScorersTable from './pages/scorersTable/scorersTable';
 import SelectCardPage from './pages/scorersTable/selectCard';
+import CardSelectPlayerPage from './pages/scorersTable/cardSelectPlayer';
 
 /**
  * AppRouter component
@@ -21,7 +22,14 @@ const AppRouter = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
             <Route path="/scorersTable/:sport/:placardId" element={<ScorersTable />} />
-            <Route path="/scorersTable/:sport/:placardId/selectCard/:teamTag" element={<SelectCardPage />} />
+            <Route
+                path="/scorersTable/:sport/:placardId/selectCard/:teamTag"
+                element={<SelectCardPage />}
+            />
+            <Route
+                path="/scorersTable/:sport/:placardId/selectCard/:teamTag/:cardType/cardSelectPlayer"
+                element={<CardSelectPlayerPage />}
+            />
         </Routes>
     </BrowserRouter>
 );

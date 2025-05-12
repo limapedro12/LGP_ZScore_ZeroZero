@@ -11,6 +11,8 @@ header('Content-Type: application/json');
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $params = RequestUtils::getRequestParams();
 
+error_log("params: " . json_encode($params));
+
 $requiredParams = ['placardId', 'sport', 'action'];
 $allowedActions = ['create', 'update', 'delete', 'get'];
 
