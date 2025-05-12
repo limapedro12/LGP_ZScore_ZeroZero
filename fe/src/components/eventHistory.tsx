@@ -43,6 +43,10 @@ const EventHistory: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<string>('recentes');
 
+    // Novos estados para o modal de confirmação de exclusão
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+    const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+
     const sport = sportParam as Sport;
     const placardId = placardIdParam;
 
@@ -249,66 +253,74 @@ const EventHistory: React.FC = () => {
         alert(`Edição para '${event.description}' iniciada.\nImplementar navegação para formulário de edição específico.`);
     };
 
-    const handleDelete = async (event: Event) => {
-        if (window.confirm(`Tem certeza que deseja excluir este evento: ${event.description}?`)) {
-            try {
-                let endpointType: EndpointType;
-                let action: ActionType;
-                const params: {
-                    placardId?: string,
-                    sport?: Sport,
-                    eventId: string | number,
-                    team?: string
-                } = { placardId, sport, eventId: event.id }; // Broken into multiple lines
+    // Modificada para mostrar o modal em vez do prompt
+    const requestDeleteEvent = (event: Event) => {
+        setEventToDelete(event);
+        setShowDeleteConfirm(true);
+    };
 
-                switch (event.type) {
-                    case 'score':
-                        endpointType = 'score';
-                        action = 'delete';
-                        break;
-                    case 'foul':
-                        endpointType = 'foul';
-                        action = 'delete';
-                        break;
-                    case 'card':
-                        endpointType = 'cards';
-                        action = 'remove'; // As per previous discussion, ensure this matches backend
-                        break;
-                    case 'timeout':
-                        endpointType = 'timeout';
-                        action = 'delete';
-                        // params.team = event.team; // Example if necessary
-                        break;
-                    case 'substitution':
-                        // console.warn('A lógica de exclusão para \'substitution\' não está implementada no backend.');
-                        alert('A exclusão de substituições ainda não é suportada.');
-                        return;
-                    default: {
-                        const exhaustiveCheck: never = event.type;
-                        // console.error(`Tipo de evento desconhecido para exclusão: ${exhaustiveCheck}`);
-                        alert(`Não é possível excluir o tipo de evento: ${exhaustiveCheck}`);
-                        return;
-                    }
+    const cancelDelete = () => {
+        setShowDeleteConfirm(false);
+        setEventToDelete(null);
+    };
+
+    const confirmDeleteEvent = async () => {
+        if (!eventToDelete) return;
+
+        try {
+            let endpointType: EndpointType;
+            let action: ActionType;
+            const params: {
+                placardId?: string,
+                sport?: Sport,
+                eventId: string | number,
+                team?: string
+            } = { placardId, sport, eventId: eventToDelete.id };
+
+            switch (eventToDelete.type) {
+                case 'score':
+                    endpointType = 'score';
+                    action = 'delete';
+                    break;
+                case 'foul':
+                    endpointType = 'foul';
+                    action = 'delete';
+                    break;
+                case 'card':
+                    endpointType = 'cards';
+                    action = 'remove';
+                    break;
+                case 'timeout':
+                    endpointType = 'timeout';
+                    action = 'delete';
+                    break;
+                case 'substitution':
+                    alert('A exclusão de substituições ainda não é suportada.');
+                    cancelDelete();
+                    return;
+                default: {
+                    const exhaustiveCheck: never = eventToDelete.type;
+                    alert(`Não é possível excluir o tipo de evento: ${exhaustiveCheck}`);
+                    cancelDelete();
+                    return;
                 }
-
-                // console.log(`A tentar excluir evento: type=${endpointType}, action=${action}, params=`, params);
-                await apiManager.makeRequest(endpointType, action, params, 'POST');
-
-                setEvents((prevEvents) => prevEvents.filter((e) => e.id !== event.id));
-                alert('Evento excluído com sucesso!');
-
-            } catch (err) {
-                // console.error('Erro ao excluir evento:', err);
-                let errorMessage = 'Falha ao excluir o evento.';
-                if (err instanceof Error) {
-                    errorMessage += ` Detalhes: ${err.message}`;
-                } else if (typeof err === 'object' && err !== null && 'message' in err) {
-                    errorMessage += ` Detalhes: ${(err as { message: string }).message}`;
-                }
-                alert(errorMessage);
             }
+
+            await apiManager.makeRequest(endpointType, action, params, 'POST');
+            setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventToDelete.id));
+        } catch (err) {
+            let errorMessage = 'Falha ao excluir o evento.';
+            if (err instanceof Error) {
+                errorMessage += ` Detalhes: ${err.message}`;
+            } else if (typeof err === 'object' && err !== null && 'message' in err) {
+                errorMessage += ` Detalhes: ${(err as { message: string }).message}`;
+            }
+            alert(errorMessage);
+        } finally {
+            cancelDelete();
         }
     };
+
 
     if (!placardId || !sport) {
         return <div className="event-history-error">ID do placar ou esporte não fornecido.</div>;
@@ -404,7 +416,7 @@ const EventHistory: React.FC = () => {
                                 ✏️
                             </button>
                             <button
-                                onClick={() => handleDelete(event)}
+                                onClick={() => requestDeleteEvent(event)} // Modificado aqui
                                 className="action-button delete-button"
                                 aria-label="Excluir evento"
                             >
@@ -414,6 +426,28 @@ const EventHistory: React.FC = () => {
                     </li>
                 ))}
             </ul>
+
+            {/* Modal de Confirmação de Exclusão */}
+            {showDeleteConfirm && eventToDelete && (
+                <div className="confirmation-modal-overlay">
+                    <div className="confirmation-modal">
+                        <h3 className="confirmation-modal-title">Confirmar Alterações?</h3>
+                        <p className="confirmation-modal-text">
+                            Tem a certeza que deseja excluir o evento: &quot;
+                            {eventToDelete.description}
+                            &quot;?
+                        </p>
+                        <div className="confirmation-modal-actions">
+                            <Button variant="danger" className="confirmation-modal-button cancel" onClick={cancelDelete}>
+                                NÃO
+                            </Button>
+                            <Button variant="success" className="confirmation-modal-button confirm" onClick={confirmDeleteEvent}>
+                                SIM
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

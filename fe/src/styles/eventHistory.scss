@@ -247,3 +247,71 @@
     }
   }
 }
+
+// Estilos para o Modal de Confirmação
+.confirmation-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); // Fundo escuro semi-transparente
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; // Para ficar acima de outros elementos
+}
+
+.confirmation-modal {
+  background-color: #2c3e50; // Cor de fundo escura do modal (similar à imagem)
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 450px; // Largura máxima do modal
+  text-align: center;
+  color: #ffffff; // Texto branco
+
+  .confirmation-modal-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 15px;
+  }
+
+  .confirmation-modal-text {
+    font-size: 1rem;
+    margin-bottom: 25px;
+    color: #e0e0e0; // Cor de texto um pouco mais clara para o parágrafo
+  }
+
+  .confirmation-modal-actions {
+    display: flex;
+    justify-content: space-around; // Espaça os botões
+
+    .confirmation-modal-button {
+      padding: 12px 25px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      min-width: 120px; // Largura mínima para os botões
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.85;
+      }
+
+      &.confirm {
+        background-color: #28a745; // Verde para SIM
+        color: white;
+      }
+
+      &.cancel {
+        background-color: #dc3545; // Vermelho para NÃO
+        color: white;
+      }
+    }
+  }
+}
