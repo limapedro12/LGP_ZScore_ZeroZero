@@ -79,6 +79,7 @@ const SelectCardPage = () => {
                             cardType={card.type}
                             sport={sport}
                             onCardSelect={handleCardSelect}
+                            selectedCardType={selectedCardType === null ? undefined : selectedCardType}
                         />
                     ))}
                 </Col>

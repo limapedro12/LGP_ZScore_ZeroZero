@@ -8,6 +8,7 @@ interface CardButtonProps<S extends Sport> {
   sport: S;
   onCardSelect: (cardType: CardTypeForSport<S>) => void;
   disabled?: boolean;
+  selectedCardType?: CardTypeForSport<S>;
 }
 
 const CardButton = <S extends Sport>({
@@ -16,6 +17,7 @@ const CardButton = <S extends Sport>({
     sport,
     onCardSelect,
     disabled = false,
+    selectedCardType,
 }: CardButtonProps<S>) => {
     const iconPath = getCardIconPath(sport, cardType);
 
@@ -35,13 +37,15 @@ const CardButton = <S extends Sport>({
         padding: '8px',
     };
 
+    const isSelected = selectedCardType === cardType;
+
     return (
         <div className="d-flex align-items-center justify-content-between my-1 py-2 px-3 w-100">
             <span className="card-name text-white me-3 fs-5 fw-bold">
                 {cardName}
             </span>
             <Button
-                variant="light"
+                variant={isSelected ? 'secondary' : 'light'}
                 onClick={() => onCardSelect(cardType)}
                 className={buttonClasses}
                 disabled={disabled}
