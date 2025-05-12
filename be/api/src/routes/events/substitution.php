@@ -215,6 +215,15 @@ try {
 
             $newTimestamp = $params['newTimestamp'] ?? $oldSubstitution["timestamp"];
 
+            // Check if there are real alterations to the event
+            if ($oldSubstitution["playerInId"] === $playerIn
+                        && $oldSubstitution["playerOutId"] === $playerOut 
+                        && $oldSubstitution["timestamp"] == $newTimestamp) {
+                http_response_code(400);            
+                $response = ["error"=> "No changes detected"];
+                break;
+            }
+
             $substitutionData = [
                 "eventId" => $eventId,
                 "team" => $team,
