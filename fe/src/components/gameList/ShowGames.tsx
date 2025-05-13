@@ -1,7 +1,18 @@
 // Create a new ShowGames component
 import React from 'react';
 
-const ShowGames = ({ games }) => {
+type Game = {
+    home: string;
+    away: string;
+    date: string;
+    time: string;
+};
+
+type ShowGamesProps = {
+    games: Game[];
+};
+
+const ShowGames: React.FC<ShowGamesProps> = ({ games }) => {
     const parseDate = (dateString: string, timeString: string): Date => {
         const [day, month, year] = dateString.split('/').map(Number);
         const [hours, minutes] = timeString.split(':').map(Number);
@@ -11,7 +22,7 @@ const ShowGames = ({ games }) => {
     const sortedGames = games.sort((a, b) => {
         const dateA = parseDate(a.date, a.time);
         const dateB = parseDate(b.date, b.time);
-        return dateA - dateB;
+        return dateA.getTime() - dateB.getTime();
     });
 
     return (

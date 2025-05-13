@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
 
-const Filters = ({ games, onFilter }) => {
-    const getUniqueTeams = (games) => {
-        const teams = new Set();
+type Game = {
+    home: string;
+    away: string;
+    date: string;
+    time: string;
+};
+
+type FiltersProps = {
+    games: Game[];
+    onFilter: (filteredGames: Game[]) => void;
+};
+
+const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
+    const getUniqueTeams = (games: Game[]): string[] => {
+        const teams = new Set<string>();
         games.forEach((game) => {
             teams.add(game.home);
             teams.add(game.away);
@@ -11,10 +23,10 @@ const Filters = ({ games, onFilter }) => {
     };
 
     const teamLabels = getUniqueTeams(games);
-    const [selectedTeams, setSelectedTeams] = useState([]);
-    const [selectedDate, setSelectedDate] = useState('');
+    const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
+    const [selectedDate, setSelectedDate] = useState<string>('');
 
-    const handleFilterClick = (team) => {
+    const handleFilterClick = (team: string) => {
         const updatedTeams = selectedTeams.includes(team)
             ? selectedTeams.filter((t) => t !== team)
             : [...selectedTeams, team];
@@ -30,7 +42,7 @@ const Filters = ({ games, onFilter }) => {
         onFilter(filteredGames);
     };
 
-    const handleDateChange = (event) => {
+    const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const date = event.target.value;
         setSelectedDate(date);
 
@@ -64,7 +76,6 @@ const Filters = ({ games, onFilter }) => {
                     </button>
                 ))}
             </div>
-            {/* <button className="submit">Submit</button> */}
         </div>
     );
 };

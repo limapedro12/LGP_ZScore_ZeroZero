@@ -7,6 +7,13 @@ import '../styles/gameList.scss';
 import Filters from '../components/gameList/Filters';
 import ShowGames from '../components/gameList/ShowGames';
 
+type Game = {
+    home: string;
+    away: string;
+    date: string;
+    time: string;
+};
+
 const GameList = () => {
     const games = [
         { date: '22/03/2025', time: '16:00', home: 'Vitória SC', away: 'Sporting CP' },
@@ -18,7 +25,7 @@ const GameList = () => {
 
     const [filteredGames, setFilteredGames] = useState(games);
 
-    const handleFilter = (filtered) => {
+    const handleFilter = (filtered: Game[]) => {
         setFilteredGames(filtered);
     };
 
