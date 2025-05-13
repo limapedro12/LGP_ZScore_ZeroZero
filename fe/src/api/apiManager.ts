@@ -173,7 +173,27 @@ class ApiManager {
         const response = await fetch(url, options);
 
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let errorPayload: any = { error: `API error: ${response.status} - ${response.statusText}` };
+            try {
+                const responseData = await response.json();
+                if (responseData && typeof responseData === 'object') {
+                    errorPayload = responseData; // Use backend's error structure
+                }
+            } catch (e) {
+                console.error('Failed to parse error response JSON:', e);
+            }
+
+            const error = new Error(errorPayload.error || `API error: ${response.status}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error as any).response = {
+                data: errorPayload,
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                config: options,
+            };
+            throw error;
         }
 
         return response.json();
