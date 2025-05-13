@@ -23,7 +23,7 @@ const Filters = ({ games, onFilter }) => {
 
         const filteredGames = games.filter((game) => {
             const matchesTeams = updatedTeams.every((team) => game.home === team || game.away === team);
-            const matchesDate = selectedDate ? game.date === selectedDate : true;
+            const matchesDate = selectedDate ? game.date.startsWith(selectedDate) : true;
             return matchesTeams && matchesDate;
         });
 
@@ -35,7 +35,7 @@ const Filters = ({ games, onFilter }) => {
         setSelectedDate(date);
 
         const filteredGames = games.filter((game) => {
-            const matchesDate = date ? game.date === date : true;
+            const matchesDate = date ? game.date.startsWith(date) : true;
             const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
             return matchesDate && matchesTeams;
         });
