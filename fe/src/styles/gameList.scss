@@ -1,5 +1,5 @@
 html, body {
-  background-color: #23323F; /* Replace with your desired background color */
+  background-color: #23323F; 
   margin: 0;
   padding: 0;
   height: 100%;
@@ -7,7 +7,7 @@ html, body {
 
 .scoreboard-container {
   display: grid;
-  grid-template-columns: 300px 1fr; /* Sidebar on the left, game-section on the right */
+  grid-template-columns: 300px 1fr; 
   height: 100vh;
   background-color: #23323F;
   color: white;
@@ -218,5 +218,19 @@ html, body {
 
   .filters {
     border-radius: 1vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .scoreboard-container {
+    grid-template-columns: 90vw;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .jogosTitle {
+    padding-top: 20px;
   }
 }
