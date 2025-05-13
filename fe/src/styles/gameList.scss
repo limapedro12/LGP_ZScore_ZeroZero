@@ -20,10 +20,16 @@ html, body {
 }
 
 .logo {
-  font-size: 24px;
   font-weight: bold;
-  text-align: left;
-  margin: 0px 10px 40px 10px;
+  font-size: 1.2rem;
+  color: white;
+  line-height: 1.5;
+  padding-left: 10px;
+}
+
+.jogosTitle {
+  padding-left: 30px;
+   whiteSpace: 'nowrap';
 }
 
 .filters {
@@ -49,12 +55,6 @@ html, body {
   border-radius: 15px;
   margin-bottom: 10px;
 }
-
-// .filters input[type="text"] {
-//   border: 1px solid #ccc; /* Add a light gray border */
-//   border-radius: 4px; /* Optional: Add rounded corners */
-//   padding: 8px; /* Optional: Add padding for better appearance */
-// }
 
 .filters input:focus {
   border-color: #23323F;
@@ -95,7 +95,6 @@ html, body {
 .games-section {
   flex-grow: 1;
   padding: 30px;
-  width: 50vw;
   height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
