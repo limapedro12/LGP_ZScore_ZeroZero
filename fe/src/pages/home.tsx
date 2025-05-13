@@ -11,6 +11,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
  *
  * @returns {React.FC} Home page component
  */
+
 const HomePage: React.FC = () => (
     <>
         <Navbar expand="lg" className="bg-body-tertiary">

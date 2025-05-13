@@ -12,7 +12,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $params = RequestUtils::getRequestParams();
 
 $requiredParams = ['placardId', 'sport', 'action'];
-$allowedActions = ['add', 'update', 'remove', 'get'];
+$allowedActions = ['create', 'update', 'delete', 'get'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -24,6 +24,22 @@ if ($validationError) {
 $placardId = $params['placardId'] ?? null;
 $action = $params['action'] ?? null;
 $sport = $params['sport'] ?? null;
+
+$gameConfig = new GameConfig();
+try {
+    $gameConfig = $gameConfig->getConfig($sport);
+} catch (Exception $e) {
+    http_response_code(400);
+    echo json_encode(["error" => $e->getMessage()]);
+    exit;
+}
+
+//check if sport uses a card system
+if(!isset($gameConfig['cards'])) {
+    http_response_code(400);
+    echo json_encode(["error" => "Sport does not use a card system."]);
+    exit;
+}
 
 $redis = RedistUtils::connect();
 if (!$redis) {
@@ -40,11 +56,8 @@ try {
     $gameCardsKey = $keys['game_cards'];
     $eventCounterKey = $keys['event_counter'];
 
-    $gameConfig = new GameConfig();
-    $gameConfig = $gameConfig->getConfig($sport);
-
     switch ($action) {
-        case 'add':
+        case 'create':
             if ($requestMethod !== 'POST') {
                 http_response_code(405);
                 $response = ["error" => "Invalid request method. Only POST is allowed for add action."];
@@ -59,7 +72,7 @@ try {
                 $response = ["error" => "Invalid card type"];
                 break;
             }
-            $timestamp = RequestUtils::getGameTimePosition($placardId);
+            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
             if (!$playerId || !$cardType || ($timestamp === null)) {
                 http_response_code(400);
@@ -67,7 +80,7 @@ try {
                 break;
             }
 
-            if(!CardValidationUtils::canAssignCard($redis, null, $placardId, $sport, (int)$playerId, $cardType)) {
+            if(!CardValidationUtils::canAssignCard($redis, null, $placardId, $sport, (int)$playerId, $cardType, $timestamp)) {
                 http_response_code(400);
                 $response = ["error" => "Cannot assign card to player according to game rules!"];
                 break;
@@ -102,11 +115,12 @@ try {
             break;
 
         case 'update':
-             if ($requestMethod !== 'POST') {
+            if ($requestMethod !== 'POST') {
                 http_response_code(405); 
                 $response = ["error" => "Invalid request method. Only POST is allowed for update action."];
                 break;
             }
+
             $eventId = $params['eventId'] ?? null;
             if (!$eventId) {
                 http_response_code(400);
@@ -129,8 +143,8 @@ try {
 
             if(isset($params['playerId'])){
                 //need to check if playerId exists, only possible when there is players data
-                if ($params['playerId'] != $currentCardData['playerId']) {
-                    $updatedData['playerId'] = $params['playerId'];
+                if ($params['new_playerId'] != $currentCardData['playerId']) {
+                    $updatedData['playerId'] = $params['new_playerId'];
                     $isChanged = true;
                 }
             }
@@ -141,12 +155,7 @@ try {
                     $response = ["error" => "Invalid card type"];
                     break;
                 }
-                $playerIdForValidation = $updatedData['playerId'] ?? $currentCardData['playerId'];
-                if(!CardValidationUtils::canAssignCard($redis, $eventId, $placardId, $sport, (int)$playerIdForValidation, $params['cardType'])) {
-                    http_response_code(400);
-                    $response = ["error" => "Cannot assign card to player according to game rules!"];
-                    break;
-                }
+                
                 if ($params['cardType'] != $currentCardData['cardType']) {
                     $updatedData['cardType'] = $params['cardType'];
                     $isChanged = true;
@@ -160,7 +169,16 @@ try {
                 }
             }
 
-            $providedUpdateParams = isset($params['playerId']) || isset($params['cardType']) || isset($params['timestamp']);
+            $playerIdForValidation = $updatedData['playerId'] ?? $currentCardData['playerId'];
+            $cardTypeForValidation = $updatedData['cardType'] ?? $currentCardData['cardType'];
+            $timestampForValidation = $updatedData['timestamp'] ?? $currentCardData['timestamp'];
+            if(!CardValidationUtils::canAssignCard($redis, (int)$eventId, $placardId, $sport, (int)$playerIdForValidation, $cardTypeForValidation, $timestampForValidation)) {
+                http_response_code(400);
+                $response = ["error" => "Cannot assign card to player according to game rules!"];
+                break;
+            }
+
+            $providedUpdateParams = isset($params['new_playerId']) || isset($params['new_cardType']) || isset($params['new_timestamp']);
 
             if (!$providedUpdateParams || !$isChanged) {
                 http_response_code(400);
@@ -192,7 +210,7 @@ try {
             }
             break;
 
-        case 'remove':
+        case 'delete':
              if ($requestMethod !== 'POST') {
                 http_response_code(405); 
                 $response = ["error" => "Invalid request method. Only POST is allowed for remove action."];
