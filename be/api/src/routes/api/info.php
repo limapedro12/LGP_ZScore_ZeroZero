@@ -53,7 +53,13 @@
 
     function getTeamInfo($placardId, $teamId)
     {
-        $teamInfo = DbUtils::selectTeam($teamId, 'futsal');
+        $apiurl = getenv('API_URL');
+        $appkey = getenv('APP_KEY');
+        session_start();
+        $cookie = $_SESSION['api_cookie'];
+        $teamLiveInfo = getTeamLive($apiurl, $appkey, $cookie, $placardId, $teamId);
+        $sport = insertTeamLive($teamLiveInfo);
+        $teamInfo = DbUtils::selectTeam($teamId, $sport);
         if ($teamInfo === false) {
             return json_encode(["error" => "Failed to get team info"]);
         }
