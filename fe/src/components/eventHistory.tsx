@@ -12,6 +12,7 @@ import apiManager, {
 import '../styles/eventHistory.scss';
 import Button from 'react-bootstrap/Button';
 import { formatTime } from '../utils/timeUtils'; // Import formatTime
+import { getEventIconPath, EventCategory } from '../utils/scorersTableUtils'; // Import utility and type
 
 type Sport = 'futsal' | 'basketball' | 'volleyball';
 
@@ -52,29 +53,37 @@ const EventHistory: React.FC = () => {
     const placardId = placardIdParam;
 
     const getEventIcon = useCallback((event: Event, currentSport: Sport): React.ReactNode => {
+        let category: EventCategory | undefined;
+
         switch (event.type) {
             case 'score':
-                if (currentSport === 'futsal') return '⚽'; // Futsal icon
-                if (currentSport === 'basketball') return '🏀'; // Basketball icon
-                if (currentSport === 'volleyball') return '🏐'; // Volleyball icon
-                return '🥅'; // Generic score icon
-            case 'card': {
-                const details = event.details as { cardType?: unknown };
-                const cardType = details && typeof details.cardType === 'string' ?
-                    details.cardType.toLowerCase() : '';
-                if (cardType === 'yellow') return <div className="card-display-icon yellow-card-icon">🟨</div>;
-                if (cardType === 'red') return <div className="card-display-icon red-card-icon">🟥</div>;
-                return <div className="card-display-icon">📇</div>;
-            }
+                if (currentSport === 'futsal') category = 'futsalScore';
+                else if (currentSport === 'basketball') category = 'basketballScore';
+                else if (currentSport === 'volleyball') category = 'volleyballScore';
+                break;
             case 'foul':
-                return '✋';
+                category = 'foul';
+                break;
+            case 'card':
+                category = 'card'; // This will use the generic card icon from scorersTableUtils
+                break;
             case 'timeout':
-                return '⏱️';
+                category = 'timeout';
+                break;
             case 'substitution':
-                return '🔄';
+                category = 'substitution';
+                break;
             default:
                 return null;
         }
+
+        if (category) {
+            const iconPath = getEventIconPath(category);
+            if (iconPath) {
+                return <img src={iconPath} alt={`${event.type} icon`} className="event-history-icon-img" />;
+            }
+        }
+        return null; // Fallback if no category or path found
     }, []);
 
     const normalizeEventData = useCallback((

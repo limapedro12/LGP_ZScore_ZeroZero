@@ -88,12 +88,18 @@
       }
 
       .event-icon-display {
-        font-size: 1.4rem; // Tamanho para emojis/ícones
+        font-size: 1.4rem; // This might be less relevant now
         min-width: 30px;
         text-align: center;
         display: flex;
         align-items: center;
         justify-content: center;
+
+        .event-history-icon-img {
+          width: 22px; // Adjust size as needed for visual consistency
+          height: 22px; // Adjust size as needed
+          object-fit: contain;
+        }
 
         // Estilos específicos para ícones de cartão, se necessário
         .card-display-icon {
