@@ -20,6 +20,11 @@ html, body {
   color: white;
   line-height: 1.5;
   padding-left: 10px;
+  padding-bottom: 10px;
+}
+
+.logo img {
+  width: 10vw;
 }
 
 .jogosTitle {
@@ -241,5 +246,10 @@ html, body {
 
   .jogosTitle {
     padding-top: 20px;
+  }
+
+  .logo img {
+    width: auto;
+    height: 10vh;
   }
 }
