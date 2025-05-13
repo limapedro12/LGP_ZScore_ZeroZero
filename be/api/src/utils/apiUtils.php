@@ -46,7 +46,10 @@ function login($apiurl, $appkey, $username, $password) {
     ];
 
     $response = sendPostRequest($url, $data);
-    
+    $result = json_decode($response, true);
+
+    session_start();
+    $_SESSION['api_cookie'] = $result['data']['Cookie'] ?? null;
     return $response;
 }
 
