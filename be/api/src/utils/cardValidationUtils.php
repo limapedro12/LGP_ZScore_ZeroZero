@@ -134,8 +134,8 @@ class CardValidationUtils {
                     'white' => 0,
                     'yellow' => 1, 
                     'red' => 2,
-                    'yellow_red_together' => 3, 
-                    'yellow_red_separately' => 4, 
+                    'yellowRedTogether' => 3, 
+                    'yellowRedSeparately' => 4, 
                 ];
             
                 $currentMaxLevel = -1; 
