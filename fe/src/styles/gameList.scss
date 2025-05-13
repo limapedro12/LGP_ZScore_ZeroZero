@@ -227,7 +227,7 @@ html, body {
 
 @media (max-width: 768px) {
   .scoreboard-container {
-    grid-template-columns: 90vw;
+    grid-template-columns: 90vw 1fr;
   }
 
   .filters {
