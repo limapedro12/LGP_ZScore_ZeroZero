@@ -5,7 +5,8 @@ interface EventDisplayProps {
   playerName?: string;
   playerNumber?: number;
   team: 'home' | 'away';
-  rightElement: ReactNode;
+  rightElement?: ReactNode;
+  compact?: boolean;
 }
 
 const EventDisplay: React.FC<EventDisplayProps> = ({
@@ -13,20 +14,35 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
     playerNumber,
     team,
     rightElement,
+    compact = false,
 }) => {
+    const homeColor = '#E83030';
+    const awayColor = '#008057';
+
+    const jerseyColor = team === 'home' ? homeColor : awayColor;
+
     const jerseyElement = (
         <>
             <div className="w-50 d-flex d-lg-none align-items-center justify-content-center">
-                <PlayerJersey number={playerNumber} />
+                <PlayerJersey number={playerNumber} color={jerseyColor} />
             </div>
             <div className="w-25 d-none d-lg-flex align-items-center justify-content-center">
-                <PlayerJersey number={playerNumber} />
+                <PlayerJersey number={playerNumber} color={jerseyColor} />
             </div>
         </>
     );
 
+    let justifyClass;
+    if (!compact) {
+        justifyClass = 'justify-content-center';
+    } else if (team === 'home') {
+        justifyClass = 'justify-content-start';
+    } else {
+        justifyClass = 'justify-content-end';
+    }
+
     const nameElement = playerName ? (
-        <div className="w-50 w-lg-25 d-flex align-items-center justify-content-center text-white">
+        <div className={`w-50 w-lg-25 d-flex align-items-center ${justifyClass} text-white`}>
             <span className="fw-bold small text-truncate">
                 {playerName}
             </span>

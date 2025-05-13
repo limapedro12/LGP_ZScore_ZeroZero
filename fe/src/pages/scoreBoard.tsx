@@ -78,7 +78,7 @@ const ScoreBoard = () => {
     );
 
     const containerClassName =
-        'scoreboard-container d-flex flex-column justify-content-start vh-100 p-0 overflow-y-auto overflow-md-y-hidden overflow-x-hidden';
+        'scoreboard-container d-flex flex-column vh-100 p-0';
 
     return (
         <Container
@@ -93,39 +93,39 @@ const ScoreBoard = () => {
             </Row>
 
             {/* The following show when the screen is big */}
-            <Row className="w-100 justify-content-center flex-grow-1 d-none d-md-flex">
+            <Row className="slider-content-row w-100 justify-content-center flex-grow-1 d-none d-md-flex overflow-hidden">
                 {/* HOME TEAM SLIDER */}
-                <Col xs={12} md={4} lg={4} className="ps-0">
+                <Col xs={12} md={4} lg={4} className="ps-0 h-100 overflow-hidden">
                     <Slider sport={sport} team="home" placardId={placardId} />
                 </Col>
 
                 {/* CENTRAL INFORMATION */}
-                <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center">
+                <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center h-100">
                     {Center}
                 </Col>
 
                 {/* AWAY TEAM SLIDER */}
-                <Col xs={12} md={4} lg={4} className="pe-0">
+                <Col xs={12} md={4} lg={4} className="pe-0 h-100 overflow-hidden">
                     <Slider sport={sport} team="away" placardId={placardId} />
                 </Col>
             </Row>
 
             {/* The following show when the screen is small */}
-            <Row className="w-100 justify-content-center flex-grow-1 d-flex d-md-none">
+            <Row className="w-100 justify-content-center flex-grow-1 d-flex d-md-none overflow-auto">
                 {/* CENTRAL INFORMATION */}
-                <Row>
-                    <Col xs={12} md={8} lg={6} className="d-flex flex-column align-items-center justify-content-center">
+                <Row className="w-100 m-0">
+                    <Col xs={12} className="d-flex flex-column align-items-center justify-content-center">
                         {Center}
                     </Col>
                 </Row>
-                <Row className="px-0 pt-2">
+                <Row className="w-100 px-0 pt-2 m-0">
                     {/* HOME TEAM SLIDER */}
-                    <Col className="ps-0">
+                    <Col className="ps-0 h-100 overflow-hidden">
                         <Slider sport={sport} team="home" placardId={placardId} />
                     </Col>
 
                     {/* AWAY TEAM SLIDER */}
-                    <Col className="pe-0">
+                    <Col className="pe-0 h-100 overflow-hidden">
                         <Slider sport={sport} team="away" placardId={placardId} />
                     </Col>
                 </Row>

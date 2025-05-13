@@ -9,15 +9,15 @@ interface BaseSliderProps {
 
 const BaseSlider: React.FC<BaseSliderProps> = ({ title, children, className = '' }) => (
     <Container fluid className={`slider-component d-flex flex-column h-100 mt-2 ${className}`}>
-        <Row className="slider-title-row mb-3">
+        <Row className="slider-title-row mb-2">
             <Col className="text-center">
                 <h3 className="slider-title m-0">
                     {title}
                 </h3>
             </Col>
         </Row>
-        <Row className="flex-grow-1">
-            <Col className="d-flex flex-column align-items-center justify-content-start">
+        <Row className="flex-grow-1 overflow-hidden">
+            <Col className="d-flex flex-column align-items-center justify-content-start overflow-auto">
                 <div className="content-container w-100">
                     {children}
                 </div>

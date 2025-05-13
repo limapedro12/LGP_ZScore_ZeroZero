@@ -160,6 +160,9 @@ try {
                 }
             }
 
+            $gameTimePosition = RequestUtils::getGameTimePosition($placardId);
+
+
             $pointData = [
                 'eventId' => $eventId,
                 'placardId' => $placardId,
@@ -167,7 +170,8 @@ try {
                 'playerId' => $playerId,
                 'period' => $currentPeriod,
                 'pointValue' => $pointValue,
-                'periodTotalPoints' => $currentSetTotalPoints
+                'periodTotalPoints' => $currentSetTotalPoints,
+                'timeSpan' => $gameTimePosition
             ];
 
             $redis->multi();
