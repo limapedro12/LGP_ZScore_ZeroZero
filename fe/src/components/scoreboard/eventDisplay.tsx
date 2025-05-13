@@ -24,24 +24,15 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
     let isCompact = compact;
 
     if (small) {
-        console.log('small');
         isCompact = false;
     }
 
 
     const jerseyColor = team === 'home' ? homeColor : awayColor;
 
-    const jerseyElement = small ? (
+    const jerseyElement = (
         <div className="w-25 d-flex align-items-center justify-content-center">
-            {playerNumber && playerNumber > 0 && (
-                <span className="fw-bold text-white fs-5">
-                    {playerNumber}
-                </span>
-            )}
-        </div>
-    ) : (
-        <div className="w-25 d-flex align-items-center justify-content-center">
-            <PlayerJersey number={playerNumber} color={jerseyColor} />
+            <PlayerJersey number={playerNumber} color={jerseyColor} hideIcon={small} />
         </div>
     );
 
@@ -82,7 +73,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
     );
 
     return (
-        <div className="d-flex align-items-center w-100 justify-content-between" style={{ gap: '0.5rem' }}>
+        <div className={`d-flex align-items-center w-100 ${team === 'home' ? 'justify-content-start' : 'justify-content-end'}`}>
             {team === 'home' ? (
                 <>
                     {jerseyElement}
