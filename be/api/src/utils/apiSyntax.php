@@ -24,14 +24,20 @@
             foreach ($placards as $placard)
             {
                 $placardId = $placard['jogo_id'];
-                $placardIds[] = [$placardId => $sport];
-
-                if (DbUtils::selectPlacard($placardId, $sport)) {
-                    continue; // Match already exists, skip to next
-                }
-
                 $team1 = $placard['equipa_casa_id'];
                 $team2 = $placard['equipa_fora_id'];
+
+                $placardIds[] = [$placardId => $sport];
+                $queryResult = DbUtils::selectPlacard($placardId, $sport);
+                if ($queryResult) {
+                    $firstTeam = $queryResult['firstTeamId'];
+                    $secondTeam = $queryResult['secondTeamId'];
+                    if ($firstTeam == $team1 && $secondTeam == $team2) {
+                        continue; // Placard already exists, skip to next
+                    }
+                    $updateFlag = true;   
+                }
+
                 $team1Desc = $placard['equipa_casa_descr'];
                 $team2Desc = $placard['equipa_fora_descr'];
                 $isFinished = $placard['estado'] == 'NÃ£o terminado' ?  0 : 1;
@@ -66,6 +72,13 @@
                         echo json_encode(["error" => "Failed to insert team: $team2 - $placardId"]);
                         return false; // Insert failed
                     }
+                }
+                if (isset($updateFlag) && $updateFlag) {
+                    if (!DbUtils::updatePlacard($placardId, $team1, $team2, $isFinished, $sport)) {
+                        echo json_encode(["error" => "Failed to update placard: $placardId"]);
+                        return false; // Update failed
+                    }
+                    continue; // Skip to next placard
                 }
                 if (!DbUtils::insertPlacard($placardId, $team1, $team2, $isFinished, $sport)) {
                     echo json_encode(["error" => "Failed to insert placard: $placardId"]);

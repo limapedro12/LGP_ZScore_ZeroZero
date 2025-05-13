@@ -2,7 +2,7 @@
     Class DbUtils {
         public static function connect() {
             $host = getenv('DB_HOST');
-            $user = 'user';
+            $user = getenv('DB_USER');
             $password = getenv('DB_PASSWORD');
             $db = getenv('DB_NAME');
 
@@ -124,6 +124,30 @@
 
             return $results;
 
+        }
+
+        public static function updatePlacard($placardId, $team1, $team2, $isFinished, $sport)
+        {
+            if ($sport !== 'futsal' && $sport !== 'voleibol') {
+                return true; // Invalid sport
+            }
+
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return false;
+            }
+
+            $stmt = $conn->prepare("UPDATE AbstractPlacard SET firstTeamId = ?, secondTeamId = ?, isFinished = ? WHERE id = ? AND sport = ?");
+            $stmt->bind_param("iiiss", $team1, $team2, $isFinished, $placardId, $sport);
+            if ($stmt->execute()) {
+                $stmt->close();
+                $conn->close();
+                return true; // Update successful
+            } else {
+                $stmt->close();
+                $conn->close();
+                return false; // Update failed
+            }
         }
         
 
