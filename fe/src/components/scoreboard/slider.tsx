@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import CardSlider from './cards/cardSlider';
-import ScoreHistorySlider from './scores/scoreHistorySlider';
-import PlayerScoreSlider from './scores/playerScoreSlider';
+// import ScoreHistorySlider from './scores/scoreHistorySlider';
+// import PlayerScoreSlider from './scores/playerScoreSlider';
+import SquadSlider from './scores/squadSlider';
 import { Sport } from '../../utils/cardUtils';
 
 interface SliderProps {
@@ -13,8 +14,9 @@ interface SliderProps {
 const Slider: React.FC<SliderProps> = ({ sport, placardId, team }) => {
     const sliderItems: React.ReactNode[] = [
         <CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />,
-        <ScoreHistorySlider sport={sport} team={team} placardId={placardId} key="score-history-item" />,
-        <PlayerScoreSlider sport={sport} team={team} placardId={placardId} key="player-score-item" />,
+        // <ScoreHistorySlider sport={sport} team={team} placardId={placardId} key="score-history-item" />,
+        // <PlayerScoreSlider sport={sport} team={team} placardId={placardId} key="player-score-item" />,
+        <SquadSlider team={team} key="squad-slider-item" />,
     ];
 
     const [currentSliderIndex, setCurrentSliderIndex] = useState(0);
