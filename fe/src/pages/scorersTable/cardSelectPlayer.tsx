@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Image } from 'react-bootstrap';
+import { Container, Row, Col, Button, Image, Alert } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import PlayerButton from '../../components/scorersTable/playerButton';
@@ -58,7 +58,7 @@ const CardSelectPlayerPage: React.FC = () => {
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
     const [teamLogo, setTeamLogo] = useState<string>(defaultTeamLogo);
     const [actionParams, setActionParams] = useState<AssignCardActionParams | null>(null);
-
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         // TODO: Fetch players for the teamTag and sport
@@ -102,6 +102,7 @@ const CardSelectPlayerPage: React.FC = () => {
             console.error('Missing information for submitting card event');
             return;
         }
+        setErrorMessage(null);
 
         const actionConfig = playerAssignmentActions.assignCard; // Directly use assignCard
         if (!actionConfig) {
@@ -127,9 +128,18 @@ const CardSelectPlayerPage: React.FC = () => {
                 navigate(`/scorersTable/${sport}/${placardId}`);
             } else {
                 console.error(`API method ${apiMethod} not found on apiManager.`);
+                setErrorMessage(`Client error: API method ${apiMethod} not found.`);
             }
-        } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
             console.error('Failed to create card event:', error);
+            if (error.response && error.response.data && error.response.data.error) {
+                setErrorMessage(`Error: ${error.response.data.error}`);
+            } else if (error.message) {
+                setErrorMessage(`Error: ${error.message}`);
+            } else {
+                setErrorMessage('Failed to create card event. An unknown error occurred.');
+            }
         }
     };
 
@@ -143,6 +153,16 @@ const CardSelectPlayerPage: React.FC = () => {
 
     return (
         <Container fluid style={pageStyle} className="text-white d-flex flex-column p-0 vh-100">
+            {errorMessage && (
+                <Alert
+                    variant="danger"
+                    onClose={() => setErrorMessage(null)}
+                    dismissible
+                    className="position-absolute top-0 start-50 translate-middle-x mt-3 text-center"
+                >
+                    {errorMessage}
+                </Alert>
+            )}
             <Row className="w-100 gx-0 px-3 pt-3 pb-3 align-items-center flex-shrink-0">
                 <Col xs="auto">
                     <Button variant="link" onClick={handleGoBack} className="p-0 me-2">
@@ -151,7 +171,7 @@ const CardSelectPlayerPage: React.FC = () => {
                 </Col>
                 <div className="d-flex align-items-center justify-content-center flex-grow-1">
                     <Image src={teamLogo} alt="Team Logo" style={{ height: '50px' }} className="me-3" />
-                    <h1 className="fs-4 fw-bold mb-0">Selecionar Jogador para Cartão</h1>
+                    <h1 className="fs-4 fw-bold mb-0">Selecionar Jogador</h1>
                 </div>
                 <Col xs="auto" style={{ visibility: 'hidden' }}>
                     <ArrowLeft color="white" size={30} />
@@ -193,7 +213,7 @@ const CardSelectPlayerPage: React.FC = () => {
                         disabled={!selectedPlayerId || !actionParams}
                         className="rounded-pill px-4 py-2 fs-5 fw-bold text-dark"
                     >
-                        Submeter Cartão
+                        Submeter
                     </Button>
                 </div>
             </Row>
