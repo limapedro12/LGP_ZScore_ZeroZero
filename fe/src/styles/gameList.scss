@@ -131,7 +131,7 @@ html, body {
 
 .vs {
   font-weight: bold;
-  font-size: 1vw;
+  font-size: 1rem;
   margin: 5px 0;
   text-align: center;
 }
@@ -196,6 +196,10 @@ html, body {
     font-size: 1vw;
   }
 
+  .vs {
+    font-size: 1vw;
+  }
+
   .team-logo {
     border-radius: 50%;
   }
@@ -224,6 +228,11 @@ html, body {
 @media (max-width: 768px) {
   .scoreboard-container {
     grid-template-columns: 90vw;
+  }
+
+  .filters {
+    width: 100%;
+    height: auto;
   }
 
   .sidebar {
