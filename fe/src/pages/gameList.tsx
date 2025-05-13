@@ -22,16 +22,25 @@ const GameList = () => {
         setFilteredGames(filtered);
     };
 
+    const logo = (
+        <div className="logo text-white">
+            <strong>LOGO</strong>
+            <br />
+            <span>ZScore</span>
+        </div>
+    );
+
+    const jogosTitle = (
+        <h1 className="mb-0 text-white jogosTitle">
+            Os seus jogos
+        </h1>
+    );
+
     return (
         <Container fluid className="scoreboard-container p-4">
-            {/* Top Section: Logo | Filters | Title */}
-            <Row className="mb-4 align-items-start">
+            <Row className="mb-4 align-items-start d-none d-md-flex">
                 <Col xs={4}>
-                    <div className="logo text-white">
-                        <strong>LOGO</strong>
-                        <br />
-                        <span>ZScore</span>
-                    </div>
+                    {logo}
                 </Col>
 
                 <Col xs={4}>
@@ -40,16 +49,28 @@ const GameList = () => {
 
             </Row>
 
-
-            {/* Game Display Section */}
-            <Row>
+            <Row className="mb-4 align-items-start d-none d-md-flex">
                 <Col xs={6}>
-                    <h1 className="mb-0 text-white jogosTitle">
-                        Os seus jogos
-                    </h1>
+                    {jogosTitle}
                 </Col>
 
                 <Col xs={{ span: 10, offset: 2 }}>
+                    <ShowGames games={filteredGames} />
+                </Col>
+            </Row>
+
+            {/* Mobile */}
+            <Row className="mb-4 align-items-start d-md-none">
+                <Col xs={12}>
+                    {logo}
+                </Col>
+                <Col xs={12}>
+                    <Filters games={games} onFilter={handleFilter} />
+                </Col>
+                <Col xs={12}>
+                    {jogosTitle}
+                </Col>
+                <Col xs={12}>
                     <ShowGames games={filteredGames} />
                 </Col>
             </Row>

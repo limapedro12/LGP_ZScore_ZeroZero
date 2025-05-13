@@ -14,11 +14,6 @@ html, body {
   font-family: sans-serif;
 }
 
-.sidebar {
-  width: 300px;
-  margin: 15px;
-}
-
 .logo {
   font-weight: bold;
   font-size: 1.2rem;
@@ -29,7 +24,8 @@ html, body {
 
 .jogosTitle {
   padding-left: 30px;
-   whiteSpace: 'nowrap';
+  font-size: 2rem;
+  whiteSpace: 'nowrap';
 }
 
 .filters {
@@ -123,8 +119,8 @@ html, body {
 }
 
 .team-logo {
-  width: 50px;
-  height: 50px;
+  width: 5vw;
+  height: 5vw;
   background-color: #ccc;
   display: flex;
   align-items: center;
@@ -135,7 +131,7 @@ html, body {
 
 .vs {
   font-weight: bold;
-  font-size: 18px;
+  font-size: 1vw;
   margin: 5px 0;
   text-align: center;
 }
@@ -163,4 +159,64 @@ html, body {
 .right {
   margin-left: auto;
   text-align: right;
+}
+
+.sidebar {
+  width: 300px;
+  margin: 15px;
+}
+
+@media (min-width: 2000px) {
+  .scoreboard-container {
+    display: grid;
+    grid-template-columns: 20vw 1fr; 
+  }
+
+  .sidebar {
+    width: 20vw;
+  }
+
+  .logo {
+    font-size: 1.2vw;
+  }
+
+  .filters h2 {
+    font-size: 1.5vw;
+  }
+
+  .games-section h1 {
+    font-size: 2vw;
+  }
+
+  .jogosTitle {
+    font-size: 2vw;
+  }
+
+  .scoreboard-container {
+    font-size: 1vw;
+  }
+
+  .team-logo {
+    border-radius: 50%;
+  }
+
+  .game-card {
+    border-radius: 1vw;
+  }
+  
+  .teams button {
+    border-radius: 0.5vw;
+  }
+
+  .submit {
+    border-radius: 0.5vw;
+  }
+
+  .filters input {
+    border-radius: 1vw;
+  }
+
+  .filters {
+    border-radius: 1vw;
+  }
 }
