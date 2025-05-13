@@ -68,12 +68,13 @@ interface RequestParams {
 }
 
 interface ApiParams {
-    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
+    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive' | 'getTeamPlayers';
     username?: string;
     password?: string;
     cookie?: string;
     placardId?: string;
     teamId?: string;
+    [key: string]: string | undefined;
 }
 
 interface UpdateCardParams {
@@ -198,22 +199,44 @@ class ApiManager {
         return response.json();
     };
 
-    ApiRequest = (params: ApiParams) => {
+    ApiRequest = (params: ApiParams, method: 'GET' | 'POST' = 'POST') => {
         const url = `${BASE_URL}${ENDPOINTS.API()}`;
-        const options: RequestInit = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(params),
-        };
 
-        return fetch(url, options).then((response) => {
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-            return response.json();
-        });
+        if (method === 'GET') {
+            // Convert params to URL query parameters
+            const queryParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined) {
+                    queryParams.append(key, value);
+                }
+            });
+
+            return fetch(`${url}?${queryParams.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then((response) => {
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                return response.json();
+            });
+        } else {
+            // Use POST method with JSON body
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            }).then((response) => {
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                return response.json();
+            });
+        }
     };
 
     startTimer = (placardId: string, sport: string) =>
@@ -254,14 +277,21 @@ class ApiManager {
 
     resetTimeouts = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'reset', { placardId, sport });
+
     login = (username: string, password: string) =>
         this.ApiRequest({ action: 'login', username: username, password: password });
+
+    getTeamPlayers = () =>
+        this.ApiRequest({ action: 'getTeamPlayers' }, 'GET');
 
     getScores = (placardId: string, sport: string) =>
         this.makeRequest<ScoreResponse>('score', 'gameStatus', { placardId, sport }, 'GET');
 
     getScoreHistory = (placardId: string, sport: string) =>
         this.makeRequest<ScoreHistoryResponse>('score', 'get', { placardId, sport }, 'GET');
+
+    createScoreEvent = (placardId: string, sport: string, team: TeamType, playerId: string, pointValue: number) =>
+        this.makeRequest<ScoreResponse>('score', 'create', { placardId, sport, team, playerId, pointValue });
 
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');

@@ -1,3 +1,5 @@
+import apiManager from '../api/apiManager';
+
 export type EventCategory =   'basketballScore'
                             | 'volleyballScore'
                             | 'futsalScore'
@@ -58,7 +60,15 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Golo',
             eventCategory: 'futsalScore',
-            onEventAction: (teamTag) => console.log(`Futsal Golo - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'futsalScore' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for futsal score event');
+                }
+            },
         },
         {
             eventName: 'Falta',
@@ -79,14 +89,28 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Tempo',
             eventCategory: 'timeout',
-            onEventAction: (teamTag) => console.log(`Futsal Tempo - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startTimeout(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
         },
     ],
     volleyball: [
         {
             eventName: 'Ponto',
             eventCategory: 'volleyballScore',
-            onEventAction: (teamTag) => console.log(`Volleyball Ponto - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'volleyballScore' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for volleyball score event');
+                }
+            },
         },
         {
             eventName: 'Substituição',
@@ -107,14 +131,28 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Tempo',
             eventCategory: 'timeout',
-            onEventAction: (teamTag) => console.log(`Volleyball Tempo - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startTimeout(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
         },
     ],
     basketball: [
         {
             eventName: 'Cesto',
             eventCategory: 'basketballScore',
-            onEventAction: (teamTag) => console.log(`Basketball Cesto - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/pointValueSelection/${teamTag}`, {
+                        state: { eventCategory: 'basketballScore' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for basketball score event');
+                }
+            },
         },
         {
             eventName: 'Falta',
@@ -124,7 +162,13 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Tempo',
             eventCategory: 'timeout',
-            onEventAction: (teamTag) => console.log(`Basketball Tempo - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startTimeout(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
         },
         {
             eventName: 'Posse',
