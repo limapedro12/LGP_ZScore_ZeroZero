@@ -1,4 +1,5 @@
 import config from '../config/config';
+import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
@@ -6,11 +7,22 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' | 'gameStatus' | 'create' | 'update' | 'delete' | 'noTimer';
+type ActionType =
+    | 'start'
+    | 'pause'
+    | 'reset'
+    | 'adjust'
+    | 'set'
+    | 'status'
+    | 'get'
+    | 'gameStatus'
+    | 'create'
+    | 'update'
+    | 'delete'
+    | 'noTimer';
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'substitution' | 'score' | 'sports';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
-type TeamType = 'home' | 'away';
 
 
 interface PeriodScore {
@@ -48,8 +60,8 @@ interface UpdateCardParams {
     placardId: string;
     sport: string;
     eventId: string;
-    playerId?: string; 
-    cardType?: string; 
+    playerId?: string;
+    cardType?: string;
     timestamp?: number;
     [key: string]: string | number | undefined;
 }
@@ -66,11 +78,11 @@ interface TimerResponse {
 interface TimeoutResponse {
     message?: string;
     status?: 'running' | 'paused' | 'inactive';
-    team?: TeamType;
+    team?: TeamTag;
     remaining_time?: number;
     timer?: {
         status: 'running' | 'paused' | 'inactive';
-        team: TeamType;
+        team: TeamTag;
         remaining_time: number;
     };
     homeTimeoutsUsed?: number;
@@ -79,7 +91,7 @@ interface TimeoutResponse {
     event?: {
         eventId: number;
         placardId: string;
-        team: TeamType | null;
+        team: TeamTag | null;
         homeTimeoutsUsed: number;
         awayTimeoutsUsed: number;
         totalTimeoutsPerTeam: number;
@@ -87,7 +99,7 @@ interface TimeoutResponse {
     events?: Array<{
         eventId: string;
         placardId: string;
-        team: TeamType | null;
+        team: TeamTag | null;
         homeTimeoutsUsed: string;
         awayTimeoutsUsed: string;
         totalTimeoutsPerTeam: string;
@@ -102,6 +114,7 @@ interface CardsResponse {
         placardId: string;
         playerId: string;
         cardType: string;
+        team: 'home' | 'away';
         timestamp: number;
     }>;
 }
@@ -184,7 +197,27 @@ class ApiManager {
         const response = await fetch(url, options);
 
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let errorPayload: any = { error: `API error: ${response.status} - ${response.statusText}` };
+            try {
+                const responseData = await response.json();
+                if (responseData && typeof responseData === 'object') {
+                    errorPayload = responseData; // Use backend's error structure
+                }
+            } catch (e) {
+                console.error('Failed to parse error response JSON:', e);
+            }
+
+            const error = new Error(errorPayload.error || `API error: ${response.status}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error as any).response = {
+                data: errorPayload,
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                config: options,
+            };
+            throw error;
         }
 
         return response.json();
@@ -226,7 +259,7 @@ class ApiManager {
     setTimer = (placardId: string, sport: string, time: number, period: number) =>
         this.makeRequest<TimerResponse>('timer', 'set', { placardId, sport, time, period });
 
-    startTimeout = (placardId: string, sport: string, team: TeamType) =>
+    startTimeout = (placardId: string, sport: string, team: TeamTag) =>
         this.makeRequest<TimeoutResponse>('timeout', 'start', { placardId, sport, team });
 
     pauseTimeout = (placardId: string, sport: string) =>
@@ -235,7 +268,7 @@ class ApiManager {
     getTimeoutStatus = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'status', { placardId, sport }, 'GET');
 
-    adjustTimeout = (placardId: string, sport: string, team: TeamType, amount: number) =>
+    adjustTimeout = (placardId: string, sport: string, team: TeamTag, amount: number) =>
         this.makeRequest<TimeoutResponse>('timeout', 'adjust', { placardId, sport, team, amount });
 
     getTimeoutEvents = (placardId: string, sport: string) =>
@@ -278,11 +311,11 @@ class ApiManager {
     deleteCard = (placardId: string, sport: string, eventId: string) =>
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });
 
-    updateCard = (params: UpdateCardParams) =>{
+    updateCard = (params: UpdateCardParams) => {
         const filteredParams: RequestParams = {
             placardId: params.placardId,
             sport: params.sport,
-            eventId: params.eventId 
+            eventId: params.eventId,
         };
 
         if (params.playerId !== undefined) {
@@ -296,8 +329,8 @@ class ApiManager {
         }
 
         return this.makeRequest<CardsResponse>('cards', 'update', filteredParams);
-    }
-    
+    };
+
     getNonTimerSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
 }

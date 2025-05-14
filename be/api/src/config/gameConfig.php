@@ -26,7 +26,7 @@ class GameConfig {
             'timeoutDuration' => 30,
             'timeoutsPerTeam' => 2,
             'timeoutsPerPeriod' => 2,
-            'cards' => ['white', 'yellow', 'red', 'yellow_red_together', 'yellow_red_separately'],
+            'cards' => ['white', 'yellow', 'red', 'yellowRedTogether', 'yellowRedSeparately'],
             'points' => 1,
             'periodEndScore' => 25,
             'pointDifference' => 2,
