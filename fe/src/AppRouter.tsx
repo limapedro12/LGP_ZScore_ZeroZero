@@ -1,4 +1,4 @@
-// AppRouter.tsx
+// ...existing code...
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import config from './config/config';
@@ -7,7 +7,9 @@ import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
 import ScorersTable from './pages/scorersTable/scorersTable';
 import SelectCardPage from './pages/scorersTable/selectCard';
-import CardSelectPlayerPage from './pages/scorersTable/cardSelectPlayer';
+import PlayerSelectionPage from './pages/scorersTable/playerSelection';
+import PointValueSelection from './pages/scorersTable/pointValueSelection';
+// Remove import for CardSelectPlayerPage since we're not using it anymore
 
 /**
  * AppRouter component
@@ -22,14 +24,9 @@ const AppRouter = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
             <Route path="/scorersTable/:sport/:placardId" element={<ScorersTable />} />
-            <Route
-                path="/scorersTable/:sport/:placardId/selectCard/:teamTag"
-                element={<SelectCardPage />}
-            />
-            <Route
-                path="/scorersTable/:sport/:placardId/selectCard/:teamTag/:cardType/cardSelectPlayer"
-                element={<CardSelectPlayerPage />}
-            />
+            <Route path="/scorersTable/:sport/:placardId/selectCard/:teamTag" element={<SelectCardPage />} />
+            <Route path="/scorersTable/:sport/:placardId/playerSelection/:teamTag" element={<PlayerSelectionPage />} />
+            <Route path="/scorersTable/:sport/:placardId/pointValueSelection/:teamTag" element={<PointValueSelection />} />
         </Routes>
     </BrowserRouter>
 );

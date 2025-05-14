@@ -88,6 +88,7 @@ class RequestUtils {
                     'away_points' => $prefix . 'away_points',
                     'total_game_points' => $prefix . 'total_game_points',
                     'set_points' => $prefix . 'set_points:',
+                    'current_server' => $prefix . 'current_server',
                 ];
             case 'fouls':
                 return [

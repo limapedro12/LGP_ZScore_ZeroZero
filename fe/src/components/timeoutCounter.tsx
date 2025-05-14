@@ -46,7 +46,7 @@ const TimeoutCounter: React.FC = () => {
     const isVertical = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
 
     return (
-        <div className="timeout-counter w-100 d-flex justify-content-center mt-3">
+        <div className="timeout-counter w-100 d-flex justify-content-center">
             <BoxCounter
                 label="TO"
                 homeCount={teamsTimeouts.home}

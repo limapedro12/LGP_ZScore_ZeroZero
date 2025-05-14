@@ -13,58 +13,43 @@ interface EventInputProps {
 const EventInput: React.FC<EventInputProps> = ({
     eventName,
     eventCategory,
-    onEventAction, // Changed
+    onEventAction,
     leftButtonDisabled = false,
     rightButtonDisabled = false,
 }) => {
     const iconPath = getEventIconPath(eventCategory);
-
-    const buttonClasses = `rounded-circle border border-2 border-dark d-flex 
-    align-items-center justify-content-center p-2`;
-
-
-    const iconStyle: React.CSSProperties = {
-        maxHeight: '28px',
-        maxWidth: '28px',
-        minHeight: '28px',
-        minWidth: '28px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    };
 
     return (
         <div className="event-input-container d-flex align-items-center justify-content-between my-2 py-2 px-3 w-100">
             <Button
                 variant="light"
                 onClick={() => onEventAction('home')}
-                className={buttonClasses}
+                className="event-button rounded-circle"
                 disabled={leftButtonDisabled}
                 aria-label={`${eventName} home team action`}
             >
                 {iconPath ? (
-                    <Image src={iconPath} alt="" fluid style={iconStyle} />
+                    <Image src={iconPath} alt="" className="event-icon" />
                 ) : (
-                    <span className="fw-bold fs-6" style={iconStyle}>&lt;</span>
+                    <span className="fw-bold fs-6">&lt;</span>
                 )}
             </Button>
 
-            <span className="event-name text-white mx-3 fs-5 text-center flex-grow-1 fw-bold">
+            <span className="event-name text-white fs-5 text-center flex-grow-1 fw-bold">
                 {eventName}
             </span>
 
             <Button
                 variant="light"
                 onClick={() => onEventAction('away')}
-                className={buttonClasses}
+                className="event-button rounded-circle"
                 disabled={rightButtonDisabled}
                 aria-label={`${eventName} away team action`}
             >
                 {iconPath ? (
-                    <Image src={iconPath} alt="" fluid style={iconStyle} />
+                    <Image src={iconPath} alt="" className="event-icon" />
                 ) : (
-                    // Fallback text
-                    <span className="fw-bold fs-6" style={iconStyle}>&gt;</span>
+                    <span className="fw-bold fs-6">&gt;</span>
                 )}
             </Button>
         </div>

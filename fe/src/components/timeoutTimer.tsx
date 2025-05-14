@@ -4,7 +4,11 @@ import apiManager from '../api/apiManager';
 import { formatTime } from '../utils/timeUtils';
 import '../styles/timeoutTimer.scss';
 
-const TimeoutTimer: React.FC = () => {
+interface TimeoutTimerProps {
+    onStatusChange?: (status: string) => void;
+}
+
+const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange }) => {
     const [elapsedTime, setElapsedTime] = useState(0);
     const [status, setStatus] = useState('default');
     const [placardId, setplacardId] = useState<string>('default');
@@ -19,7 +23,6 @@ const TimeoutTimer: React.FC = () => {
     }, [urlplacardId, urlsport]);
 
     const fetchTimerStatus = React.useCallback(async () => {
-
         if (!placardId || !sport || placardId === 'default' || sport === 'default') {
             return;
         }
@@ -31,11 +34,15 @@ const TimeoutTimer: React.FC = () => {
                 setElapsedTime(data.remaining_time);
                 setStatus(data.status || 'default');
                 setTeam(data.team || '');
+
+                if (onStatusChange) {
+                    onStatusChange(data.status || 'default');
+                }
             }
         } catch (error) {
             console.error('Error fetching timer status:', error);
         }
-    }, [placardId, sport]);
+    }, [placardId, sport, onStatusChange]);
 
     useEffect(() => {
         if (placardId && sport && placardId !== 'default' && sport !== 'default') {

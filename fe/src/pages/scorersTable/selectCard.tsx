@@ -32,10 +32,12 @@ const SelectCardPage = () => {
 
     const handleSelectPlayer = () => {
         if (selectedCardType && sport && placardId && teamTag) {
-
-            console.log(`Card selected: ${selectedCardType}, Sport: ${sport}, Team: ${teamTag}, PlacardID: 
-                ${placardId}. Proceed to player selection.`);
-            navigate(`/scorersTable/${sport}/${placardId}/selectCard/${teamTag}/${selectedCardType}/cardSelectPlayer`);
+            navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                state: {
+                    eventCategory: 'card',
+                    cardType: selectedCardType,
+                },
+            });
         } else {
             console.warn('Cannot proceed to player selection. Missing details.');
         }

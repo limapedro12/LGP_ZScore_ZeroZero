@@ -1,0 +1,51 @@
+.scorers-table-container {
+  background-color: #2c3e50;
+}
+
+.text-white {
+  color: #fff
+}
+
+.event-button {
+  width: clamp(2.5rem, 25%, 5rem);
+  height: auto;
+  flex: 0 0 auto;
+  
+  border: 2px solid #212529 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  
+  &.rounded-circle {
+    aspect-ratio: 1/1;
+    border-radius: 50% !important;
+  }
+  
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 
+}
+
+.event-icon {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.event-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 0.5rem;
+  font-size: clamp(1.2rem, 3vw, 2rem) !important;
+  white-space: nowrap;
+}
+
+.central-console-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}

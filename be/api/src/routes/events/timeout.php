@@ -95,18 +95,21 @@ try {
 
     function createTimeoutEvent($homeTimeoutsUsed, $awayTimeoutsUsed, $team = null) {
         global $redis, $keys, $placardId, $totalTimeoutsPerTeam, $gameConfig;
-
+    
+        $timerKeys = RequestUtils::getRedisKeys($placardId, 'timer');
+        $currentPeriod = intval($redis->get($timerKeys['period']) ?: 1);
+        
         $eventId = $redis->incr($keys['event_counter']);
         $timeoutEventKeys = $keys['timeout_event'] . $eventId;
-        $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
-
-        
+        $gameTimePosition = RequestUtils::getGameTimePosition($placardId);
+    
         $timeoutData = [
             'eventId' => $eventId,
             'placardId' => $placardId,
             'team' => $team,
             'teamTimeoutsUsed' => $team === 'home' ? $homeTimeoutsUsed : $awayTimeoutsUsed,
-            'timeSpan' => $gameTimePosition
+            'timeSpan' => $gameTimePosition,
+            'period' => $currentPeriod
         ];
         
         $redis->multi();
@@ -131,10 +134,38 @@ try {
     }
 
     function checkTimeoutsLimit($team, $amount = 1) {
-        global $redis, $homeTimeoutsUsed, $awayTimeoutsUsed, $totalTimeoutsPerTeam;
+        global $redis, $homeTimeoutsUsed, $awayTimeoutsUsed, $totalTimeoutsPerTeam, $gameConfig, $keys, $placardId;
         
-        $timeoutsUsed = $team === 'home' ? $homeTimeoutsUsed : $awayTimeoutsUsed;
-        return ($timeoutsUsed + $amount) <= $totalTimeoutsPerTeam;
+        $timerKeys = RequestUtils::getRedisKeys($placardId, 'timer');
+        $currentPeriod = intval($redis->get($timerKeys['period']) ?: 1);
+        
+        if (isset($gameConfig['timeoutsPerPeriod'])) {
+            $timeoutsUsedInPeriod = countTeamTimeoutsInPeriod($team, $currentPeriod);
+            return ($timeoutsUsedInPeriod + $amount) <= $gameConfig['timeoutsPerPeriod'];
+        } else {
+            $timeoutsUsed = $team === 'home' ? $homeTimeoutsUsed : $awayTimeoutsUsed;
+            return ($timeoutsUsed + $amount) <= $totalTimeoutsPerTeam;
+        }
+    }
+
+    function countTeamTimeoutsInPeriod($team, $period) {
+        global $redis, $keys, $placardId;
+        
+        $count = 0;
+        $allEventKeys = $redis->zRange($keys['game_timeouts'], 0, -1);
+        
+        $timerKeys = RequestUtils::getRedisKeys($placardId, 'timer');
+        
+        foreach ($allEventKeys as $eventKey) {
+            $eventTeam = $redis->hGet($eventKey, 'team');
+            $eventPeriod = $redis->hGet($eventKey, 'period');
+            
+            if ($eventTeam === $team && $eventPeriod == $period) {
+                $count++;
+            }
+        }
+        
+        return $count;
     }
 
     function updateTeamTimeouts($team) {
@@ -284,13 +315,25 @@ try {
             }
 
             if(!checkTimeoutsLimit($team)) {
-                http_response_code(400);
-                $response = [
-                    "error" => "Maximum timeouts reached for " . $team . " team from " . $totalTimeoutsPerTeam . " allowed",
-                    "status" => $status,
-                    "team" => $team,
-                    "remaining_time" => $remainingTime
-                ];
+                // Get the current period
+                $timerKeys = RequestUtils::getRedisKeys($placardId, 'timer');
+                $currentPeriod = intval($redis->get($timerKeys['period']) ?: 1);
+                
+                if (isset($gameConfig['timeoutsPerPeriod'])) {
+                    $timeoutsUsedInPeriod = countTeamTimeoutsInPeriod($team, $currentPeriod);
+                    $maxTimeoutsPerPeriod = $gameConfig['timeoutsPerPeriod'];
+                    
+                    http_response_code(400);
+                    $response = [
+                        "error" => "Maximum timeouts reached for " . $team . " team in period " . $currentPeriod . 
+                                   " (" . $timeoutsUsedInPeriod . " of " . $maxTimeoutsPerPeriod . " allowed per period)",
+                    ];
+                } else {
+                    http_response_code(400);
+                    $response = [
+                        "error" => "Maximum timeouts reached for " . $team . " team from " . $totalTimeoutsPerTeam . " allowed",
+                    ];
+                }
                 break;
             }
 
@@ -523,18 +566,38 @@ try {
             }
             break;
         case 'gameStatus':
-
             if ($requestMethod !== 'GET') {
                 http_response_code(405);
                 $response = ["error" => "Invalid request method. Only GET is allowed for " . $action . " action."];
                 break;
             }
-
-            $response = [
-                "homeTimeoutsUsed" => intval($redis->get($homeTimeoutsUsedKey) ?: 0),
-                "awayTimeoutsUsed" => intval($redis->get($awayTimeoutsUsedKey) ?: 0),
-                "totalTimeoutsPerTeam" => $totalTimeoutsPerTeam,
-            ];
+        
+            $timerKeys = RequestUtils::getRedisKeys($placardId, 'timer');
+            $currentPeriod = intval($redis->get($timerKeys['period']) ?: 1);
+            
+            $homeTimeoutsUsedTotal = intval($redis->get($homeTimeoutsUsedKey) ?: 0);
+            $awayTimeoutsUsedTotal = intval($redis->get($awayTimeoutsUsedKey) ?: 0);
+            
+            if(isset($gameConfig['timeoutsPerPeriod'])) {
+                $homeTimeoutsUsedInPeriod = countTeamTimeoutsInPeriod('home', $currentPeriod);
+                $awayTimeoutsUsedInPeriod = countTeamTimeoutsInPeriod('away', $currentPeriod);
+                
+                $response = [
+                    "homeTimeoutsUsed" => $homeTimeoutsUsedInPeriod,
+                    "awayTimeoutsUsed" => $awayTimeoutsUsedInPeriod,
+                    "totalTimeoutsPerTeam" => $gameConfig['timeoutsPerPeriod'],
+                    "currentPeriod" => $currentPeriod,
+                    "perPeriodTracking" => true
+                ];
+            } else {
+                $response = [
+                    "homeTimeoutsUsed" => $homeTimeoutsUsedTotal,
+                    "awayTimeoutsUsed" => $awayTimeoutsUsedTotal,
+                    "totalTimeoutsPerTeam" => $totalTimeoutsPerTeam,
+                    "currentPeriod" => $currentPeriod,
+                    "perPeriodTracking" => false
+                ];
+            }
             break;
         default:
             http_response_code(400);

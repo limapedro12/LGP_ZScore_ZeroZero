@@ -1,0 +1,159 @@
+@use "./config.scss";
+
+.player-selection-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: config.$background-color;
+  color: config.$text-color;
+}
+
+.header-row {
+  flex-shrink: 0;
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: config.$text-color;
+  }
+  .back-button {
+    color: config.$text-color;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.search-row {
+  flex-shrink: 0;
+  .search-input {
+    max-width: 500px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: config.$text-color;
+    
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    &:focus {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: config.$text-color;
+      box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+.players-row {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  
+  @include config.lg {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  @include config.xl {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  &.selected {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.02);
+  }
+  
+  .jersey-container {
+    flex: 0 0 auto;
+    width: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .player-details {
+    flex: 1;
+    margin-left: 1rem;
+    overflow: hidden;
+    
+    .player-name {
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.25rem;
+    }
+    
+    .player-position {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+  }
+}
+
+.footer-row {
+  flex-shrink: 0;
+  
+  .confirm-button {
+    border-radius: 20px;
+    padding: 10px 25px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    
+    &:disabled {
+      opacity: 0.6;
+    }
+    
+    &:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+@include config.below-md {
+  .players-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .player-card {
+    padding: 0.5rem;
+    
+    .jersey-container {
+      width: 60px;
+    }
+    
+    .player-details {
+      margin-left: 0.75rem;
+      
+      .player-name {
+        font-size: 0.9rem;
+      }
+      
+      .player-position {
+        font-size: 0.75rem;
+      }
+    }
+  }
+}
