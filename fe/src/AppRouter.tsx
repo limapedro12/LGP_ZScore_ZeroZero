@@ -1,4 +1,4 @@
-// AppRouter.tsx
+// ...existing code...
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import config from './config/config';
@@ -9,6 +9,7 @@ import ScorersTable from './pages/scorersTable/scorersTable';
 import SelectCardPage from './pages/scorersTable/selectCard';
 import PlayerSelectionPage from './pages/scorersTable/playerSelection';
 import PointValueSelection from './pages/scorersTable/pointValueSelection';
+// Remove import for CardSelectPlayerPage since we're not using it anymore
 
 /**
  * AppRouter component

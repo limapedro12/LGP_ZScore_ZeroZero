@@ -1,4 +1,5 @@
 import config from '../config/config';
+import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
@@ -22,10 +23,9 @@ type ActionType =
     | 'noTimer'
     | 'noPeriodBox';
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
-type TeamType = 'home' | 'away';
 
 
 export interface PeriodScore {
@@ -44,13 +44,13 @@ export interface ScoreResponse {
         awayScore: number;
     };
     periods: PeriodScore[];
-    currentServer: TeamType | null;
+    currentServer: TeamTag | null;
 }
 
 export interface ScoreEvent {
     eventId: number;
     placardId: string;
-    team: TeamType | null;
+    team: TeamTag | null;
     playerId: string;
     period: number;
     pointValue: number;
@@ -99,11 +99,11 @@ interface TimerResponse {
 interface TimeoutResponse {
     message?: string;
     status?: 'running' | 'paused' | 'inactive';
-    team?: TeamType;
+    team?: TeamTag;
     remaining_time?: number;
     timer?: {
         status: 'running' | 'paused' | 'inactive';
-        team: TeamType;
+        team: TeamTag;
         remaining_time: number;
     };
     homeTimeoutsUsed?: number;
@@ -112,7 +112,7 @@ interface TimeoutResponse {
     event?: {
         eventId: number;
         placardId: string;
-        team: TeamType | null;
+        team: TeamTag | null;
         homeTimeoutsUsed: number;
         awayTimeoutsUsed: number;
         totalTimeoutsPerTeam: number;
@@ -120,7 +120,7 @@ interface TimeoutResponse {
     events?: Array<{
         eventId: string;
         placardId: string;
-        team: TeamType | null;
+        team: TeamTag | null;
         homeTimeoutsUsed: string;
         awayTimeoutsUsed: string;
         totalTimeoutsPerTeam: string;
@@ -145,10 +145,35 @@ interface SportsResponse {
 }
 
 /**
+ * Interface for the response from the substitution API
+ * @property {string} [message] - Optional message from the API
+ * @property {number} substitutionId - The unique identifier for the substitution
+ * @property {Map<string, boolean>} ingamePlayers - Map of players currently in the game
+ * @property {Substitution[]} substitutions - Array of substitutions made
+ * @property {string} [error] - Optional error message from the API
+ */
+interface SubstitutionResponse{
+    message?: string;
+    substitutionId?: string;
+    ingamePlayers?: Map<string, boolean>;
+    substitutions?: Array<{
+        substitutionId: string,
+        team: string,
+        playerInId: string,
+        playerOutId: string,
+        timestamp: string,
+    }>;
+    error?: string;
+}
+
+/**
  * API Manager that handles all API requests
  */
 class ApiManager {
 
+    /**
+     * Generic request method that can be used for any endpoint     *
+     */
     makeRequest = async <T>(
         endpoint: EndpointType,
         action: ActionType,
@@ -193,7 +218,27 @@ class ApiManager {
         const response = await fetch(url, options);
 
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let errorPayload: any = { error: `API error: ${response.status} - ${response.statusText}` };
+            try {
+                const responseData = await response.json();
+                if (responseData && typeof responseData === 'object') {
+                    errorPayload = responseData; // Use backend's error structure
+                }
+            } catch (e) {
+                console.error('Failed to parse error response JSON:', e);
+            }
+
+            const error = new Error(errorPayload.error || `API error: ${response.status}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (error as any).response = {
+                data: errorPayload,
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                config: options,
+            };
+            throw error;
         }
 
         return response.json();
@@ -257,7 +302,7 @@ class ApiManager {
     setTimer = (placardId: string, sport: string, time: number, period: number) =>
         this.makeRequest<TimerResponse>('timer', 'set', { placardId, sport, time, period });
 
-    startTimeout = (placardId: string, sport: string, team: TeamType) =>
+    startTimeout = (placardId: string, sport: string, team: TeamTag) =>
         this.makeRequest<TimeoutResponse>('timeout', 'start', { placardId, sport, team });
 
     pauseTimeout = (placardId: string, sport: string) =>
@@ -266,7 +311,7 @@ class ApiManager {
     getTimeoutStatus = (placardId: string, sport: string) =>
         this.makeRequest<TimeoutResponse>('timeout', 'status', { placardId, sport }, 'GET');
 
-    adjustTimeout = (placardId: string, sport: string, team: TeamType, amount: number) =>
+    adjustTimeout = (placardId: string, sport: string, team: TeamTag, amount: number) =>
         this.makeRequest<TimeoutResponse>('timeout', 'adjust', { placardId, sport, team, amount });
 
     getTimeoutEvents = (placardId: string, sport: string) =>
@@ -290,14 +335,31 @@ class ApiManager {
     getScoreHistory = (placardId: string, sport: string) =>
         this.makeRequest<ScoreHistoryResponse>('score', 'get', { placardId, sport }, 'GET');
 
-    createScoreEvent = (placardId: string, sport: string, team: TeamType, playerId: string, pointValue: number) =>
+    createScoreEvent = (placardId: string, sport: string, team: TeamTag, playerId: string, pointValue: number) =>
         this.makeRequest<ScoreResponse>('score', 'create', { placardId, sport, team, playerId, pointValue });
 
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
-    createCard = (placardId: string, sport: string, playerId: string, cardType: string) =>
-        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, playerId, cardType });
+    // Substitution-specific methods
+    getSubstitutionStatus = (placardId: string, sport: string) =>
+        this.makeRequest<SubstitutionResponse>('substitution', 'get', { placardId, sport }, 'GET');
+
+    createSubstitution = (placardId: string, sport: string, team: string,
+        playerIn: string, playerOut: string) =>
+        this.makeRequest<SubstitutionResponse>('substitution', 'create', { placardId, sport, team, playerIn, playerOut });
+
+    updateSubstitution = (placardId: string, sport: string, team: string,
+        substitutionId: string, playerIn: string, playerOut: string) =>
+        this.makeRequest<SubstitutionResponse>('substitution', 'update', { placardId, sport, team,
+            substitutionId, playerIn, playerOut });
+
+    deleteSubstitution = (placardId: string, sport: string, team: string, substitutionId: string) =>
+        this.makeRequest<SubstitutionResponse>('substitution', 'delete', { placardId, sport, team, substitutionId });
+
+
+    createCard = (placardId: string, sport: string, playerId: string, cardType: string, team: string) =>
+        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, playerId, cardType, team });
 
     deleteCard = (placardId: string, sport: string, eventId: string) =>
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });

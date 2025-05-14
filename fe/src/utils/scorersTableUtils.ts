@@ -1,3 +1,4 @@
+import { CardTypeForSport, Sport as cardUtilsSportType } from './cardUtils';
 import apiManager from '../api/apiManager';
 
 export type EventCategory =   'basketballScore'
@@ -51,7 +52,7 @@ export interface SportEventConfig {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         navigate?: any,
         sport?: Sport,
-        placardId?: string
+        placardId?: string,
     ) => void;
 }
 
@@ -186,3 +187,40 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
 export function getSportEvents(sport: Sport): SportEventConfig[] {
     return sportEventConfigurations[sport] || [];
 }
+
+export interface AssignCardActionParams {
+  cardType: CardTypeForSport<cardUtilsSportType>;
+}
+
+export type PlayerActionParams = AssignCardActionParams; // |  AssignGoalActionParams |
+
+export interface PlayerAssignmentConfig<TParams extends PlayerActionParams = PlayerActionParams> {
+  apiMethod: keyof typeof apiManager;
+  getApiArgs: (
+    playerId: string,
+    placardId: string,
+    sport: Sport,
+    teamTag: TeamTag,
+    params: TParams
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => any[]; // Returns array of arguments for the apiManager method
+}
+
+export const playerAssignmentActions: {
+  assignCard: PlayerAssignmentConfig<AssignCardActionParams>;
+  // assignGoal?: PlayerAssignmentConfig<AssignGoalActionParams>;
+} = {
+    assignCard: {
+        apiMethod: 'createCard',
+        getApiArgs: (playerId, placardId, sport, teamTag, params) => [placardId, sport, teamTag, playerId, params.cardType],
+    },
+    // Example for future:
+    // assignGoal: {
+    //   apiMethod: 'createGoalEvent',
+    //   getApiArgs: (playerId, placardId, sport, params) => {
+    //     return [placardId, sport, playerId, params.points];
+    //   },
+    // },
+};
+
+export type PlayerAssignmentActionKey = keyof typeof playerAssignmentActions;

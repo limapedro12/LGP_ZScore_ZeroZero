@@ -7,10 +7,10 @@ import Col from 'react-bootstrap/Col';
 import Timer from '../components/timer';
 import TimeoutTimer from '../components/timeoutTimer';
 import TimeoutCounter from '../components/timeoutCounter';
-import '../styles/scoreBoard.scss';
 import ScoresRow from '../components/scoresCounter';
 import SetBox from '../components/setBox';
 import Slider from '../components/scoreboard/slider';
+import '../styles/scoreBoard.scss';
 import { Sport } from '../utils/cardUtils';
 
 const ScoreBoard = () => {
@@ -85,7 +85,6 @@ const ScoreBoard = () => {
             fluid
             className={containerClassName}
         >
-            {/* SCORE ROW */}
             <Row className="scores-row-wrapper w-100">
                 <Col xs={12} className="p-0">
                     <ScoresRow scoreData={scoreData} />

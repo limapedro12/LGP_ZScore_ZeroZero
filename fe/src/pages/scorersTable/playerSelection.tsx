@@ -18,6 +18,7 @@ interface Player {
 interface LocationState {
   eventCategory: string;
   pointValue?: number;
+  cardType?: string;
 }
 
 const PlayerSelectionPage: React.FC = () => {
@@ -106,6 +107,21 @@ const PlayerSelectionPage: React.FC = () => {
                         pointValue
                     );
                     break;
+                case 'card': {
+                    const { cardType } = location.state as LocationState;
+                    if (!cardType) {
+                        console.error('Card type is required for card events');
+                        return;
+                    }
+                    await apiManager.createCard(
+                        placardId,
+                        sport,
+                        selectedPlayerId,
+                        cardType,
+                        teamTag as 'home' | 'away'
+                    );
+                    break;
+                }
                 default:
                     console.error(`Unsupported event category: ${eventCategory}`);
             }

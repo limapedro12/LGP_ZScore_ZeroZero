@@ -5,7 +5,7 @@ import EventInput from './eventInput';
 import { Container, Row } from 'react-bootstrap';
 
 interface CentralConsoleProps {
-  sport: Sport;
+    sport: Sport;
 }
 
 const CentralConsole: React.FC<CentralConsoleProps> = ({ sport }) => {

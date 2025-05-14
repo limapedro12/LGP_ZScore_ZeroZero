@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -16,12 +16,12 @@ const ScorersTable = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
     const [timerRunning, setTimerRunning] = React.useState(false);
     const sport = (sportParam as Sport) || 'volleyball';
+    const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
 
     const handleTimerToggle = () => {
         if (!placardIdParam || !sport) return;
 
         try {
-
             if (timerRunning) {
                 apiManager.stopTimer(placardIdParam, sport);
             } else {
@@ -33,6 +33,25 @@ const ScorersTable = () => {
         }
     };
 
+    const fetchNonTimerSports = React.useCallback(async () => {
+        try {
+            const response = await apiManager.getNonTimerSports();
+            if (response && Array.isArray(response.sports)) {
+                setNonTimerSports(response.sports);
+            } else {
+                setNonTimerSports([]);
+            }
+        } catch (error) {
+            console.error('Error fetching non-timer sports:', error);
+            setNonTimerSports([]);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchNonTimerSports();
+    }, [fetchNonTimerSports]);
+
+    const isNonTimerSport = nonTimerSports.includes(sport);
 
     const containerClassName =
         `scorers-table-container d-md-flex flex-column justify-content-start align-items-center vh-100 p-0 
@@ -66,23 +85,25 @@ const ScorersTable = () => {
                             aria-label="Corrigir"
                         />
                     </Col>
-                    <Col md={4} className="d-flex flex-column align-items-center">
-                        <p className="text-white fw-bold fs-5 mb-2">
-                            {timerRunning ? 'Parar' : 'Iniciar'}
-                        </p>
-                        <Button
-                            variant="light"
-                            className="event-button rounded-circle"
-                            aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
-                            onClick={handleTimerToggle}
-                        >
-                            <img
-                                src={timerRunning ? clockPaused : clockResumed}
-                                alt=""
-                                className="event-icon"
-                            />
-                        </Button>
-                    </Col>
+                    {!isNonTimerSport && (
+                        <Col md={4} className="d-flex flex-column align-items-center">
+                            <p className="text-white fw-bold fs-5 mb-2">
+                                {timerRunning ? 'Parar' : 'Iniciar'}
+                            </p>
+                            <Button
+                                variant="light"
+                                className="event-button rounded-circle"
+                                aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
+                                onClick={handleTimerToggle}
+                            >
+                                <img
+                                    src={timerRunning ? clockPaused : clockResumed}
+                                    alt=""
+                                    className="event-icon"
+                                />
+                            </Button>
+                        </Col>
+                    )}
                 </Row>
             </Container>
 
@@ -103,7 +124,7 @@ const ScorersTable = () => {
                     </div>
                 </Row>
                 <Row className="w-100 py-3 justify-content-around">
-                    <Col xs={5} className="d-flex flex-column align-items-center">
+                    <Col xs={isNonTimerSport ? 12 : 5} className="d-flex flex-column align-items-center">
                         <p className="text-white fw-bold fs-5 mb-2 text-center">Corrigir</p>
                         <Button
                             variant="primary"
@@ -111,23 +132,25 @@ const ScorersTable = () => {
                             aria-label="Corrigir"
                         />
                     </Col>
-                    <Col xs={5} className="d-flex flex-column align-items-center">
-                        <p className="text-white fw-bold fs-5 mb-2 text-center">
-                            {timerRunning ? 'Parar' : 'Iniciar'}
-                        </p>
-                        <Button
-                            variant="light"
-                            className="event-button rounded-circle"
-                            aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
-                            onClick={handleTimerToggle}
-                        >
-                            <img
-                                src={timerRunning ? clockPaused : clockResumed}
-                                alt=""
-                                className="event-icon"
-                            />
-                        </Button>
-                    </Col>
+                    {!isNonTimerSport && (
+                        <Col xs={5} className="d-flex flex-column align-items-center">
+                            <p className="text-white fw-bold fs-5 mb-2 text-center">
+                                {timerRunning ? 'Parar' : 'Iniciar'}
+                            </p>
+                            <Button
+                                variant="light"
+                                className="event-button rounded-circle"
+                                aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
+                                onClick={handleTimerToggle}
+                            >
+                                <img
+                                    src={timerRunning ? clockPaused : clockResumed}
+                                    alt=""
+                                    className="event-icon"
+                                />
+                            </Button>
+                        </Col>
+                    )}
                 </Row>
             </Container>
         </>
