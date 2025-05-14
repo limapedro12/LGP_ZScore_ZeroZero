@@ -22,8 +22,7 @@ const Substitution: React.FC = () => {
     const [currentSubstitution, setCurrentSubstitution] = useState<Substitution | null>(null);
     const [placardId, setPlacardId] = useState<string>('default');
     const [sport, setSport] = useState<string>('default');
-    const displayTimerRef = useRef<NodeJS.Timeout | null>(null);
-
+    const displayTimerRef = useRef<number | null>(null);
 
     const { placardId: urlPlacardId, sport: urlSport } = useParams<{placardId: string, sport: string}>();
 
