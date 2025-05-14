@@ -25,6 +25,7 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
     const teamLabels = getUniqueTeams(games);
     const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<string>('');
+    const [teamSearch, setTeamSearch] = useState<string>('');
 
     const handleFilterClick = (team: string) => {
         const updatedTeams = selectedTeams.includes(team)
@@ -65,16 +66,25 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
                 value={selectedDate}
                 onChange={handleDateChange}
             />
+            <label>Equipas</label>
+            <input
+                type="text"
+                placeholder="Procurar equipa"
+                value={teamSearch}
+                onChange={(e) => setTeamSearch(e.target.value)}
+            />
             <div className="teams">
-                {teamLabels.map((team, index) => (
-                    <button
-                        key={index}
-                        onClick={() => handleFilterClick(team)}
-                        className={selectedTeams.includes(team) ? 'active' : ''}
-                    >
-                        {team}
-                    </button>
-                ))}
+                {teamLabels
+                    .filter((team) => team.toLowerCase().includes(teamSearch.toLowerCase()))
+                    .map((team, index) => (
+                        <button
+                            key={index}
+                            onClick={() => handleFilterClick(team)}
+                            className={selectedTeams.includes(team) ? 'active' : ''}
+                        >
+                            {team}
+                        </button>
+                    ))}
             </div>
         </div>
     );
