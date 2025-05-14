@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 type Game = {
     home: string;
@@ -24,7 +26,7 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
 
     const teamLabels = getUniqueTeams(games);
     const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
-    const [selectedDate, setSelectedDate] = useState<string>('');
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [teamSearch, setTeamSearch] = useState<string>('');
 
     const handleFilterClick = (team: string) => {
@@ -36,19 +38,22 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
 
         const filteredGames = games.filter((game) => {
             const matchesTeams = updatedTeams.every((team) => game.home === team || game.away === team);
-            const matchesDate = selectedDate ? game.date.startsWith(selectedDate) : true;
+            const matchesDate = selectedDate ? game.date.startsWith(selectedDate.toISOString().split('T')[0]) : true;
             return matchesTeams && matchesDate;
         });
 
         onFilter(filteredGames);
     };
 
-    const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const date = event.target.value;
+    const handleDateChange = (date: Date | null) => {
         setSelectedDate(date);
+        let formattedDate = date ? date.toISOString().split('T')[0] : null;
+        formattedDate = formattedDate
+            ? formattedDate.split('-').reverse().join('/')
+            : null;
 
         const filteredGames = games.filter((game) => {
-            const matchesDate = date ? game.date.startsWith(date) : true;
+            const matchesDate = date ? game.date === formattedDate : true;
             const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
             return matchesDate && matchesTeams;
         });
@@ -60,11 +65,11 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         <div className="filters">
             <h2>Filtros</h2>
             <label>Data</label>
-            <input
-                type="text"
-                placeholder="DD/MM/AA"
-                value={selectedDate}
+            <DatePicker
+                selected={selectedDate}
                 onChange={handleDateChange}
+                dateFormat="dd/MM/yyyy"
+                placeholderText="Selecionar data"
             />
             <label>Equipas</label>
             <input
