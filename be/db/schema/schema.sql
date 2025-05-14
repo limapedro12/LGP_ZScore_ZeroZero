@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS AbstractTeam (
     id INT PRIMARY KEY,
     logoURL VARCHAR(255) NOT NULL,
+    color VARCHAR(255) NOT NULL,
+    acronym VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     sport VARCHAR(255) NOT NULL
 );
@@ -17,12 +19,19 @@ CREATE TABLE IF NOT EXISTS FutsalTeam (
     FOREIGN KEY (abstractTeamId) REFERENCES AbstractTeam(id)
 );
 
+CREATE TABLE IF NOT EXISTS BasketballTeam (
+    id INT PRIMARY KEY,
+    abstractTeamId INT NOT NULL,
+    FOREIGN KEY (abstractTeamId) REFERENCES AbstractTeam(id)
+);
+
 CREATE TABLE IF NOT EXISTS AbstractPlacard (
     id INT PRIMARY KEY,
     firstTeamId INT NOT NULL,
     secondTeamId INT NOT NULL,
     isFinished BOOLEAN NOT NULL,
     sport VARCHAR(255) NOT NULL,
+    startTime DATETIME NOT NULL,
     FOREIGN KEY (firstTeamId) REFERENCES AbstractTeam(id),
     FOREIGN KEY (secondTeamId) REFERENCES AbstractTeam(id)
 );
@@ -58,6 +67,16 @@ CREATE TABLE IF NOT EXISTS FutsalPlacard (
     FOREIGN KEY (abstractPlacardId) REFERENCES AbstractPlacard(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS BasketballPlacard (
+    abstractPlacardId INT PRIMARY KEY,
+    currentQuarter INT NULL,
+    availableTimeOutsFirst INT NOT NULL,
+    availableTimeOutsSecond INT NOT NULL,
+    isTimeOut BOOLEAN NOT NULL,
+    isTimeStopped BOOLEAN NOT NULL,
+    FOREIGN KEY (abstractPlacardId) REFERENCES AbstractPlacard(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS AbstractPlayer (
     id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -82,6 +101,14 @@ CREATE TABLE IF NOT EXISTS FutsalPlayer (
     teamId INT NOT NULL,
     FOREIGN KEY (abstractPlayerId) REFERENCES AbstractPlayer(id),
     FOREIGN KEY (teamId) REFERENCES FutsalTeam(id)
+);
+
+CREATE TABLE IF NOT EXISTS BasketballPlayer (
+    id INT PRIMARY KEY,
+    abstractPlayerId INT NOT NULL,
+    teamId INT NOT NULL,
+    FOREIGN KEY (abstractPlayerId) REFERENCES AbstractPlayer(id),
+    FOREIGN KEY (teamId) REFERENCES BasketballTeam(id)
 );
 
 CREATE TABLE IF NOT EXISTS AbstractEvent (
@@ -120,3 +147,11 @@ CREATE TABLE IF NOT EXISTS SubstitutionEvent (
     FOREIGN KEY (playerOutId) REFERENCES AbstractPlayer(id)
 );
 
+CREATE TABLE IF NOT EXISTS PlacardPlayer (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    placardId INT NOT NULL,
+    playerId INT NOT NULL,
+    isStarting BOOLEAN NOT NULL,
+    FOREIGN KEY (placardId) REFERENCES AbstractPlacard(id),
+    FOREIGN KEY (playerId) REFERENCES AbstractPlayer(id)
+);

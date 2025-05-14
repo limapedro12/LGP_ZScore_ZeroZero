@@ -21,15 +21,15 @@
             }
         }
 
-        public static function selectTeam($teamId, $sport)
+        public static function selectTeam($teamId)
         {
             $conn = DbUtils::connect();
             if ($conn === false) {
                 return false;
             }
 
-            $stmt = $conn->prepare("SELECT * FROM AbstractTeam WHERE id = ? AND sport = ?");
-            $stmt->bind_param("is", $teamId, $sport); 
+            $stmt = $conn->prepare("SELECT * FROM AbstractTeam WHERE id = ?");
+            $stmt->bind_param("i", $teamId); 
             $stmt->execute();
             $results = $stmt->get_result();
             
@@ -41,9 +41,9 @@
             return $data;
         }
 
-        public static function insertTeam($teamId, $teamDesc, $sport, $logoURL)
+        public static function insertTeam($teamId, $teamDesc,$acronym, $sport, $color, $logoURL)
         {
-            if ($sport !== 'futsal' && $sport !== 'voleibol') {
+            if ($sport !== 'futsal' && $sport !== 'voleibol' && $sport !== 'basquetebol') {
                 return true; // Invalid sport
             }
             $conn = DbUtils::connect();
@@ -52,16 +52,19 @@
                 return false;
             }
 
-            $stmt = $conn->prepare("INSERT INTO AbstractTeam (id, name, logoURL, sport) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("isss", $teamId, $teamDesc, $logoURL, $sport);
+            $stmt = $conn->prepare("INSERT INTO AbstractTeam (id, name, acronym, logoURL, sport, color) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("isssss", $teamId, $teamDesc, $acronym, $logoURL, $sport, $color);
             if ($stmt->execute()) {
                 $stmt->close();
-                switch ($sport) {
+                /*switch ($sport) {
                     case 'futsal':
                         $table = 'FutsalTeam';
                         break;
                     case 'voleibol':
                         $table = 'VolleyballTeam';
+                        break;
+                    case 'basquetebol':
+                        $table = 'BasketballTeam';
                         break;
                 }
                 $stmt = $conn->prepare("INSERT INTO $table (id, abstractTeamId) VALUES (?, ?)");
@@ -72,7 +75,7 @@
                     $stmt->close();
                     $conn->close();
                     return false; // Insert failed
-                }
+                }*/
                 $conn->close();
                 return true; // Insert successful
             } else {
@@ -82,9 +85,9 @@
             }
         }
 
-        public static function insertPlacard($placardId, $team1, $team2, $isFinished,$sport)
+        public static function insertPlacard($placardId, $team1, $team2, $isFinished, $sport, $date)
         {
-            if ($sport !== 'futsal' && $sport !== 'voleibol') {
+            if ($sport !== 'futsal' && $sport !== 'voleibol' && $sport !== 'basquetebol') {
                 return true; // Invalid sport
             }
 
@@ -93,8 +96,8 @@
                 return false;
             }
 
-            $stmt = $conn->prepare("INSERT INTO AbstractPlacard (id, firstTeamId, secondTeamId, isFinished, sport) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("iiiis", $placardId, $team1, $team2, $isFinished,$sport);
+            $stmt = $conn->prepare("INSERT INTO AbstractPlacard (id, firstTeamId, secondTeamId, isFinished, sport, startTime) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("iiiiss", $placardId, $team1, $team2, $isFinished, $sport, $date);
             if ($stmt->execute()) {
                 $stmt->close();
                 $conn->close();
@@ -106,15 +109,15 @@
             }
         }
 
-        public static function selectPlacard($placardId, $sport)
+        public static function selectPlacard($placardId)
         {
             $conn = DbUtils::connect();
             if ($conn === false) {
                 return false;
             }
 
-            $stmt = $conn->prepare("SELECT * FROM AbstractPlacard WHERE id = ? AND sport = ?");
-            $stmt->bind_param("is", $placardId, $sport); 
+            $stmt = $conn->prepare("SELECT * FROM AbstractPlacard WHERE id = ?");
+            $stmt->bind_param("i", $placardId); 
             $stmt->execute();
             $result = $stmt->get_result();
             $results = $result->fetch_assoc();
@@ -128,7 +131,7 @@
 
         public static function updatePlacard($placardId, $team1, $team2, $isFinished, $sport)
         {
-            if ($sport !== 'futsal' && $sport !== 'voleibol') {
+            if ($sport !== 'futsal' && $sport !== 'voleibol' && $sport !== 'basquetebol') {
                 return true; // Invalid sport
             }
 
@@ -151,15 +154,15 @@
         }
         
 
-        public static function selectPlayer($playerId, $sport)
+        public static function selectPlayer($playerId)
         {
             $conn = DbUtils::connect();
             if ($conn === false) {
                 return false;
             }
 
-            $stmt = $conn->prepare("SELECT * FROM AbstractPlayer WHERE id = ? AND sport = ?");
-            $stmt->bind_param("is", $playerId, $sport); 
+            $stmt = $conn->prepare("SELECT * FROM AbstractPlayer WHERE id = ?");
+            $stmt->bind_param("i", $playerId); 
             $stmt->execute();
             $result = $stmt->get_result();
             $results = $result->fetch_assoc();
@@ -191,15 +194,15 @@
             }
         }
 
-        public static function selectTeamPlayers($teamId, $sport)
+        public static function selectTeamPlayers($teamId)
         {
             $conn = DbUtils::connect();
             if ($conn === false) {
                 return false;
             }
 
-            $stmt = $conn->prepare("SELECT * FROM AbstractPlayer WHERE teamId = ? AND sport = ?");
-            $stmt->bind_param("is", $teamId, $sport); 
+            $stmt = $conn->prepare("SELECT * FROM AbstractPlayer WHERE teamId = ?");
+            $stmt->bind_param("i", $teamId); 
             $stmt->execute();
             $result = $stmt->get_result();
             $results = $result->fetch_all(MYSQLI_ASSOC);
@@ -209,6 +212,63 @@
 
             return $results;
 
+        }
+
+        public static function insertPlacardPlayer($placardId, $playerId, $isCaptain, $isStarting)
+        {
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return false;
+            }
+
+            $stmt = $conn->prepare("INSERT INTO PlacardPlayer (placardId, playerId, isCaptain, isStarting) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("iiii", $placardId, $playerId, $isCaptain, $isStarting);
+            if ($stmt->execute()) {
+                $stmt->close();
+                $conn->close();
+                return true; // Insert successful
+            } else {
+                $stmt->close();
+                $conn->close();
+                return false; // Insert failed
+            }
+        }
+
+        public static function selectPlacardPlayer($placardId, $playerId)
+        {
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return false;
+            }
+
+            $stmt = $conn->prepare("SELECT * FROM PlacardPlayer WHERE placardId = ? AND playerId = ?");
+            $stmt->bind_param("ii", $placardId, $playerId); 
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $results = $result->fetch_assoc();
+            
+            $stmt->close();
+            $conn->close();
+
+            return $results;
+
+        }
+
+        public static function selectTeamLineup($placardId, $teamId)
+        {
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return false;
+            }
+
+            $stmt = $conn->prepare("SELECT * FROM PlacardPlayer JOIN AbstractPlayer ON PlacardPlayer.playerId = AbstractPlayer.id WHERE PlacardPlayer.placardId = ? AND AbstractPlayer.teamId = ?");
+            $stmt->bind_param("ii", $placardId, $teamId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $results = $result->fetch_all(MYSQLI_ASSOC);
+            $stmt->close();
+            $conn->close();
+            return $results;
         }
     }
           

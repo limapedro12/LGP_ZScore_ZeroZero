@@ -52,7 +52,6 @@ interface ApiParams {
     action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
     username?: string;
     password?: string;
-    cookie?: string;
     placardId?: string;
     teamId?: string;
 }

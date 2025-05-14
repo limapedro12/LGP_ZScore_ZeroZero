@@ -6,12 +6,7 @@
 
     function getAvailPlacards()
     {
-        $apiurl = getenv('API_URL');
-        $appkey = getenv('APP_KEY');
-        session_start();
-        $cookie = $_SESSION['api_cookie'];
-        $matchesColab = getMatchesColab($apiurl, $appkey, $cookie);
-        $placardIds = insertMatchesColab($matchesColab);
+        $placardIds = insertMatchesColab();
         if ($placardIds === false) {
             echo json_encode(["error" => "Failed to insert placards"]);
             exit;
@@ -19,11 +14,11 @@
         $response = [];
         foreach ($placardIds as $pair) {
             foreach ($pair as $placardId => $sport) {    
-                $placard = DbUtils::selectPlacard($placardId, $sport);
+                $placard = DbUtils::selectPlacard($placardId);
                 if ($placard) {
                     $response[] = $placard;
                 }else {
-                    echo json_encode(["error" => "Failed to get placard info for placardId: $placardId"]);
+                    echo json_encode(["error" => "Failed to get placard info"]);
                     exit;
                 }
             }
@@ -31,35 +26,20 @@
         return $response;
     }
 
-    function getPlayersInfo($placardId, $teamId)
+
+    function getPlacardInfo($placardId)
     {
-        $apiurl = getenv('API_URL');
-        $appkey = getenv('APP_KEY');
-        session_start();
-        $cookie = $_SESSION['api_cookie'];
-
-        $teamLiveInfo = getTeamLive($apiurl, $appkey, $cookie, $placardId, $teamId);
-        $sport = insertTeamLive($teamLiveInfo);
-        if ($sport === false) {
-            return json_encode(["error" => "Failed to insert team live info"]);
+        $placardInfo = DbUtils::selectPlacard($placardId);
+        if ($placardInfo === false) {
+            return json_encode(["error" => "Failed to get placard info"]);
         }
-
-        $playersInfo = DbUtils::selectTeamPlayers($teamId, $sport);
-        if ($playersInfo === false) {
-            return json_encode(["error" => "Failed to get players info"]);
-        }
-        return $playersInfo;
+        
+        return $placardInfo;
     }
 
-    function getTeamInfo($placardId, $teamId)
+    function getTeamInfo($teamId)
     {
-        $apiurl = getenv('API_URL');
-        $appkey = getenv('APP_KEY');
-        session_start();
-        $cookie = $_SESSION['api_cookie'];
-        $teamLiveInfo = getTeamLive($apiurl, $appkey, $cookie, $placardId, $teamId);
-        $sport = insertTeamLive($teamLiveInfo);
-        $teamInfo = DbUtils::selectTeam($teamId, $sport);
+        $teamInfo = DbUtils::selectTeam($teamId);
         if ($teamInfo === false) {
             return json_encode(["error" => "Failed to get team info"]);
         }
@@ -67,14 +47,15 @@
         return $teamInfo;
     }
 
-    function getPlacardInfo($placardId, $sport)
+    function getTeamLineup($placardId, $teamId)
     {
-        $placardInfo = DbUtils::selectPlacard($placardId, $sport);
-        if ($placardInfo === false) {
-            return json_encode(["error" => "Failed to get placard info"]);
+        $insert = insertLineup($placardId);
+        $lineup = DbUtils::selectTeamLineup($placardId, $teamId);
+        if ($lineup === false) {
+            return json_encode(["error" => "Failed to get lineup"]);
         }
-        
-        return $placardInfo;
+
+        return $lineup;
     }
 
     header('Content-Type: application/json');
@@ -87,17 +68,11 @@
     $teamId = $params['teamId'] ?? null;
     $sport = $params['sport'] ?? null;
 
-    $allowedActions = ['getAvailPlacards', 'getPlacardInfo', 'getPlayersInfo', 'getTeamInfo' ];
-
-    if (!in_array($action, $allowedActions)) {
-        echo json_encode(["error" => "Invalid action: $action"]);
-        exit;
-    }
-
     switch ($action) {
         case 'getAvailPlacards':
             $response = getAvailPlacards();
             break;
+
         case 'getPlacardInfo':
             if ($placardId === null) {
                 echo json_encode(["error" => "Missing placardId"]);
@@ -110,20 +85,24 @@
 
             $response = getPlacardInfo($placardId, $sport);
             break;
-        case 'getPlayersInfo':
+
+        case 'getTeamLineup':
             if ($placardId === null || $teamId === null) {
                 echo json_encode(["error" => "Missing placardId or teamId"]);
                 exit;
             }
-            $response = getPlayersInfo($placardId, $teamId);
+            $response = getTeamLineup($placardId, $teamId);
             break;
         case 'getTeamInfo':
-            if ($placardId === null || $teamId === null) {
-                echo json_encode(["error" => "Missing placardId or teamId"]);
+            if ($teamId === null) {
+                echo json_encode(["error" => "Missing teamId"]);
                 exit;
             }
-            $response = getTeamInfo($placardId, $teamId);
+            $response = getTeamInfo($teamId);
             break;
+        default:
+            echo json_encode(["error" => "Invalid action"]);
+            exit;
     }
 
     echo json_encode($response);
