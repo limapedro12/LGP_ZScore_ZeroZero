@@ -3,18 +3,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import apiManager, {
     EndpointType,
     ActionType,
-    FetchedEventItem, // Importar o novo tipo de união
-    ApiScoreEventData,  // Importar para type casting se necessário
-    ApiFoulEventData,   // Importar para type casting se necessário
-    ApiCardEventData,   // Importar para type casting se necessário
-    ApiTimeoutEventData, // Importar para type casting se necessário
+    FetchedEventItem,
+    ApiScoreEventData,
+    ApiFoulEventData,
+    ApiCardEventData,
+    ApiTimeoutEventData,
 } from '../api/apiManager';
 import '../styles/eventHistory.scss';
 import Button from 'react-bootstrap/Button';
-import { formatTime } from '../utils/timeUtils'; // Import formatTime
-import { getEventIconPath, EventCategory } from '../utils/scorersTableUtils'; // Import utility and type
-import { getCardIconPath, Sport as CardUtilsSport } from '../utils/cardUtils'; // Import for specific card icons
-import PlayerJersey from './playerJersey'; // Import PlayerJersey component
+import { formatTime } from '../utils/timeUtils';
+import { getEventIconPath, EventCategory } from '../utils/scorersTableUtils';
+import { getCardIconPath, Sport as CardUtilsSport } from '../utils/cardUtils';
+import PlayerJersey from './playerJersey';
 
 type Sport = 'futsal' | 'basketball' | 'volleyball';
 
@@ -47,7 +47,6 @@ const EventHistory: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<string>('recentes');
 
-    // Novos estados para o modal de confirmação de exclusão
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
     const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
@@ -71,23 +70,13 @@ const EventHistory: React.FC = () => {
                 iconPath = getEventIconPath('foul');
                 break;
             case 'card':
-                // Use getCardIconPath for specific card icons
                 if (event.details && typeof event.details.cardType === 'string') {
-                    // Ensure currentSport is compatible with CardUtilsSport if types differ
-                    // For now, assuming 'futsal' | 'volleyball' | 'basketball' from EventHistory
-                    // is compatible or can be cast/mapped if CardUtilsSport is more restrictive.
-                    // Based on your cardUtils.ts, Sport is 'futsal' | 'volleyball'.
-                    // We need to handle basketball if it can have cards and needs specific icons.
-                    // For now, let's assume futsal and volleyball are the primary sports for cardUtils.
                     if (currentSport === 'futsal' || currentSport === 'volleyball') {
                         iconPath = getCardIconPath(currentSport as CardUtilsSport, event.details.cardType);
                     } else {
-                        // Fallback for other sports like basketball if not covered by getCardIconPath
-                        // or use a generic card icon from scorersTableUtils
-                        iconPath = getEventIconPath('card'); // Generic card icon
+                        iconPath = getEventIconPath('card');
                     }
                 } else {
-                    // Fallback to generic card icon if details are missing
                     iconPath = getEventIconPath('card');
                 }
                 break;
@@ -105,29 +94,25 @@ const EventHistory: React.FC = () => {
             return <img src={iconPath} alt={`${event.type} icon`} className="event-history-icon-img" />;
         }
 
-        return null; // Fallback if no category or path found
+        return null;
     }, []);
 
     const normalizeEventData = useCallback((
-        fetchedItems: ReadonlyArray<FetchedEventItem>, // Usar o tipo FetchedEventItem
+        fetchedItems: ReadonlyArray<FetchedEventItem>,
         type: Event['type'],
         currentSport: Sport,
-    ): Event[] => fetchedItems.map((item: FetchedEventItem, index: number) => { // Fix for arrow-body-style
+    ): Event[] => fetchedItems.map((item: FetchedEventItem, index: number) => {
         let description = '';
-        // Acesso seguro às propriedades, pois agora estão no tipo FetchedEventItem (maioria opcionais via BaseApiEvent)
         const playerInfo = item.playerName || (item.playerId ? `Jogador ${item.playerId}` : '');
-        const teamInfo = item.teamId || item.team; // item.team é TeamType | null, item.teamId é string | undefined
+        const teamInfo = item.teamId || item.team;
 
-        let gameTimeSeconds = 0; // Default to 0 seconds
+        let gameTimeSeconds = 0;
 
-        // Prioritize item.timestamp, fallback to item.timeSpan (especially for timeouts)
         let rawGameTimeValue: number | string | undefined | null = item.timestamp;
 
         if (rawGameTimeValue === undefined || rawGameTimeValue === null) {
-            // Check if timeSpan exists. Values from Redis (like timeSpan) are often strings.
-            // The parseInt later will handle conversion.
             if ('timeSpan' in item && item.timeSpan !== null && item.timeSpan !== undefined) {
-                rawGameTimeValue = item.timeSpan as string | number; // Accessing via index signature from BaseApiEvent
+                rawGameTimeValue = item.timeSpan as string | number;
             }
         }
 
@@ -139,27 +124,25 @@ const EventHistory: React.FC = () => {
         }
 
         const randomSuffix = Math.random().toString(36).substring(7);
-        // Ensure eventId generation is robust. Using gameTimeSeconds in fallback.
         const eventId: string | number = item.eventId || item.id || `${type}-${gameTimeSeconds}-${index}-${randomSuffix}`;
 
 
         switch (type) {
-            case 'score': { // Fix for no-case-declarations
+            case 'score': {
                 const scoreItem = item as ApiScoreEventData;
                 description = `${scoreItem.pointValue || 1} ${currentSport === 'volleyball' ? 'ponto(s)' : 'golo(s)'}`;
                 if (playerInfo) description += ` por ${playerInfo}`;
                 break;
             }
-            case 'card': { // Fix for no-case-declarations
+            case 'card': {
                 if (playerInfo) description += `${playerInfo}`;
                 break;
             }
-            case 'foul': { // Fix for no-case-declarations
+            case 'foul': {
                 if (playerInfo) description += ` ${playerInfo}`;
                 break;
             }
             case 'timeout':
-                // const timeoutItem = item as ApiTimeoutEventData; // Não usado diretamente para descrição
                 description = 'Pausa Técnica';
                 break;
             case 'substitution':
@@ -172,13 +155,13 @@ const EventHistory: React.FC = () => {
 
         return {
             id: eventId,
-            timestamp: gameTimeSeconds, // Store game time in seconds
+            timestamp: gameTimeSeconds,
             type,
             description,
-            team: teamInfo || undefined, // Garantir que é string ou undefined
+            team: teamInfo || undefined,
             player: playerInfo,
-            details: { ...item }, // Manter todos os detalhes originais do item
-            icon: null, // Será definido mais tarde por getEventIcon
+            details: { ...item },
+            icon: null,
             teamLogo: item.teamLogo,
             playerNumber: item.playerNumber,
         };
@@ -212,7 +195,7 @@ const EventHistory: React.FC = () => {
                     normalizeEventData((scoresResponse.value as { points: unknown[] }).points as ApiScoreEventData[], 'score', sport),
                 );
             } else if (scoresResponse.status === 'rejected') {
-                // console.error('Erro ao buscar scores:', scoresResponse.reason);
+                // Intentionally empty
             }
 
             if (foulsResponse.status === 'fulfilled' && foulsResponse.value && (foulsResponse.value as { data: unknown[] }).data) {
@@ -220,7 +203,7 @@ const EventHistory: React.FC = () => {
                     normalizeEventData((foulsResponse.value as { data: unknown[] }).data as ApiFoulEventData[], 'foul', sport),
                 );
             } else if (foulsResponse.status === 'rejected') {
-                // console.error('Erro ao buscar fouls:', foulsResponse.reason);
+                // Intentionally empty
             }
 
             if (cardsData.status === 'fulfilled' && cardsData.value.cards) {
@@ -228,7 +211,7 @@ const EventHistory: React.FC = () => {
                     normalizeEventData(cardsData.value.cards as ApiCardEventData[], 'card', sport),
                 );
             } else if (cardsData.status === 'rejected') {
-                // console.error('Erro ao buscar cards:', cardsData.reason);
+                // Intentionally empty
             }
 
             if (timeoutEventsData.status === 'fulfilled' && timeoutEventsData.value.events) {
@@ -236,7 +219,7 @@ const EventHistory: React.FC = () => {
                     normalizeEventData(timeoutEventsData.value.events as ApiTimeoutEventData[], 'timeout', sport),
                 );
             } else if (timeoutEventsData.status === 'rejected') {
-                // console.error('Erro ao buscar timeouts:', timeoutEventsData.reason);
+                // Intentionally empty
             }
 
             allEvents = allEvents.map((event) => ({
@@ -248,7 +231,6 @@ const EventHistory: React.FC = () => {
             setEvents(allEvents);
 
         } catch (e) {
-            // console.error("Erro geral ao buscar eventos:", e);
             setError('Falha ao carregar o histórico de eventos.');
         } finally {
             setLoading(false);
@@ -258,7 +240,7 @@ const EventHistory: React.FC = () => {
     useEffect(() => {
         if (placardId && sport) {
             fetchEvents();
-            const intervalId = setInterval(fetchEvents, 30000); // Refresh every 30 seconds
+            const intervalId = setInterval(fetchEvents, 30000);
             return () => clearInterval(intervalId);
         }
         return undefined;
@@ -285,13 +267,9 @@ const EventHistory: React.FC = () => {
 
 
     const handleEdit = (event: Event) => {
-        // console.log('Iniciar edição para o evento:', event);
-        // Exemplo: navigate(`/scoreboard/${sport}/${placardId}/event/${event.type}/${event.id}/edit`,
-        // { state: { eventDetails: event.details } });
         alert(`Edição para '${event.description}' iniciada.\nImplementar navegação para formulário de edição específico.`);
     };
 
-    // Modificada para mostrar o modal em vez do prompt
     const requestDeleteEvent = (event: Event) => {
         setEventToDelete(event);
         setShowDeleteConfirm(true);
@@ -308,13 +286,12 @@ const EventHistory: React.FC = () => {
         try {
             let endpointType: EndpointType;
             let action: ActionType;
-            // Adicionar 'amount' à tipagem de params e garantir que 'team' pode ser incluído.
             const params: {
                 placardId?: string,
                 sport?: Sport,
                 eventId: string | number,
-                team?: string, // Adicionado para o caso de timeout
-                amount?: number // Adicionado para o caso de timeout
+                team?: string,
+                amount?: number
             } = { placardId, sport, eventId: eventToDelete.id };
 
             switch (eventToDelete.type) {
@@ -334,14 +311,13 @@ const EventHistory: React.FC = () => {
                     endpointType = 'timeout';
                     action = 'adjust';
 
-                    // 'adjust' requer 'team' e 'amount'
                     if (!eventToDelete.team || (eventToDelete.team !== 'home' && eventToDelete.team !== 'away')) {
                         alert('Erro: Equipa inválida ou não especificada para o evento de timeout a ser excluído.');
                         cancelDelete();
                         return;
                     }
                     params.team = eventToDelete.team;
-                    params.amount = -1; // Para remover um timeout
+                    params.amount = -1;
                     break;
                 case 'substitution':
                     alert('A exclusão de substituições ainda não é suportada.');
@@ -356,13 +332,7 @@ const EventHistory: React.FC = () => {
             }
 
             await apiManager.makeRequest(endpointType, action, params, 'POST');
-            // A lógica de atualização do estado local assume que o evento específico foi excluído.
-            // Se o backend com 'adjust' e amount: -1 remove o *último* evento da equipa,
-            // e não necessariamente eventToDelete, pode haver uma ligeira inconsistência
-            // visual temporária se o evento clicado não for o último da equipa.
-            // A lista será corrigida na próxima busca de fetchEvents.
             setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventToDelete.id));
-            // Removido o alert de sucesso daqui para ser colocado no 'finally' ou após a confirmação visual da remoção.
         } catch (err) {
             let errorMessage = 'Falha ao excluir o evento.';
             if (err instanceof Error) {
@@ -373,9 +343,6 @@ const EventHistory: React.FC = () => {
             alert(errorMessage);
         } finally {
             cancelDelete();
-            // Considerar mover o alert de sucesso para cá, após a UI ser atualizada,
-            // ou depender da atualização automática da lista.
-            // alert('Tentativa de exclusão processada.'); // Exemplo
         }
     };
 
@@ -436,7 +403,6 @@ const EventHistory: React.FC = () => {
                 {filteredEvents.map((event) => (
                     <li key={event.id} className={`event-item event-type-${event.type}`}>
                         <div className="event-time">
-                            {/* Use formatTime utility. Handle volleyball special case if needed. */}
                             {sport === 'volleyball' && event.timestamp === 0
                                 ? '-'
                                 : formatTime(event.timestamp)}
@@ -470,7 +436,7 @@ const EventHistory: React.FC = () => {
                                 ✏️
                             </button>
                             <button
-                                onClick={() => requestDeleteEvent(event)} // Modificado aqui
+                                onClick={() => requestDeleteEvent(event)}
                                 className="action-button delete-button"
                                 aria-label="Excluir evento"
                             >
@@ -481,7 +447,6 @@ const EventHistory: React.FC = () => {
                 ))}
             </ul>
 
-            {/* Modal de Confirmação de Exclusão */}
             {showDeleteConfirm && eventToDelete && (
                 <div className="confirmation-modal-overlay">
                     <div className="confirmation-modal">

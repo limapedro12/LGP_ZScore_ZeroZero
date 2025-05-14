@@ -1,46 +1,46 @@
-@use "config.scss"; // Supondo que config.scss define variáveis globais
+@use "config.scss"; 
 
 .event-history {
-  background-color: #ffffff; // Fundo branco para o card de histórico
-  color: #333333;           // Texto escuro para contraste no fundo branco
+  background-color: #ffffff; 
+  color: #333333;           
   padding: 20px;
-  border-radius: 15px;       // Bordas arredondadas
-  margin: 20px auto;         // Adiciona margem e centraliza se for o único elemento principal
-  max-width: 900px;          // Largura máxima para o card
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); // Sombra suave
+  border-radius: 15px;       
+  margin: 20px auto;         
+  max-width: 900px;          
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
 
-  .event-history-title { // Ajustado para corresponder à classe no TSX
-    font-size: 1.8rem; // Tamanho do título "Eventos"
+  .event-history-title { 
+    font-size: 1.8rem; 
     color: #333333;
     text-align: center;
     text-transform: uppercase;
-    font-weight: 600; // Um pouco mais de peso
+    font-weight: 600; 
     letter-spacing: 1px;
     margin-bottom: 25px;
   }
 
-  .tabs-container { // Classe do TSX para o container das abas
+  .tabs-container { 
     display: flex;
-    justify-content: flex-start; // Alinha abas à esquerda como nas imagens
+    justify-content: flex-start; 
     margin-bottom: 20px;
-    background-color: #f0f0f0; // Fundo levemente cinza para a barra de abas
+    background-color: #f0f0f0; 
     border-radius: 10px;
     padding: 5px;
-    overflow-x: auto; // Permite scroll horizontal se houver muitas abas
+    overflow-x: auto; 
 
-    .tab-button { // Classe do TSX para os botões de aba
+    .tab-button { 
       background-color: transparent;
       border: none;
       color: #555555;
       padding: 10px 20px;
-      margin: 0 4px; // Espaçamento entre abas
+      margin: 0 4px; 
       cursor: pointer;
-      font-family: config.$font-primary, sans-serif; // Usar variável de config ou fallback
+      font-family: config.$font-primary, sans-serif; 
       font-size: 0.95rem;
       font-weight: 500;
       border-radius: 8px;
       transition: background-color 0.3s, color 0.3s;
-      white-space: nowrap; // Impede que o texto da aba quebre linha
+      white-space: nowrap; 
 
       &:hover {
         background-color: #e0e0e0;
@@ -48,7 +48,7 @@
       }
 
       &.active {
-        background-color: #6c757d; // Cinza escuro para aba ativa (como nas imagens)
+        background-color: #6c757d; 
         color: #ffffff;
         font-weight: bold;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -61,7 +61,7 @@
     padding: 0;
     margin: 0;
 
-    .event-item-empty { // Estilo para quando não há eventos
+    .event-item-empty { 
       text-align: center;
       padding: 20px;
       color: #888888;
@@ -72,8 +72,8 @@
       display: flex;
       align-items: center;
       padding: 12px 8px;
-      border-bottom: 1px solid #eeeeee; // Linha separadora suave
-      gap: 10px; // Espaço entre os elementos do item
+      border-bottom: 1px solid #eeeeee; 
+      gap: 10px; 
 
       &:last-child {
         border-bottom: none;
@@ -84,11 +84,11 @@
         font-size: 0.9rem;
         font-weight: bold;
         color: #555555;
-        min-width: 45px; // Largura mínima para alinhar
+        min-width: 45px; 
       }
 
       .event-icon-display {
-        font-size: 1.4rem; // This might be less relevant now
+        font-size: 1.4rem; 
         min-width: 30px;
         text-align: center;
         display: flex;
@@ -96,23 +96,22 @@
         justify-content: center;
 
         .event-history-icon-img {
-          width: 22px; // Adjust size as needed for visual consistency
-          height: 22px; // Adjust size as needed
+          width: 22px; 
+          height: 22px; 
           object-fit: contain;
         }
 
-        // Estilos específicos para ícones de cartão, se necessário
         .card-display-icon {
           padding: 2px 5px;
           border-radius: 3px;
-          color: white; // O emoji já tem cor, mas isso pode ser usado para um fundo
-          &.yellow-card-icon { /* background-color: gold; */ } // Exemplo
-          &.red-card-icon { /* background-color: red; */ } // Exemplo
+          color: white; 
+          &.yellow-card-icon {  } 
+          &.red-card-icon {  } 
         }
       }
 
       .event-details-main {
-        flex-grow: 1; // Ocupa o espaço restante
+        flex-grow: 1; 
         .event-description-text {
           font-family: config.$font-secondary, sans-serif;
           font-size: 1rem;
@@ -126,7 +125,7 @@
         gap: 8px;
 
         .player-number-badge {
-          background-color: #343a40; // Fundo escuro para o número do jogador
+          background-color: #343a40; 
           color: #ffffff;
           padding: 3px 8px;
           border-radius: 4px;
@@ -135,7 +134,7 @@
         }
 
         .team-logo-display {
-          width: 28px; // Tamanho do logo
+          width: 28px; 
           height: 28px;
           object-fit: contain;
         }
@@ -151,17 +150,17 @@
           border: none;
           cursor: pointer;
           padding: 5px;
-          font-size: 1.3rem; // Tamanho para ícones de ação (✏️, 🗑️)
+          font-size: 1.3rem; 
 
           &.edit-button {
-            color: #007bff; // Azul para editar
+            color: #007bff; 
             &:hover {
               color: #0056b3;
             }
           }
 
           &.delete-button {
-            color: #dc3545; // Vermelho para excluir (como nas imagens)
+            color: #dc3545; 
             &:hover {
               color: #c82333;
             }
@@ -172,111 +171,100 @@
   }
 }
 
-// Estilo para o botão "Corrigir"
 .corrigir-button-custom {
-  background-color: #ffffff; // Fundo branco
-  color: #000000;           // Texto preto
-  border: none;              // Sem borda
-  border-radius: 50px;       // Bordas arredondadas para formato de pílula
-  padding: 10px 25px;        // Espaçamento interno
-  font-weight: 700;          // Texto em negrito (equivalente a bold)
-  font-size: 2rem;           // Tamanho do texto dobrado (assumindo base de 1rem)
+  background-color: #ffffff; 
+  color: #000000;           
+  border: none;              
+  border-radius: 50px;       
+  padding: 10px 25px;        
+  font-weight: 700;          
+  font-size: 2rem;           
   text-align: center;
   text-decoration: none;
   display: inline-block;
   cursor: pointer;
   line-height: 1.5;
 
-  // Estilos para interação (hover, focus)
   &:hover,
   &:focus,
   &:active {
-    background-color: #f5f5f5; // Um branco levemente acinzentado para interação
+    background-color: #f5f5f5; 
     color: #000000;
     text-decoration: none;
-    outline: none;             // Remove o contorno padrão do navegador no foco
-    box-shadow: none;          // Remove quaisquer sombras padrão
+    outline: none;             
+    box-shadow: none;          
   }
 
-  // Se estiver usando com o Button do React-Bootstrap, ele herda a classe .btn
-  // Estes !important são necessários para sobrescrever os estilos do Bootstrap.
   &.btn {
-    background-color: #ffffff !important; // Garante fundo branco
-    color: #000000 !important;           // Garante texto preto
-    border: none !important;              // Garante sem borda
+    background-color: #ffffff !important; 
+    color: #000000 !important;           
+    border: none !important;              
     background-image: none !important;
     font-size: inherit !important;
-    // Remove box-shadow que o Bootstrap pode adicionar em :focus
     &:focus {
       box-shadow: none !important;
     }
   }
 }
 
-// Estilo para o botão "Voltar"
 .voltar-button-custom {
-  background-color: #9c9c9c; // Fundo branco
-  color: #ffffff;           // Texto preto
-  border: none;              // Sem borda
-  border-radius: 50px;       // Bordas arredondadas para formato de pílula
-  padding: 10px 25px;        // Espaçamento interno
-  font-weight: 700;          // Texto em negrito (equivalente a bold)
-  font-size: 2rem;           // Tamanho do texto dobrado (assumindo base de 1rem)
+  background-color: #9c9c9c; 
+  color: #ffffff;           
+  border: none;              
+  border-radius: 50px;       
+  padding: 10px 25px;        
+  font-weight: 700;          
+  font-size: 2rem;           
   text-align: center;
   text-decoration: none;
   display: inline-block;
   cursor: pointer;
   line-height: 1.5;
 
-  // Estilos para interação (hover, focus)
   &:hover,
   &:focus,
   &:active {
-    background-color: #6e6e6e; // Um branco levemente acinzentado para interação
+    background-color: #6e6e6e; 
     color: #ffffff;
     text-decoration: none;
-    outline: none;             // Remove o contorno padrão do navegador no foco
-    box-shadow: none;          // Remove quaisquer sombras padrão
+    outline: none;             
+    box-shadow: none;          
   }
 
-  // Se estiver usando com o Button do React-Bootstrap, ele herda a classe .btn
-  // Estes !important são necessários para sobrescrever os estilos do Bootstrap.
   &.btn {
-    background-color: #9c9c9c !important; // Garante fundo branco
-    color: #ffffff !important;           // Garante texto preto
-    border: none !important;              // Garante sem borda
+    background-color: #9c9c9c !important; 
+    color: #ffffff !important;           
+    border: none !important;              
     background-image: none !important;
     font-size: inherit !important;
-    // Remove box-shadow que o Bootstrap pode adicionar em :focus
     &:focus {
       box-shadow: none !important;
     }
   }
 }
 
-// Estilos para o Modal de Confirmação
 .confirmation-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6); // Fundo escuro semi-transparente
+  background-color: rgba(0, 0, 0, 0.6); 
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050; // Para ficar acima de outros elementos
+  z-index: 1050; 
 }
 
 .confirmation-modal {
-  background-color: #2c3e50; // Cor de fundo escura do modal (similar à imagem)
+  background-color: #2c3e50; 
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   width: 90%;
-  max-width: 450px; // Largura máxima do modal
+  max-width: 450px; 
   text-align: center;
-  color: #ffffff; // Texto branco
+  color: #ffffff; 
 
   .confirmation-modal-title {
     font-size: 1.8rem;
@@ -288,12 +276,12 @@
   .confirmation-modal-text {
     font-size: 1rem;
     margin-bottom: 25px;
-    color: #e0e0e0; // Cor de texto um pouco mais clara para o parágrafo
+    color: #e0e0e0; 
   }
 
   .confirmation-modal-actions {
     display: flex;
-    justify-content: space-around; // Espaça os botões
+    justify-content: space-around; 
 
     .confirmation-modal-button {
       padding: 12px 25px;
@@ -302,7 +290,7 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      min-width: 120px; // Largura mínima para os botões
+      min-width: 120px; 
       transition: opacity 0.2s;
 
       &:hover {
@@ -310,12 +298,12 @@
       }
 
       &.confirm {
-        background-color: #28a745; // Verde para SIM
+        background-color: #28a745; 
         color: white;
       }
 
       &.cancel {
-        background-color: #dc3545; // Vermelho para NÃO
+        background-color: #dc3545; 
         color: white;
       }
     }
