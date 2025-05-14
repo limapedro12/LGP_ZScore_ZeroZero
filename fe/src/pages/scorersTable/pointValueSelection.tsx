@@ -3,6 +3,7 @@ import { Container, Row, Col, Button, Image } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import '../../styles/pointValueSelection.scss';
+import basketball from '../../../public/icons/basketball.png';
 
 const PointValueSelection: React.FC = () => {
     const { sport, placardId, teamTag } = useParams<{ sport: string, placardId: string, teamTag: string }>();
@@ -55,10 +56,16 @@ const PointValueSelection: React.FC = () => {
                             onClick={() => handlePointValueSelect(1)}
                         >
                             <div className="point-button-content">
-                                <div className="point-value">1</div>
+                                <div className="point-value">
+                                    <Image
+                                        src={basketball}
+                                        alt="Basketball"
+                                        className="basketball-value-icon"
+                                    />
+                                    <span className="point-number">1</span>
+                                </div>
                                 <div className="point-details">
-                                    <div className="point-title">Lance Livre</div>
-                                    <div className="point-desc">Da linha de lance livre</div>
+                                    <div className="point-title">1 Ponto</div>
                                 </div>
                             </div>
                         </Button>
@@ -68,10 +75,16 @@ const PointValueSelection: React.FC = () => {
                             onClick={() => handlePointValueSelect(2)}
                         >
                             <div className="point-button-content">
-                                <div className="point-value">2</div>
+                                <div className="point-value">
+                                    <Image
+                                        src={basketball}
+                                        alt="Basketball"
+                                        className="basketball-value-icon"
+                                    />
+                                    <span className="point-number">2</span>
+                                </div>
                                 <div className="point-details">
-                                    <div className="point-title">Campo</div>
-                                    <div className="point-desc">Dentro da linha de 3 pontos</div>
+                                    <div className="point-title">2 Pontos</div>
                                 </div>
                             </div>
                         </Button>
@@ -81,10 +94,16 @@ const PointValueSelection: React.FC = () => {
                             onClick={() => handlePointValueSelect(3)}
                         >
                             <div className="point-button-content">
-                                <div className="point-value">3</div>
+                                <div className="point-value">
+                                    <Image
+                                        src={basketball}
+                                        alt="Basketball"
+                                        className="basketball-value-icon"
+                                    />
+                                    <span className="point-number">3</span>
+                                </div>
                                 <div className="point-details">
-                                    <div className="point-title">Triplo</div>
-                                    <div className="point-desc">Fora da linha de 3 pontos</div>
+                                    <div className="point-title">3 Pontos</div>
                                 </div>
                             </div>
                         </Button>

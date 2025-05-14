@@ -7,11 +7,32 @@ import { useParams } from 'react-router-dom';
 import { Sport } from '../../utils/scorersTableUtils';
 import TeamLogo from '../../components/scorersTable/teamLogo';
 import CentralConsole from '../../components/scorersTable/centralConsole';
+import '../../styles/scorersTable.scss';
+import clockPaused from '../../../public/icons/clock_paused.png';
+import clockResumed from '../../../public/icons/clock_resumed.png';
+import apiManager from '../../api/apiManager';
 
 const ScorersTable = () => {
-    const { sport: sportParam /* , placardId: placardIdParam */ } = useParams<{ sport: string, placardId: string }>();
-
+    const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
+    const [timerRunning, setTimerRunning] = React.useState(false);
     const sport = (sportParam as Sport) || 'volleyball';
+
+    const handleTimerToggle = () => {
+        if (!placardIdParam || !sport) return;
+
+        try {
+
+            if (timerRunning) {
+                apiManager.stopTimer(placardIdParam, sport);
+            } else {
+                apiManager.startTimer(placardIdParam, sport);
+            }
+            setTimerRunning(!timerRunning);
+        } catch (error) {
+            console.error('Error toggling timer:', error);
+        }
+    };
+
 
     const containerClassName =
         `scorers-table-container d-md-flex flex-column justify-content-start align-items-center vh-100 p-0 
@@ -19,18 +40,6 @@ const ScorersTable = () => {
 
     const mobileContainerClassName =
         'd-flex flex-column d-md-none justify-content-around align-items-center vh-100 p-3';
-
-    const correctionButtonStyle: React.CSSProperties = {
-        width: '60px',
-        height: '60px',
-        borderRadius: '50%',
-        backgroundColor: '#0d6efd',
-        borderColor: '#0d6efd',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '0',
-    };
 
     return (
         <>
@@ -48,12 +57,32 @@ const ScorersTable = () => {
                         <TeamLogo logoSrc="/teamLogos/scp.png" teamName="Sporting" />
                     </Col>
                 </Row>
-
-                <Row className="w-100 d-none d-md-flex align-items-center h-25">
-                    <div className="d-flex flex-column align-items-center">
+                <Row className="w-100 d-none d-md-flex align-items-center justify-content-around h-25">
+                    <Col md={4} className="d-flex flex-column align-items-center">
                         <p className="text-white fw-bold fs-5 mb-2">Corrigir</p>
-                        <Button style={correctionButtonStyle} aria-label="Corrigir" />
-                    </div>
+                        <Button
+                            variant="primary"
+                            className="event-button rounded-circle"
+                            aria-label="Corrigir"
+                        />
+                    </Col>
+                    <Col md={4} className="d-flex flex-column align-items-center">
+                        <p className="text-white fw-bold fs-5 mb-2">
+                            {timerRunning ? 'Parar' : 'Iniciar'}
+                        </p>
+                        <Button
+                            variant="light"
+                            className="event-button rounded-circle"
+                            aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
+                            onClick={handleTimerToggle}
+                        >
+                            <img
+                                src={timerRunning ? clockPaused : clockResumed}
+                                alt=""
+                                className="event-icon"
+                            />
+                        </Button>
+                    </Col>
                 </Row>
             </Container>
 
@@ -73,11 +102,32 @@ const ScorersTable = () => {
                         <CentralConsole sport={sport} />
                     </div>
                 </Row>
-                <Row className="w-100 py-3 justify-content-center">
-                    <div className="d-flex flex-column align-items-center">
+                <Row className="w-100 py-3 justify-content-around">
+                    <Col xs={5} className="d-flex flex-column align-items-center">
                         <p className="text-white fw-bold fs-5 mb-2 text-center">Corrigir</p>
-                        <Button style={correctionButtonStyle} aria-label="Corrigir" />
-                    </div>
+                        <Button
+                            variant="primary"
+                            className="event-button rounded-circle"
+                            aria-label="Corrigir"
+                        />
+                    </Col>
+                    <Col xs={5} className="d-flex flex-column align-items-center">
+                        <p className="text-white fw-bold fs-5 mb-2 text-center">
+                            {timerRunning ? 'Parar' : 'Iniciar'}
+                        </p>
+                        <Button
+                            variant="light"
+                            className="event-button rounded-circle"
+                            aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
+                            onClick={handleTimerToggle}
+                        >
+                            <img
+                                src={timerRunning ? clockPaused : clockResumed}
+                                alt=""
+                                className="event-icon"
+                            />
+                        </Button>
+                    </Col>
                 </Row>
             </Container>
         </>
