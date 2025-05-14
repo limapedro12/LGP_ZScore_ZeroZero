@@ -5,9 +5,9 @@ import Col from 'react-bootstrap/Col';
 import Timer from '../components/timer';
 import TimeoutTimer from '../components/timeoutTimer';
 import TimeoutCounter from '../components/timeoutCounter';
-import '../styles/scoreBoard.scss';
 import ScoresRow from '../components/scoresCounter';
 import Slider from '../components/scoreboard/slider';
+import '../styles/scoreBoard.scss';
 import { useParams } from 'react-router-dom';
 import { Sport } from '../utils/cardUtils';
 
@@ -39,45 +39,36 @@ const ScoreBoard = () => {
             fluid
             className={containerClassName}
         >
-            {/* SCORE ROW */}
             <Row className="scores-row-wrapper w-100">
                 <Col xs={12} className="p-0">
                     <ScoresRow />
                 </Col>
             </Row>
 
-            {/* The following show when the screen is big */}
             <Row className="w-100 justify-content-center flex-grow-1 d-none d-md-flex">
-                {/* HOME TEAM SLIDER */}
                 <Col xs={12} md={4} lg={4} className="ps-0">
                     <Slider sport={sport} team="home" placardId={placardId} />
                 </Col>
 
-                {/* CENTRAL INFORMATION */}
                 <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center">
                     {Center}
                 </Col>
 
-                {/* AWAY TEAM SLIDER */}
                 <Col xs={12} md={4} lg={4} className="pe-0">
                     <Slider sport={sport} team="away" placardId={placardId} />
                 </Col>
             </Row>
-            {/* The following show when the screen is small */}
             <Row className="w-100 justify-content-center flex-grow-1 d-flex d-md-none">
-                {/* CENTRAL INFORMATION */}
                 <Row>
                     <Col xs={12} md={8} lg={6} className="d-flex flex-column align-items-center justify-content-center">
                         {Center}
                     </Col>
                 </Row>
                 <Row className="px-0 pt-2">
-                    {/* HOME TEAM SLIDER */}
                     <Col className="ps-0">
                         <Slider sport={sport} team="home" placardId={placardId} />
                     </Col>
 
-                    {/* AWAY TEAM SLIDER */}
                     <Col className="pe-0">
                         <Slider sport={sport} team="away" placardId={placardId} />
                     </Col>
