@@ -13,6 +13,8 @@ import '../styles/eventHistory.scss';
 import Button from 'react-bootstrap/Button';
 import { formatTime } from '../utils/timeUtils'; // Import formatTime
 import { getEventIconPath, EventCategory } from '../utils/scorersTableUtils'; // Import utility and type
+import { getCardIconPath, Sport as CardUtilsSport } from '../utils/cardUtils'; // Import for specific card icons
+import PlayerJersey from './playerJersey'; // Import PlayerJersey component
 
 type Sport = 'futsal' | 'basketball' | 'volleyball';
 
@@ -54,35 +56,55 @@ const EventHistory: React.FC = () => {
 
     const getEventIcon = useCallback((event: Event, currentSport: Sport): React.ReactNode => {
         let category: EventCategory | undefined;
+        let iconPath: string | undefined;
 
         switch (event.type) {
             case 'score':
                 if (currentSport === 'futsal') category = 'futsalScore';
                 else if (currentSport === 'basketball') category = 'basketballScore';
                 else if (currentSport === 'volleyball') category = 'volleyballScore';
+                if (category) {
+                    iconPath = getEventIconPath(category);
+                }
                 break;
             case 'foul':
-                category = 'foul';
+                iconPath = getEventIconPath('foul');
                 break;
             case 'card':
-                category = 'card'; // This will use the generic card icon from scorersTableUtils
+                // Use getCardIconPath for specific card icons
+                if (event.details && typeof event.details.cardType === 'string') {
+                    // Ensure currentSport is compatible with CardUtilsSport if types differ
+                    // For now, assuming 'futsal' | 'volleyball' | 'basketball' from EventHistory
+                    // is compatible or can be cast/mapped if CardUtilsSport is more restrictive.
+                    // Based on your cardUtils.ts, Sport is 'futsal' | 'volleyball'.
+                    // We need to handle basketball if it can have cards and needs specific icons.
+                    // For now, let's assume futsal and volleyball are the primary sports for cardUtils.
+                    if (currentSport === 'futsal' || currentSport === 'volleyball') {
+                        iconPath = getCardIconPath(currentSport as CardUtilsSport, event.details.cardType);
+                    } else {
+                        // Fallback for other sports like basketball if not covered by getCardIconPath
+                        // or use a generic card icon from scorersTableUtils
+                        iconPath = getEventIconPath('card'); // Generic card icon
+                    }
+                } else {
+                    // Fallback to generic card icon if details are missing
+                    iconPath = getEventIconPath('card');
+                }
                 break;
             case 'timeout':
-                category = 'timeout';
+                iconPath = getEventIconPath('timeout');
                 break;
             case 'substitution':
-                category = 'substitution';
+                iconPath = getEventIconPath('substitution');
                 break;
             default:
                 return null;
         }
 
-        if (category) {
-            const iconPath = getEventIconPath(category);
-            if (iconPath) {
-                return <img src={iconPath} alt={`${event.type} icon`} className="event-history-icon-img" />;
-            }
+        if (iconPath) {
+            return <img src={iconPath} alt={`${event.type} icon`} className="event-history-icon-img" />;
         }
+
         return null; // Fallback if no category or path found
     }, []);
 
@@ -129,22 +151,16 @@ const EventHistory: React.FC = () => {
                 break;
             }
             case 'card': { // Fix for no-case-declarations
-                const cardItem = item as ApiCardEventData; // cardType é obrigatório em ApiCardEventData
-                description = `Cartão ${cardItem.cardType}`;
-                if (playerInfo) description += ` para ${playerInfo}`;
+                if (playerInfo) description += `${playerInfo}`;
                 break;
             }
             case 'foul': { // Fix for no-case-declarations
-                const foulItem = item as ApiFoulEventData;
-                description = 'Falta';
-                if (playerInfo) description += ` de ${playerInfo}`;
-                if (foulItem.period) description += ` (Período ${foulItem.period})`;
+                if (playerInfo) description += ` ${playerInfo}`;
                 break;
             }
             case 'timeout':
                 // const timeoutItem = item as ApiTimeoutEventData; // Não usado diretamente para descrição
                 description = 'Pausa Técnica';
-                if (teamInfo) description += ` (${teamInfo})`;
                 break;
             case 'substitution':
                 description = `Substituição: Entra ${item.playerInName || item.playerInId}, Sai ${item.playerOutName
@@ -435,14 +451,12 @@ const EventHistory: React.FC = () => {
                         </div>
                         <div className="event-team-info">
                             {event.playerNumber && (
-                                <span className="player-number-badge">
-                                    {event.playerNumber}
-                                </span>
+                                <PlayerJersey number={parseInt(String(event.playerNumber), 10)} />
                             )}
                             {event.teamLogo && (
                                 <img
                                     src={event.teamLogo}
-                                    alt="Logo da Equipe"
+                                    alt={`${event.team || 'Equipa'} logo`}
                                     className="team-logo-display"
                                 />
                             )}

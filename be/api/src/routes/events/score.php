@@ -161,6 +161,7 @@ try {
                 'playerId' => $playerId,
                 'period' => $currentPeriod,
                 'pointValue' => $pointValue,
+                'timeSpan' => $gameTimePosition
             ];
 
             $redis->multi();
