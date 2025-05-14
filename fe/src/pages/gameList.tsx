@@ -57,8 +57,8 @@ const GameList = () => {
 
             </Row>
 
-            <Row className="mb-4 align-items-start d-none d-md-flex">
-                <Col xs={6}>
+            <Row className="mb-4 d-none d-md-flex">
+                <Col xs={6} className="text-center">
                     {jogosTitle}
                 </Col>
 

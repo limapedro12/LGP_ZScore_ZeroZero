@@ -19,19 +19,20 @@ html, body {
   font-size: 1.2rem;
   color: white;
   line-height: 1.5;
-  padding-left: 10px;
-  padding-bottom: 10px;
+  position: absolute;
+  top: 3vh;
+  left: 2vw;
 }
 
 .logo img {
-  width: 10vw;
+  height: 15vh;
 }
 
 .jogosTitle {
-  padding-left: 30px;
   font-size: 2rem;
   whiteSpace: 'nowrap';
 }
+
 
 .filters {
   background-color: white;//#2b3a47;
@@ -42,6 +43,7 @@ html, body {
   gap: 20px;
   border-radius: 15px;
   height: 60vh;
+  margin-top: 5vh;
 }
 
 .filters h2 {
@@ -238,6 +240,7 @@ html, body {
   .filters {
     width: 100%;
     height: auto;
+    margin-top: 12vh;
   }
 
   .sidebar {
@@ -250,6 +253,9 @@ html, body {
 
   .logo img {
     width: auto;
+    width: auto;
     height: 10vh;
-  }
+    position: absolute;
+    left: 5vw;
+  } 
 }
