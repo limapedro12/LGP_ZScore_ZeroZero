@@ -7,7 +7,6 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-
 type ActionType =
     | 'start'
     | 'pause'

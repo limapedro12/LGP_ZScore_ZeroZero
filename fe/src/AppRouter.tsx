@@ -5,11 +5,11 @@ import config from './config/config';
 import HomePage from './pages/home';
 import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
+import GameList from './pages/gameList';
 import ScorersTable from './pages/scorersTable/scorersTable';
 import SelectCardPage from './pages/scorersTable/selectCard';
 import PlayerSelectionPage from './pages/scorersTable/playerSelection';
 import PointValueSelection from './pages/scorersTable/pointValueSelection';
-// Remove import for CardSelectPlayerPage since we're not using it anymore
 
 /**
  * AppRouter component
@@ -23,6 +23,7 @@ const AppRouter = () => (
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
+            <Route path="/gameList" element={<GameList />} />
             <Route path="/scorersTable/:sport/:placardId" element={<ScorersTable />} />
             <Route path="/scorersTable/:sport/:placardId/selectCard/:teamTag" element={<SelectCardPage />} />
             <Route path="/scorersTable/:sport/:placardId/playerSelection/:teamTag" element={<PlayerSelectionPage />} />
