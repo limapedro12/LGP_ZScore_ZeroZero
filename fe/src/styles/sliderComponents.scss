@@ -63,7 +63,30 @@
   font-size: 1.2rem;
 }
 
-// Responsive adjustments
+.player-jersey-container {
+  width: 4.5rem;
+  height: 4.5rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  max-width: 7vw;
+  max-height: 7vw;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-jersey-img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.player-jersey-number {
+  font-size: 1.5rem;
+}
+
 @include config.below-md {
   .slider-title {
     font-size: 1rem;
@@ -81,5 +104,64 @@
   .score-event-placeholder {
     width: 2rem;
     height: 2rem;
+  }
+
+  .player-name{
+    font-size: 0.75rem;
+  }
+
+  .player-jersey-container {
+    width: 4.5rem;
+    height: 4.5rem;
+    min-width: 3rem;
+    min-height: 3rem;
+    max-width: 7vw;
+    max-height: 7vw;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .player-jersey-img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .player-jersey-number {
+    font-size: 1rem;
+  }
+
+}
+
+@include config.below-lg {
+    .player-name{
+    font-size: 0.8rem;
+  }
+
+  .player-jersey-container {
+    width: 4.5rem;
+    height: 4.5rem;
+    min-width: 3rem;
+    min-height: 3rem;
+    max-width: 7vw;
+    max-height: 7vw;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .player-jersey-img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .player-jersey-number {
+    font-size: 1rem;
   }
 }

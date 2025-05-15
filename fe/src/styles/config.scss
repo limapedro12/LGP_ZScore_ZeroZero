@@ -78,6 +78,12 @@ $breakpoint-placard4: 2800px;
   }
 }
 
+@mixin below-lg {
+  @media (max-width: #{$breakpoint-lg - 1}) {
+    @content;
+  }
+}
+
 @mixin below-md {
   @media (max-width: #{$breakpoint-md - 1}) {
     @content;

@@ -24,7 +24,7 @@ const PlayerJersey: React.FC<PlayerJerseyProps> = ({ number, color = '#273E7C', 
     const rgb = hexToRgb(color);
 
     return (
-        <div className="d-flex justify-content-center align-items-center position-relative w-50">
+        <div className="player-jersey-container d-flex justify-content-center align-items-center position-relative">
             {!hideIcon && (
                 <>
                     <svg width="0" height="0">
@@ -32,24 +32,22 @@ const PlayerJersey: React.FC<PlayerJerseyProps> = ({ number, color = '#273E7C', 
                             <feColorMatrix
                                 type="matrix"
                                 values={`0 0 0 0 ${rgb.r}
-                            0 0 0 0 ${rgb.g}
-                            0 0 0 0 ${rgb.b}
-                            0 0 0 1 0`}
+                        0 0 0 0 ${rgb.g}
+                        0 0 0 0 ${rgb.b}
+                        0 0 0 1 0`}
                             />
                         </filter>
                     </svg>
                     <img
                         src={'/icons/tshirt-icon.svg'}
                         alt="Player Jersey"
-                        className="img-fluid"
+                        className="img-fluid player-jersey-img"
                         style={{ filter: `url(#color-${color.replace('#', '')})` }}
                     />
                 </>
             )}
             {number && number > 0 && (
-                <div
-                    className="position-absolute top-50 start-50 translate-middle text-white fw-bold small"
-                >
+                <div className="player-jersey-number position-absolute top-50 start-50 translate-middle text-white fw-bold">
                     {number}
                 </div>
             )}

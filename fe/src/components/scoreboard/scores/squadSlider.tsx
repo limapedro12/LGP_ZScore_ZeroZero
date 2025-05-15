@@ -4,6 +4,9 @@ import EventDisplay from '../eventDisplay';
 import apiManager from '../../../api/apiManager';
 import PositionSigla from './positionSigla';
 import '../../../styles/sliderComponents.scss';
+import { useMediaQuery } from 'react-responsive';
+import { BREAKPOINTS } from '../../../media-queries';
+
 
 interface SquadSliderProps {
   team: 'home' | 'away';
@@ -24,6 +27,8 @@ const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete }) => {
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
     const [hasCompletedCycle, setHasCompletedCycle] = useState(false);
     const PLAYERS_PER_PAGE = 8;
+    const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
+
 
     const fetchSquadPlayers = useCallback(async () => {
         try {
@@ -98,7 +103,9 @@ const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete }) => {
                                 playerName={player.player_name}
                                 playerNumber={Number(player.player_number)}
                                 team={team}
-                                rightElement={<PositionSigla sigla={player.player_position_sigla} team={team} />}
+                                rightElement={
+                                    !small ? <PositionSigla sigla={player.player_position_sigla} team={team} /> : undefined
+                                }
                             />
                         </div>
                     ))
