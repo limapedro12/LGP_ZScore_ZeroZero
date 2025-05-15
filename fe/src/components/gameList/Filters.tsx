@@ -38,9 +38,17 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
 
         setSelectedTeams(updatedTeams);
 
+        let localFormattedDate: string | null = null;
+        if (selectedDate) {
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
+            const year = selectedDate.getFullYear();
+            localFormattedDate = `${day}/${month}/${year}`;
+        }
+
         const filteredGames = games.filter((game) => {
-            const matchesTeams = updatedTeams.every((team) => game.home === team || game.away === team);
-            const matchesDate = selectedDate ? game.date.startsWith(selectedDate.toISOString().split('T')[0]) : true;
+            const matchesTeams = updatedTeams.length === 0 ? true : updatedTeams.every((t) => game.home === t || game.away === t);
+            const matchesDate = localFormattedDate ? game.date === localFormattedDate : true;
             return matchesTeams && matchesDate;
         });
 
@@ -49,14 +57,19 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
 
     const handleDateChange = (date: Date | null) => {
         setSelectedDate(date);
-        let formattedDate = date ? date.toISOString().split('T')[0] : null;
-        formattedDate = formattedDate
-            ? formattedDate.split('-').reverse().join('/')
-            : null;
+
+        let localFormattedDate: string | null = null;
+        if (date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
+            const year = date.getFullYear();
+            localFormattedDate = `${day}/${month}/${year}`;
+        }
 
         const filteredGames = games.filter((game) => {
-            const matchesDate = date ? game.date === formattedDate : true;
-            const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
+            const matchesDate = localFormattedDate ? game.date === localFormattedDate : true;
+            const matchesTeams = selectedTeams.length === 0 ? true : selectedTeams.every(
+                (team) => game.home === team || game.away === team);
             return matchesDate && matchesTeams;
         });
 
