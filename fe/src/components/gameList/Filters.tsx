@@ -14,6 +14,8 @@ type FiltersProps = {
     onFilter: (filteredGames: Game[]) => void;
 };
 
+const normalizeString = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
     const getUniqueTeams = (games: Game[]): string[] => {
         const teams = new Set<string>();
@@ -80,7 +82,9 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
             />
             <div className="teams">
                 {teamLabels
-                    .filter((team) => team.toLowerCase().includes(teamSearch.toLowerCase()))
+                    .filter((team) =>
+                        normalizeString(team.toLowerCase()).includes(normalizeString(teamSearch.toLowerCase()))
+                    )
                     .map((team, index) => (
                         <button
                             key={index}
