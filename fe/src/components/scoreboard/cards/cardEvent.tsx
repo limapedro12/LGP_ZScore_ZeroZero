@@ -56,7 +56,7 @@ const CardEvent = <S extends Sport>({
             playerName={playerName}
             playerNumber={playerNumber}
             team={team}
-            rightElement={team === 'home' ? renderCardIcon(cardType) : undefined}
+            rightElement={renderCardIcon(cardType)}
         />
     );
 };
