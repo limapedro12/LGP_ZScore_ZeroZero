@@ -1,0 +1,56 @@
+@use "./config.scss";
+
+.substitution-box {
+  display: flex;
+  align-items: center;
+  background-color: #2d3f53; // dark blue background
+  padding: 10px 20px;
+  border-radius: 8px;
+  width: fit-content;
+  color: white;
+  font-family: Arial, sans-serif;
+  margin-top: 5em;
+}
+
+.team-logo {
+  height: 8em;
+  margin-right: 30px;
+}
+
+.player-names {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  margin: 2px 0;
+}
+
+.player-info p {
+  margin: 0 12px 0 0;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.tshirt-img {
+  position: relative;
+  width: 3em;
+  height: 3em;
+  background: url('/tshirt.png') no-repeat center center;
+  text-align: center;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.substitution-triangles {
+  height: 5em;
+  margin-left: auto;
+}

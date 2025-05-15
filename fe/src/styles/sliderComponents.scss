@@ -1,0 +1,80 @@
+@use "./config.scss";
+
+.slider-component {
+  .slider-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Score event points styles
+.scores-slider-points {
+  width: 100%;
+  
+  &.home-points {
+    align-items: flex-start;
+  }
+  
+  &.away-points {
+    align-items: flex-end;
+  }
+}
+
+.score-event-position {
+  margin: 0.25rem 0;
+  min-height: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.score-event-point {
+  background-color: white;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  
+  .score-event-point-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+}
+
+.score-event-placeholder {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.player-scores-list {
+  width: 100%;
+}
+
+.player-score-item {
+  width: 100%;
+  padding: 0.25rem 0;
+}
+
+// Responsive adjustments
+@include config.below-md {
+  .slider-title {
+    font-size: 1rem;
+  }
+  
+  .score-event-point {
+    width: 2rem;
+    height: 2rem;
+    
+    .score-event-point-value {
+      font-size: 1rem;
+    }
+  }
+  
+  .score-event-placeholder {
+    width: 2rem;
+    height: 2rem;
+  }
+}

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../config/gameConfig.php';
 require_once __DIR__ . '/requestUtils.php';
 require_once __DIR__ . '/redisUtils.php';
+require_once __DIR__ . '/timeoutUtils.php';
 
 class PointUtils {
 
@@ -77,6 +78,10 @@ class PointUtils {
         }
         
         $pipeline->exec();
+
+        if (isset($gameConfig['timeoutsPerPeriod'])) {
+            TimeoutUtils::resetTimeoutsForNewPeriod($placardId);
+        }
         return true;
     }
     

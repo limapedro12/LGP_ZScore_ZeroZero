@@ -63,7 +63,7 @@ const Timer: React.FC = () => {
 
     if (!nonTimerSports?.includes(sport)) {
         return (
-            <Container className="timer d-flex flex-column align-items-center justify-content-center py-3">
+            <Container className="timer d-flex flex-column align-items-center justify-content-center">
                 <Row className="w-100">
                     <Col xs={12} className="text-center">
                         <div className="period display-4 fw-bold">

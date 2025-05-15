@@ -9,15 +9,17 @@
     min-width: 300px;
 }
 
-.timeout-timer-wrapper {
-    margin-bottom: 6rem; 
-    margin-top: 3rem;
+.slider-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.timeout-counter-wrapper {
-    margin-top: 6rem; 
-}
+.center-container {
+    flex: 2; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
-.scores-row-wrapper {
-    margin-top: 2rem !important;
 }

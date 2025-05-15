@@ -10,12 +10,12 @@
     transform: translateY(-50%);
 
     &-left {
-        border-right: 25px solid config.$secondary-text-color;
+        border-right: 25px solid var(--arrow-color);
         left: 20px;
     }
 
     &-right {
-        border-left: 25px solid config.$secondary-text-color;
+        border-left: 25px solid var(--arrow-color);
         right: 20px;
     }
 
@@ -41,4 +41,9 @@
         &.arrow-left { border-right-width: 80px; }
         &.arrow-right { border-left-width: 80px; }
     }
+}
+
+.thicker-arrow-icon path {
+  stroke: white;
+  stroke-width: 1.3px; 
 }
