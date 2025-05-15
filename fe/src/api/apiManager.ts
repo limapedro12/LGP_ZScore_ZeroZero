@@ -67,7 +67,7 @@ interface RequestParams {
 }
 
 interface ApiParams {
-    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive' | 'getTeamPlayers';
+    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive' | 'getTeamPlayers' | 'getPlayerInfo';
     username?: string;
     password?: string;
     cookie?: string;
@@ -327,6 +327,9 @@ class ApiManager {
 
     getTeamPlayers = () =>
         this.ApiRequest({ action: 'getTeamPlayers' }, 'GET');
+
+    getPlayerInfo = (id: string) =>
+        this.ApiRequest({ action: 'getPlayerInfo', id: id }, 'GET');
 
     getScores = (placardId: string, sport: string) =>
         this.makeRequest<ScoreResponse>('score', 'gameStatus', { placardId, sport }, 'GET');

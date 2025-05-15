@@ -22,6 +22,8 @@ const ScoreBoard = () => {
     const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
     const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
     const [timeoutStatus, setTimeoutStatus] = useState('inactive');
+    const [sliderIndex, setSliderIndex] = useState(0);
+    const SLIDER_ITEMS_COUNT = 4;
 
     const fetchNoPeriodSports = useCallback(async () => {
         try {
@@ -57,6 +59,13 @@ const ScoreBoard = () => {
         return () => clearInterval(intervalId);
     }, [fetchScores, fetchNoPeriodSports]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSliderIndex((prev) => (prev + 1) % SLIDER_ITEMS_COUNT);
+        }, 10000);
+        return () => clearInterval(interval);
+    }, []);
+
     const Center = (
         <>
             <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
@@ -74,6 +83,7 @@ const ScoreBoard = () => {
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
             </div>
+
         </>
     );
 
@@ -95,7 +105,7 @@ const ScoreBoard = () => {
             <Row className="slider-content-row w-100 justify-content-center flex-grow-1 d-none d-md-flex overflow-hidden">
                 {/* HOME TEAM SLIDER */}
                 <Col xs={12} md={4} lg={4} className="ps-0 h-100 overflow-hidden">
-                    <Slider sport={sport} team="home" placardId={placardId} />
+                    <Slider sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex} />
                 </Col>
 
                 {/* CENTRAL INFORMATION */}
@@ -105,7 +115,7 @@ const ScoreBoard = () => {
 
                 {/* AWAY TEAM SLIDER */}
                 <Col xs={12} md={4} lg={4} className="pe-0 h-100 overflow-hidden">
-                    <Slider sport={sport} team="away" placardId={placardId} />
+                    <Slider sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex} />
                 </Col>
             </Row>
 
@@ -120,12 +130,12 @@ const ScoreBoard = () => {
                 <Row className="w-100 px-0 pt-2 m-0">
                     {/* HOME TEAM SLIDER */}
                     <Col className="ps-0 h-100 overflow-hidden">
-                        <Slider sport={sport} team="home" placardId={placardId} />
+                        <Slider sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex} />
                     </Col>
 
                     {/* AWAY TEAM SLIDER */}
                     <Col className="pe-0 h-100 overflow-hidden">
-                        <Slider sport={sport} team="away" placardId={placardId} />
+                        <Slider sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex} />
                     </Col>
                 </Row>
             </Row>

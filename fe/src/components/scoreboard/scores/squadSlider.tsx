@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import BaseSlider from '../baseSlider';
 import EventDisplay from '../eventDisplay';
 import apiManager from '../../../api/apiManager';
+import PositionSigla from './positionSigla';
 import '../../../styles/sliderComponents.scss';
 
 interface SquadSliderProps {
@@ -54,7 +55,7 @@ const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete }) => {
         if (totalPages <= 1) {
             const timeoutId = setTimeout(() => {
                 setHasCompletedCycle(true);
-            }, 4900);
+            }, 10000);
 
             return () => clearTimeout(timeoutId);
         }
@@ -69,7 +70,7 @@ const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete }) => {
 
                 return nextIndex;
             });
-        }, 4900);
+        }, 10000 / 3);
 
         return () => clearInterval(pageInterval);
     }, [totalPages]);
@@ -97,7 +98,7 @@ const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete }) => {
                                 playerName={player.player_name}
                                 playerNumber={Number(player.player_number)}
                                 team={team}
-                                compact={true}
+                                rightElement={<PositionSigla sigla={player.player_position_sigla} team={team} />}
                             />
                         </div>
                     ))

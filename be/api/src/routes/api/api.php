@@ -29,7 +29,7 @@ if (is_null($action)) {
     exit;
 }
 
-$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive', 'getTeamPlayers'];
+$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive', 'getTeamPlayers', 'getPlayerInfo'];
 if (!in_array($action, $allowedActions)) {
     echo json_encode(["error" => "Invalid action"]);
     exit;
@@ -42,7 +42,7 @@ if ((is_null($username) || is_null($password)) && $action === 'login') {
     exit;
 }
 $cookie = $_GET['cookie'] ?? $jsonBody['cookie'] ?? null;
-if (is_null($cookie) && $action !== 'login' && $action !== 'getTeamPlayers') {
+if (is_null($cookie) && $action !== 'login' && $action !== 'getTeamPlayers' && $action !== 'getPlayerInfo') {
     echo json_encode(["error" => "Missing cookie"]);
     exit;
 }
@@ -58,21 +58,7 @@ if (is_null($teamId) && $action === 'getTeamLive') {
     exit;
 }
 
-switch ($action) {
-    case 'login':
-        $response = login($apiurl, $appkey, $username, $password);
-        break;
-    case 'getMatchesColab':
-        $response = getMatchesColab($apiurl, $appkey, $cookie);
-        break;
-    case 'getMatchLiveInfo':
-        $response = getMatchLiveInfo($apiurl, $appkey, $cookie, $matchId);
-        break;
-    case 'getTeamLive':
-        $response = getTeamLive($apiurl, $appkey, $cookie, $matchId, $teamId);
-        break;
-    case 'getTeamPlayers':
-        $players = [
+$players = [
             [
             'player_id' => '839058',
             'player_name' => 'Fábio Madeira',
@@ -234,8 +220,42 @@ switch ($action) {
             'INTEAM' => '1',
             ],
         ];
-        
+
+switch ($action) {
+    case 'login':
+        $response = login($apiurl, $appkey, $username, $password);
+        break;
+    case 'getMatchesColab':
+        $response = getMatchesColab($apiurl, $appkey, $cookie);
+        break;
+    case 'getMatchLiveInfo':
+        $response = getMatchLiveInfo($apiurl, $appkey, $cookie, $matchId);
+        break;
+    case 'getTeamLive':
+        $response = getTeamLive($apiurl, $appkey, $cookie, $matchId, $teamId);
+        break;
+    case 'getTeamPlayers':
         $response = json_encode($players);
+        break;
+
+    case 'getPlayerInfo':
+        $id = $_GET['id'] ?? $jsonBody['id'] ?? null;
+        if (is_null($id)) {
+            echo json_encode(["error" => "Missing id"]);
+            exit;
+        }
+        $player = null;
+        foreach ($players as $p) {
+            if ($p['player_id'] == $id) {
+                $player = $p;
+                break;
+            }
+        }
+        if (is_null($player)) {
+            echo json_encode(["error" => "Player not found"]);
+            exit;
+        }
+        $response = json_encode($player);
         break;
     default:
         echo json_encode(["error" => "Invalid action"]);

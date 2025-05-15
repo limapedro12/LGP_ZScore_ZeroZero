@@ -54,7 +54,7 @@ const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange }) => {
     }, [placardId, fetchTimerStatus, sport]);
 
     return status !== 'inactive' ? (
-        <div className="timeout-timer-outer">
+        <div className="timeout-timer-outer m-3">
             <div className="timeout-timer-box d-flex align-items-center justify-content-center position-relative">
                 {team === 'home' && <div className="arrow arrow-left" />}
                 <span className="timeout-timer-number">

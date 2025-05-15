@@ -22,6 +22,17 @@ const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, plac
     const [playerScores, setPlayerScores] = useState<PlayerScore[]>([]);
     const MAX_PLAYERS_TO_DISPLAY = 5;
 
+    const fetchPlayerInfo = useCallback(async (playerId: string) => {
+        try {
+            const response = await apiManager.getPlayerInfo(playerId);
+            return response;
+        } catch (error) {
+            console.error('Error fetching player info:', error);
+            return null;
+        }
+    }
+    , []);
+
     const fetchAndAggregateScores = useCallback(async () => {
         if (!placardId || !sport) {
             setPlayerScores([]);
@@ -33,13 +44,26 @@ const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, plac
             const teamScores = response.points.filter((event) => event.team === team);
 
             const playerScoreMap = new Map<string, PlayerScore>();
+            const playerInfoCache = new Map<string, { name: string; number?: number }>();
 
-            teamScores.forEach((event) => {
+            for (const event of teamScores) {
                 const playerId = event.playerId;
+
+                // Fetch player info if not cached
+                if (!playerInfoCache.has(playerId)) {
+                    const info = await fetchPlayerInfo(playerId);
+                    playerInfoCache.set(playerId, {
+                        name: info?.player_name || `Player ${playerId}`,
+                        number: info?.player_number ? Number(info.player_number) : undefined,
+                    });
+                }
+
+                const cachedInfo = playerInfoCache.get(playerId)!;
+
                 const playerData = playerScoreMap.get(playerId) || {
                     playerId,
-                    playerName: `Player ${playerId}`,
-                    playerNumber: Number(playerId) || undefined,
+                    playerName: cachedInfo.name,
+                    playerNumber: cachedInfo.number,
                     totalScore: 0,
                 };
 
@@ -47,7 +71,7 @@ const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, plac
 
                 playerData.totalScore += pointValue;
                 playerScoreMap.set(playerId, playerData);
-            });
+            }
 
             const sortedPlayers = Array.from(playerScoreMap.values())
                 .sort((a, b) => b.totalScore - a.totalScore)
@@ -59,7 +83,7 @@ const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, plac
             console.error('Error fetching player scores:', error);
             setPlayerScores([]);
         }
-    }, [placardId, sport, team]);
+    }, [placardId, sport, team, fetchPlayerInfo]);
 
     useEffect(() => {
         fetchAndAggregateScores();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import CardSlider from './cards/cardSlider';
 import ScoreHistorySlider from './scores/scoreHistorySlider';
 import PlayerScoreSlider from './scores/playerScoreSlider';
@@ -9,40 +9,17 @@ interface SliderProps {
   sport: Sport;
   placardId: string;
   team: 'home' | 'away';
+  sliderIndex?: number;
 }
 
-const Slider: React.FC<SliderProps> = ({ sport, placardId, team }) => {
-    const [currentSliderIndex, setCurrentSliderIndex] = useState(0);
-    const [waitingForSquadComplete, setWaitingForSquadComplete] = useState(false);
-
-    const handleSquadComplete = () => {
-        if (waitingForSquadComplete) {
-            setWaitingForSquadComplete(false);
-            setCurrentSliderIndex((prevIndex) => (prevIndex + 1) % sliderItems.length);
-        }
-    };
+const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0 }) => {
 
     const sliderItems: React.ReactNode[] = [
         <CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />,
         <ScoreHistorySlider sport={sport} team={team} placardId={placardId} key="score-history-item" />,
         <PlayerScoreSlider sport={sport} team={team} placardId={placardId} key="player-score-item" />,
-        <SquadSlider team={team} onComplete={handleSquadComplete} key="squad-slider-item" />,
+        <SquadSlider team={team} key="squad-slider-item" />,
     ];
-
-    useEffect(() => {
-        if (sliderItems.length > 0) {
-            const interval = setInterval(() => {
-                if (currentSliderIndex === 3) {
-                    setWaitingForSquadComplete(true);
-                } else {
-                    setCurrentSliderIndex((prevIndex) => (prevIndex + 1) % sliderItems.length);
-                }
-            }, 10000);
-            return () => clearInterval(interval);
-        }
-
-        return undefined;
-    }, [sliderItems.length, currentSliderIndex]);
 
     if (sliderItems.length === 0) {
         return null;
@@ -50,7 +27,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team }) => {
 
     return (
         <div className="w-100 h-100 d-flex justify-content-center align-items-center">
-            {sliderItems[currentSliderIndex]}
+            {sliderItems[sliderIndex]}
         </div>
     );
 };
