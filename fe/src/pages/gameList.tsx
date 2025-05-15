@@ -45,7 +45,7 @@ const GameList = () => {
     );
 
     return (
-        <Container fluid className="scoreboard-container p-4">
+        <Container fluid className="gameList-container p-4">
             <Row className="mb-4 align-items-start d-none d-md-flex">
                 <Col xs={4}>
                     {logo}

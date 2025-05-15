@@ -50,7 +50,7 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                 {/* Home Team - Desktop */}
                 <Col xs={0} md={3} lg={2} xl={2} className="team-col d-none d-md-flex">
                     <div className="team-display home-team">
-                        <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo" />
+                        <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo-scoreboard" />
                         <div className="team-abbr">
                             {homeTeam.abbreviation}
                         </div>
@@ -65,7 +65,7 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                             <div className="score-box">
                                 {scores.home}
                             </div>
-                            <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo" />
+                            <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo-scoreboard" />
                             <div className="team-abbr">
                                 {homeTeam.abbreviation}
                             </div>
@@ -74,7 +74,7 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                             <div className="score-box">
                                 {scores.away}
                             </div>
-                            <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo" />
+                            <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo-scoreboard" />
                             <div className="team-abbr">
                                 {awayTeam.abbreviation}
                             </div>
@@ -98,7 +98,7 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                         <div className="team-abbr">
                             {awayTeam.abbreviation}
                         </div>
-                        <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo" />
+                        <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo-scoreboard" />
                     </div>
                 </Col>
             </Row>
