@@ -27,7 +27,6 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
         isCompact = false;
     }
 
-
     const jerseyColor = team === 'home' ? homeColor : awayColor;
 
     const jerseyElement = (
