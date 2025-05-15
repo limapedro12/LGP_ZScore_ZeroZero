@@ -414,18 +414,18 @@ const EventHistory: React.FC = () => {
                             <span className="event-description-text">
                                 {event.description}
                             </span>
-                        </div>
-                        <div className="event-team-info">
-                            {event.playerNumber && (
-                                <PlayerJersey number={parseInt(String(event.playerNumber), 10)} />
-                            )}
-                            {event.teamLogo && (
-                                <img
-                                    src={event.teamLogo}
-                                    alt={`${event.team || 'Equipa'} logo`}
-                                    className="team-logo-display"
-                                />
-                            )}
+                            <div className="event-player-team-info">
+                                {event.playerNumber && (
+                                    <PlayerJersey number={parseInt(String(event.playerNumber), 10)} />
+                                )}
+                                {event.teamLogo && (
+                                    <img
+                                        src={event.teamLogo}
+                                        alt={`${event.team || 'Equipa'} logo`}
+                                        className="team-logo-miniature"
+                                    />
+                                )}
+                            </div>
                         </div>
                         <div className="event-actions">
                             <button

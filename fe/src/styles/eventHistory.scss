@@ -309,3 +309,15 @@
     }
   }
 }
+
+.event-player-team-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .team-logo-miniature {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+}

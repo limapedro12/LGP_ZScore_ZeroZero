@@ -140,7 +140,7 @@ try {
 
             PointUtils::changePeriod($placardId, $sport, $team);
 
-            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            $eventTimeSpan = RequestUtils::getGameTimePosition($placardId, $sport);
 
             $currentHomePoints = ($team === 'home') ? $points : (int)$homePoints;
             $currentAwayPoints = ($team === 'away') ? $points : (int)$awayPoints;
@@ -161,7 +161,7 @@ try {
                 'playerId' => $playerId,
                 'period' => $currentPeriod,
                 'pointValue' => $pointValue,
-                'timeSpan' => $gameTimePosition
+                'timeSpan' => $eventTimeSpan
             ];
 
             $redis->multi();
