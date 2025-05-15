@@ -119,6 +119,11 @@ html, body {
   align-items: center;
 }
 
+.game-card:hover {
+  cursor: pointer;
+  background-color: #f0f0f0;
+}
+
 .team {
   display: flex;
   flex-direction: column;
@@ -141,6 +146,11 @@ html, body {
   font-size: 1rem;
   margin: 5px 0;
   text-align: center;
+}
+
+.sport-icon {
+  width: 3vw;
+  height: 3vw;
 }
 
 /* Center align text in game-info */
