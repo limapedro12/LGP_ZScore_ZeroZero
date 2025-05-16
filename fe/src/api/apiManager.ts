@@ -20,7 +20,9 @@ type ActionType =
     | 'update'
     | 'delete'
     | 'noTimer'
-    | 'noPeriodBox';
+    | 'noCards'
+    | 'noPeriodBox'
+    | 'typeOfScore';
 
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports';
 
@@ -141,6 +143,7 @@ interface CardsResponse {
 
 interface SportsResponse {
     sports?: string[];
+    typeOfScore?: string;
 }
 
 /**
@@ -391,6 +394,12 @@ class ApiManager {
 
     getNoPeriodSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noPeriodBox', { }, 'GET');
+
+    getNoCardSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noCards', { }, 'GET');
+
+    getSportScoreType = (sport: string) =>
+        this.makeRequest<SportsResponse>('sports', 'typeOfScore', { sport }, 'GET');
 }
 
 const apiManager = new ApiManager();

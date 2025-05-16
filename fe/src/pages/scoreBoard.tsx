@@ -22,8 +22,12 @@ const ScoreBoard = () => {
     const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
     const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
     const [timeoutStatus, setTimeoutStatus] = useState('inactive');
+    const [sliderItemsCount, setSliderItemsCount] = useState(4);
     const [sliderIndex, setSliderIndex] = useState(0);
-    const SLIDER_ITEMS_COUNT = 4;
+
+    const handleSliderItemsCountChange = useCallback((count: number) => {
+        setSliderItemsCount(count);
+    }, []);
 
     const fetchNoPeriodSports = useCallback(async () => {
         try {
@@ -61,10 +65,10 @@ const ScoreBoard = () => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setSliderIndex((prev) => (prev + 1) % SLIDER_ITEMS_COUNT);
+            setSliderIndex((prev) => (prev + 1) % sliderItemsCount);
         }, 10000);
         return () => clearInterval(interval);
-    }, []);
+    }, [sliderItemsCount]);
 
     const Center = (
         <>
@@ -101,41 +105,46 @@ const ScoreBoard = () => {
                 </Col>
             </Row>
 
-            {/* The following show when the screen is big */}
             <Row className="slider-content-row w-100 justify-content-center flex-grow-1 d-none d-md-flex overflow-hidden">
-                {/* HOME TEAM SLIDER */}
                 <Col xs={12} md={4} lg={4} className="ps-0 h-100 overflow-hidden">
-                    <Slider sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex} />
+                    <Slider
+                        sport={sport} team="home"
+                        placardId={placardId} sliderIndex={sliderIndex}
+                        onItemsCountChange={handleSliderItemsCountChange}
+                    />
                 </Col>
 
-                {/* CENTRAL INFORMATION */}
                 <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center h-100">
                     {Center}
                 </Col>
 
-                {/* AWAY TEAM SLIDER */}
                 <Col xs={12} md={4} lg={4} className="pe-0 h-100 overflow-hidden">
-                    <Slider sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex} />
+                    <Slider
+                        sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
+                        onItemsCountChange={handleSliderItemsCountChange}
+                    />
                 </Col>
             </Row>
 
-            {/* The following show when the screen is small */}
             <Row className="w-100 justify-content-center flex-grow-1 d-flex d-md-none overflow-auto">
-                {/* CENTRAL INFORMATION */}
                 <Row className="w-100 m-0">
                     <Col xs={12} className="d-flex flex-column align-items-center justify-content-center">
                         {Center}
                     </Col>
                 </Row>
                 <Row className="w-100 px-0 pt-2 m-0">
-                    {/* HOME TEAM SLIDER */}
                     <Col className="ps-0 h-100 overflow-hidden">
-                        <Slider sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex} />
+                        <Slider
+                            sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex}
+                            onItemsCountChange={handleSliderItemsCountChange}
+                        />
                     </Col>
 
-                    {/* AWAY TEAM SLIDER */}
                     <Col className="pe-0 h-100 overflow-hidden">
-                        <Slider sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex} />
+                        <Slider
+                            sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
+                            onItemsCountChange={handleSliderItemsCountChange}
+                        />
                     </Col>
                 </Row>
             </Row>

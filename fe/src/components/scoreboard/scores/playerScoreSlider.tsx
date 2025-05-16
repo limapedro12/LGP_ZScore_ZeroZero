@@ -4,11 +4,14 @@ import apiManager from '../../../api/apiManager';
 import PlayerScoreEvent from './playerScoreEvent';
 import BaseSlider from '../baseSlider';
 import '../../../styles/sliderComponents.scss';
+import { useMediaQuery } from 'react-responsive';
+import { BREAKPOINTS } from '../../../media-queries';
 
 interface PlayerScoreSliderProps {
   sport: Sport;
   team: 'home' | 'away';
   placardId: string;
+  typeOfScore?: string;
 }
 
 interface PlayerScore {
@@ -18,9 +21,11 @@ interface PlayerScore {
   totalScore: number;
 }
 
-const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, placardId }) => {
+const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, placardId, typeOfScore }) => {
     const [playerScores, setPlayerScores] = useState<PlayerScore[]>([]);
     const MAX_PLAYERS_TO_DISPLAY = 5;
+    const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
+
 
     const fetchPlayerInfo = useCallback(async (playerId: string) => {
         try {
@@ -93,12 +98,12 @@ const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, plac
     }, [fetchAndAggregateScores]);
 
     return (
-        <BaseSlider title="Golos" className="player-scores-slider">
+        <BaseSlider title={`${typeOfScore}`} className="player-scores-slider">
             <div className="player-scores-list w-100 d-flex flex-column gap-2">
                 {playerScores.map((player) => (
                     <div key={player.playerId} className="player-score-item">
                         <PlayerScoreEvent
-                            playerName={player.playerName}
+                            playerName={!small ? player.playerName : '' }
                             playerNumber={player.playerNumber}
                             scoreCount={player.totalScore}
                             team={team}

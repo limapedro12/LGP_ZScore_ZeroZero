@@ -9,11 +9,16 @@ interface ScoresSliderProps {
   sport: Sport;
   team: 'home' | 'away';
   placardId: string;
+  typeOfScore?: string;
 }
 
-const ScoresSlider: React.FC<ScoresSliderProps> = ({ sport, team, placardId }) => {
+interface ScoreEventWithIndex extends ScoreEvent {
+  index: number;
+}
+
+const ScoresSlider: React.FC<ScoresSliderProps> = ({ sport, team, placardId, typeOfScore }) => {
     const [allScoreEvents, setAllScoreEvents] = useState<Array<ScoreEvent>>([]);
-    const [displayedScores, setDisplayedScores] = useState<Array<ScoreEvent | null>>([]);
+    const [displayedScores, setDisplayedScores] = useState<Array<ScoreEventWithIndex | null>>([]);
     const MAX_EVENTS_TO_DISPLAY = 8;
 
     const fetchAndSetScores = useCallback(async () => {
@@ -31,6 +36,7 @@ const ScoresSlider: React.FC<ScoresSliderProps> = ({ sport, team, placardId }) =
         }
     }, [placardId, sport]);
 
+
     useEffect(() => {
         fetchAndSetScores();
 
@@ -39,24 +45,24 @@ const ScoresSlider: React.FC<ScoresSliderProps> = ({ sport, team, placardId }) =
         return () => clearInterval(intervalId);
     }, [fetchAndSetScores]);
 
+
     useEffect(() => {
         if (allScoreEvents.length === 0) {
             setDisplayedScores([]);
             return;
         }
 
-        const latestEvents = allScoreEvents.slice(0, MAX_EVENTS_TO_DISPLAY * 3);
+        const latestEvents = allScoreEvents.slice(0, MAX_EVENTS_TO_DISPLAY * 3) as ScoreEventWithIndex[];
+        for (let i = 0; i < latestEvents.length; i++) {
+            latestEvents[i].index = i;
+        }
 
-        const allEventIds = latestEvents.map((event) => event.eventId);
-        const minEventId = Math.min(...allEventIds);
-        const maxEventId = Math.max(...allEventIds);
-
-        const positionedEvents: Array<ScoreEvent | null> = Array(maxEventId - minEventId + 1).fill(null);
+        const maxIndex = latestEvents.length - 1;
+        const positionedEvents: Array<ScoreEventWithIndex | null> = Array(maxIndex + 1).fill(null);
 
         latestEvents.forEach((event) => {
-            const position = event.eventId - minEventId;
             if (event.team === team) {
-                positionedEvents[position] = event;
+                positionedEvents[event.index] = event;
             }
         });
 
@@ -68,7 +74,7 @@ const ScoresSlider: React.FC<ScoresSliderProps> = ({ sport, team, placardId }) =
     }, [allScoreEvents, team]);
 
     return (
-        <BaseSlider title="Histórico Pontos" className="scores-slider">
+        <BaseSlider title={`Histórico ${typeOfScore}`} className="scores-slider">
             <div className={`scores-slider-points ${team}-points d-flex flex-column align-items-center gap-2`}>
                 {displayedScores.map((scoreEvent, index) => (
                     <div key={index} className="score-event-position">

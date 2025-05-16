@@ -29,15 +29,26 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
 
     const jerseyColor = team === 'home' ? homeColor : awayColor;
 
+    const hasPlayerName = Boolean(playerName && playerName.trim() !== '');
+
+    let jerseyWidthClass = 'w-25';
+    let displayWidthClass = 'w-25';
+    let containerJustifyClass = team === 'home' ? 'justify-content-start' : 'justify-content-end';
+
+    if (!hasPlayerName) {
+        jerseyWidthClass = 'w-50';
+        displayWidthClass = 'w-50';
+        containerJustifyClass = 'justify-content-center';
+    }
+
     const jerseyElement = (
-        <div className="w-25 d-flex align-items-center justify-content-center">
+        <div className={`${jerseyWidthClass} d-flex align-items-center justify-content-center`}>
             <PlayerJersey number={playerNumber} color={jerseyColor} hideIcon={small} />
         </div>
     );
 
     let justifyClass;
     if (!isCompact) {
-        console.log('not compact');
         justifyClass = 'justify-content-center';
     } else if (team === 'home') {
         justifyClass = 'justify-content-start';
@@ -45,7 +56,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
         justifyClass = 'justify-content-end';
     }
 
-    const nameElement = playerName ? (
+    const nameElement = hasPlayerName ? (
         <div className={`w-75 d-flex align-items-center ${justifyClass} text-white ms-2`}>
             <span className="player-name fw-bold text-truncate">
                 {playerName}
@@ -53,26 +64,23 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
         </div>
     ) : null;
 
+    let displayJustifyClass = '';
+    if (!hasPlayerName) {
+        displayJustifyClass = 'justify-content-center';
+    } else if (team === 'home') {
+        displayJustifyClass = 'justify-content-start ps-2';
+    } else {
+        displayJustifyClass = 'justify-content-end pe-2';
+    }
+
     const displayElement = (
-        <>
-            <div
-                className={`w-25 d-flex d-lg-none align-items-center ${
-                    team === 'home' ? 'justify-content-start ps-2' : 'justify-content-end pe-2'
-                }`}
-            >
-                {rightElement}
-            </div>
-            <div
-                className={`w-25 d-none d-lg-flex align-items-center ${
-                    team === 'home' ? 'justify-content-start ps-2' : 'justify-content-end pe-2'}`}
-            >
-                {rightElement}
-            </div>
-        </>
+        <div className={`${displayWidthClass} d-flex align-items-center ${displayJustifyClass}`}>
+            {rightElement}
+        </div>
     );
 
     return (
-        <div className={`d-flex align-items-center w-100 ${team === 'home' ? 'justify-content-start' : 'justify-content-end'}`}>
+        <div className={`d-flex align-items-center w-100 ${containerJustifyClass}`}>
             {team === 'home' ? (
                 <>
                     {jerseyElement}
