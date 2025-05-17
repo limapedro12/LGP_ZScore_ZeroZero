@@ -174,7 +174,13 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Posse',
             eventCategory: 'possession',
-            onEventAction: (teamTag) => console.log(`Basketball Posse - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startShotClock(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
         },
     ],
 };

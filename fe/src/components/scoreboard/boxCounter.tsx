@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/boxCounter.scss';
+import '../../styles/boxCounter.scss';
 
 interface BoxCounterProps {
   label: string;

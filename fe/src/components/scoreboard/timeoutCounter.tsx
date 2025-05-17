@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMediaQuery } from 'react-responsive';
-import apiManager from '../api/apiManager';
-import BoxCounter from './boxCounter';
-import '../styles/timeoutCounter.scss';
-import { BREAKPOINTS } from '../media-queries/index';
+import apiManager from '../../api/apiManager';
+import BoxCounter from './../scoreboard/boxCounter';
+import '../../styles/timeoutCounter.scss';
+import { BREAKPOINTS } from '../../media-queries/index';
 
 const TimeoutCounter: React.FC = () => {
     const [placardId, setplacardId] = useState<string>('default');

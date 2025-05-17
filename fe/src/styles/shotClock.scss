@@ -1,0 +1,63 @@
+@use "./config.scss";
+@use "./arrow.scss";
+
+.shotClock-timer-outer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.shotClock-timer-box {
+    background: config.$background-color;
+    border-radius: 2rem;
+    min-width: 130px;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 4 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 2px solid white;
+
+    --arrow-color: white;
+
+    @include config.placard1 {
+        border-radius: 2rem;
+        min-width: 160px;
+        max-width: 300px;
+    }
+    @include config.placard2 {
+        min-width: 220px;
+        max-width: 400px;
+    }
+    @include config.placard3 {
+        min-width: 300px;
+        max-width: 500px;
+    }
+    @include config.placard4 {
+        min-width: 380px;
+        max-width: 700px;
+    }
+}
+
+.shotClock-timer-number {
+    font-family: config.$font-secondary;
+    font-size: 3rem;
+    font-weight: bold;
+    color: config.$text-color;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    text-align: center;
+    min-width: 2ch;
+    user-select: none;
+    text-shadow: -2px 4px 6px rgba(0, 0, 0, 0.5);
+
+
+    @include config.placard1 { font-size: 4rem; }
+    @include config.placard2 { font-size: 5rem; }
+    @include config.placard3 { font-size: 7rem; }
+    @include config.placard4 { font-size: 9rem; }
+}
+

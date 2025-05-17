@@ -19,6 +19,7 @@ class GameConfig {
             'timeoutDuration' => 60,
             'timeoutsPerTeam' => 5,
             'points' => [1, 2, 3],
+            'shotClock' => 24,
             'typeOfScore' => 'p',
         ],
         'volleyball' => [

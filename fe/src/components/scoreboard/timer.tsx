@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import apiManager from '../api/apiManager';
-import { formatTime, sportsFormat } from '../utils/timeUtils';
+import apiManager from '../../api/apiManager';
+import { formatTime, sportsFormat } from '../../utils/timeUtils';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import '../styles/timer.scss';
+import '../../styles/timer.scss';
 
 const Timer: React.FC = () => {
     const [elapsedTime, setElapsedTime] = useState(0);

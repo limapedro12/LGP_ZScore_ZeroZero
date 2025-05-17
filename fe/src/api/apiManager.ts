@@ -22,9 +22,10 @@ type ActionType =
     | 'noTimer'
     | 'noCards'
     | 'noPeriodBox'
+    | 'noShotClock'
     | 'typeOfScore';
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -126,6 +127,15 @@ interface TimeoutResponse {
         awayTimeoutsUsed: string;
         totalTimeoutsPerTeam: string;
     }>;
+    error?: string;
+}
+
+interface ShotClockResponse {
+    message?: string;
+    status: 'running' | 'paused' | 'inactive' | 'expired';
+    team?: TeamTag;
+    remaining_time: number;
+    duration?: number;
     error?: string;
 }
 
@@ -304,6 +314,22 @@ class ApiManager {
     setTimer = (placardId: string, sport: string, time: number, period: number) =>
         this.makeRequest<TimerResponse>('timer', 'set', { placardId, sport, time, period });
 
+    startShotClock = (placardId: string, sport: string, team: TeamTag) =>
+        this.makeRequest<ShotClockResponse>('shotclock', 'start', { placardId, sport, team });
+
+    pauseShotClock = (placardId: string, sport: string) =>
+        this.makeRequest<ShotClockResponse>('shotclock', 'pause', { placardId, sport });
+
+    resetShotClock = (placardId: string, sport: string, team?: TeamTag) => {
+        const params: RequestParams = { placardId, sport };
+        if (team) params.team = team;
+        return this.makeRequest<ShotClockResponse>('shotclock', 'reset', params);
+    };
+
+    getShotClockStatus = (placardId: string, sport: string) =>
+        this.makeRequest<ShotClockResponse>('shotclock', 'status', { placardId, sport }, 'GET');
+
+
     startTimeout = (placardId: string, sport: string, team: TeamTag) =>
         this.makeRequest<TimeoutResponse>('timeout', 'start', { placardId, sport, team });
 
@@ -346,7 +372,6 @@ class ApiManager {
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
-    // Substitution-specific methods
     getSubstitutionStatus = (placardId: string, sport: string) =>
         this.makeRequest<SubstitutionResponse>('substitution', 'get', { placardId, sport }, 'GET');
 
@@ -397,6 +422,9 @@ class ApiManager {
 
     getNoCardSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noCards', { }, 'GET');
+
+    getNoShotClockSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noShotClock', { }, 'GET');
 
     getSportScoreType = (sport: string) =>
         this.makeRequest<SportsResponse>('sports', 'typeOfScore', { sport }, 'GET');

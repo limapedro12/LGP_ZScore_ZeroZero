@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import apiManager from '../api/apiManager';
-import { formatTime } from '../utils/timeUtils';
-import '../styles/timeoutTimer.scss';
+import apiManager from '../../api/apiManager';
+import { formatTime } from '../../utils/timeUtils';
+import '../../styles/shotClock.scss';
 
-interface TimeoutTimerProps {
-    onStatusChange?: (status: string) => void;
+interface ShotClockProps {
+  onStatusChange?: (status: string) => void;
 }
 
-const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange }) => {
+const ShotClock: React.FC<ShotClockProps> = ({ onStatusChange }) => {
     const [elapsedTime, setElapsedTime] = useState(0);
     const [status, setStatus] = useState('default');
     const [placardId, setplacardId] = useState<string>('default');
@@ -28,8 +28,9 @@ const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange }) => {
         }
 
         try {
-            const response = await apiManager.getTimeoutStatus(placardId, sport);
+            const response = await apiManager.getShotClockStatus(placardId, sport);
             const data = response;
+            console.log('ShotClock data:', data);
             if (data.remaining_time !== undefined) {
                 setElapsedTime(data.remaining_time);
                 setStatus(data.status || 'default');
@@ -54,16 +55,18 @@ const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange }) => {
     }, [placardId, fetchTimerStatus, sport]);
 
     return status !== 'inactive' ? (
-        <div className="timeout-timer-outer m-3">
-            <div className="timeout-timer-box d-flex align-items-center justify-content-center position-relative">
+        <div className="shotClock-timer-outer m-3">
+            <div className="shotClock-timer-box d-flex align-items-center justify-content-center position-relative">
                 {team === 'home' && <div className="arrow arrow-left" />}
-                <span className="timeout-timer-number">
-                    {formatTime(elapsedTime, true)}
-                </span>
+                <div className="shotClock-inner px-4">
+                    <span className="shotClock-timer-number">
+                        {formatTime(elapsedTime, true)}
+                    </span>
+                </div>
                 {team === 'away' && <div className="arrow arrow-right" />}
             </div>
         </div>
     ) : null;
 };
 
-export default TimeoutTimer;
+export default ShotClock;
