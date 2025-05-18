@@ -9,7 +9,8 @@ class GameConfig {
             'timeoutsPerTeam' => 1,
             'timeoutsPerPeriod' => 1,
             'cards' => ['yellow', 'red'],
-            'points' => 1
+            'points' => 1,
+            'foulsPenaltyThreshold' => 5,
         ],
         'basketball' => [
             'periods' => 4,
@@ -18,6 +19,7 @@ class GameConfig {
             'timeoutDuration' => 60,
             'timeoutsPerTeam' => 5,
             'points' => [1, 2, 3],
+            'foulsPenaltyThreshold' => 5,
         ],
         'volleyball' => [
             'periods' => 5,

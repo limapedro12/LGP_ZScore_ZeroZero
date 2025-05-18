@@ -133,4 +133,28 @@ class RequestUtils {
         
         return $totalElapsed;
     }
+
+    public static function getGamePeriod($placardId) {
+        global $redis, $gameConfig;
+
+        $timerKeys = self::getRedisKeys($placardId, 'timer');
+
+        if(!isset($gameConfig['periodDuration'])){
+            return 0;
+        }
+        
+        $pipeline = $redis->pipeline();
+        $pipeline->get($timerKeys['period']);
+        $pipeline->get($timerKeys['remaining_time']);
+        $pipeline->get($timerKeys['status']);
+        $pipeline->get($timerKeys['start_time']);
+        $results = $pipeline->exec();
+        
+        $period = (int)($results[0] ?: 1);
+        $remainingTime = (int)($results[1] ?: $gameConfig['periodDuration']);
+        $status = $results[2] ?: 'paused';
+        $startTime = (int)($results[3] ?: 0);
+        
+        return $period;
+    }
 }

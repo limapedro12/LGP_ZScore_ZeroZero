@@ -23,7 +23,7 @@ type ActionType =
     | 'noTimer'
     | 'noPeriodBox';
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'foul';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -155,7 +155,6 @@ interface SportsResponse {
 interface SubstitutionResponse{
     message?: string;
     substitutionId?: string;
-    ingamePlayers?: Map<string, boolean>;
     substitutions?: Array<{
         substitutionId: string,
         team: string,
@@ -164,6 +163,27 @@ interface SubstitutionResponse{
         timestamp: string,
     }>;
     error?: string;
+}
+
+interface CreatedFoulDetails {
+    eventId: string;
+    placardId: string;
+    sport: string;
+    playerId: string;
+    team: string;
+    timestamp: number;
+    period: number;
+    accumulatedFoulsThisPeriod: number;
+    penalty: boolean;
+    penaltyFouls?: number;
+    penaltyThreshold?: number;
+    penaltyTypeConfigured?: string | null;
+}
+
+interface CreateFoulResponse {
+    status: 'success';
+    message: string;
+    foul: CreatedFoulDetails;
 }
 
 /**
@@ -389,6 +409,10 @@ class ApiManager {
 
     getNoPeriodSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noPeriodBox', { }, 'GET');
+
+    createFoul = (placardId: string, sport: string, playerId: string, team: string) =>
+        this.makeRequest<CreateFoulResponse>('foul', 'create', { placardId, sport, playerId, team });
+
 }
 
 const apiManager = new ApiManager();
