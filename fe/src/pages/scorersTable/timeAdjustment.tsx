@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronUp, ChevronDown } from 'react-bootstrap-icons';
 import apiManager from '../../api/apiManager';
@@ -7,23 +7,24 @@ import '../../styles/timeAdjustment.scss';
 
 const pad = (n: number) => n.toString().padStart(2, '0');
 
+interface SportConfig {
+  periods: number;
+  periodDuration: number;
+}
+
 const TimeAdjustment: React.FC = () => {
     const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
     const navigate = useNavigate();
 
+    // State management
     const [minutes, setMinutes] = useState<number>(0);
     const [seconds, setSeconds] = useState<number>(0);
     const [period, setPeriod] = useState<number>(1);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [sportConfig, setSportConfig] = useState<{
-        periods: number;
-        periodDuration: number;
-    }>({
+    const [sportConfig, setSportConfig] = useState<SportConfig>({
         periods: 5,
         periodDuration: 600,
     });
 
-    // Derived values for UI constraints
     const periods = Array.from({ length: sportConfig.periods }, (_, i) => i + 1);
     const maxMinutes = Math.floor(sportConfig.periodDuration / 60);
     const maxSeconds = 59;
@@ -32,7 +33,6 @@ const TimeAdjustment: React.FC = () => {
         const fetchData = async () => {
             if (!sport || !placardId) return;
 
-            setIsLoading(true);
             try {
                 const timerResponse = await apiManager.getTimerStatus(placardId, sport);
                 const totalSeconds = timerResponse.remaining_time;
@@ -49,14 +49,13 @@ const TimeAdjustment: React.FC = () => {
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
-            } finally {
-                setIsLoading(false);
             }
         };
 
         fetchData();
     }, [sport, placardId]);
 
+    // Navigation and submission handlers
     const handleGoBack = () => {
         navigate(`/scorersTable/${sport}/${placardId}`);
     };
@@ -72,6 +71,7 @@ const TimeAdjustment: React.FC = () => {
         }
     };
 
+    // Time controls
     const incrementMinutes = () => setMinutes((prev) => Math.min(prev + 1, maxMinutes));
     const decrementMinutes = () => setMinutes((prev) => (prev > 0 ? prev - 1 : 0));
     const incrementSeconds = () => {
@@ -114,80 +114,77 @@ const TimeAdjustment: React.FC = () => {
             <Row className="flex-grow-1 justify-content-center align-items-center w-100 m-0 py-auto">
                 <Col xs={12} md={11} lg={10} className="p-0 d-flex justify-content-center">
                     <div className="p-5 rounded-4 time-adjustment-panel w-100">
-                        {isLoading ? (
-                            <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: 350 }}>
-                                <Spinner animation="border" variant="light" />
+                        <div className="d-flex flex-row align-items-center justify-content-center gap-4 mb-5 time-control-group">
+                            {/* Minutes */}
+                            <div className="d-flex flex-column align-items-center">
+                                <Button variant="outline-light" className="mb-3 rounded-circle time-btn" onClick={incrementMinutes}>
+                                    <ChevronUp size={40} />
+                                </Button>
+                                <div className="display-1 fw-bold text-white timer-value">
+                                    {pad(minutes)}
+                                </div>
+                                <Button variant="outline-light" className="mt-3 rounded-circle time-btn" onClick={decrementMinutes}>
+                                    <ChevronDown size={40} />
+                                </Button>
+                                <div className="text-white-50 mt-3 fs-5">Minutos</div>
                             </div>
-                        ) : (
-                            <>
-                                <div className="d-flex flex-row align-items-center justify-content-center gap-4 mb-5 time-control-group">
-                                    {/* Minutes */}
-                                    <div className="d-flex flex-column align-items-center">
-                                        <Button variant="outline-light" className="mb-3 rounded-circle time-btn" onClick={incrementMinutes}>
-                                            <ChevronUp size={40} />
-                                        </Button>
-                                        <div className="display-1 fw-bold text-white timer-value">
-                                            {pad(minutes)}
-                                        </div>
-                                        <Button variant="outline-light" className="mt-3 rounded-circle time-btn" onClick={decrementMinutes}>
-                                            <ChevronDown size={40} />
-                                        </Button>
-                                        <div className="text-white-50 mt-3 fs-5">Minutos</div>
-                                    </div>
 
-                                    {/* Colon - Align with digits */}
-                                    <div className="d-flex flex-column align-items-center justify-content-center timer-colon-container">
-                                        <div className="display-1 fw-bold text-white colon">:</div>
-                                    </div>
+                            {/* Colon */}
+                            <div className="d-flex flex-column align-items-center justify-content-center timer-colon-container">
+                                <div className="display-1 fw-bold text-white colon">:</div>
+                            </div>
 
-                                    {/* Seconds */}
-                                    <div className="d-flex flex-column align-items-center">
-                                        <Button variant="outline-light" className="mb-3 rounded-circle time-btn" onClick={incrementSeconds}>
-                                            <ChevronUp size={40} />
-                                        </Button>
-                                        <div className="display-1 fw-bold text-white timer-value">
-                                            {pad(seconds)}
-                                        </div>
-                                        <Button variant="outline-light" className="mt-3 rounded-circle time-btn" onClick={decrementSeconds}>
-                                            <ChevronDown size={40} />
-                                        </Button>
-                                        <div className="text-white-50 mt-3 fs-5">Segundos</div>
-                                    </div>
+                            {/* Seconds */}
+                            <div className="d-flex flex-column align-items-center">
+                                <Button variant="outline-light" className="mb-3 rounded-circle time-btn" onClick={incrementSeconds}>
+                                    <ChevronUp size={40} />
+                                </Button>
+                                <div className="display-1 fw-bold text-white timer-value">
+                                    {pad(seconds)}
                                 </div>
+                                <Button variant="outline-light" className="mt-3 rounded-circle time-btn" onClick={decrementSeconds}>
+                                    <ChevronDown size={40} />
+                                </Button>
+                                <div className="text-white-50 mt-3 fs-5">Segundos</div>
+                            </div>
+                        </div>
 
-                                {/* Period Pills - Dynamic based on sport config */}
-                                <div className="d-flex flex-column align-items-center period-section">
-                                    <div className="text-white fw-semibold mb-3 fs-4">Período</div>
-                                    <div className="d-flex gap-3 period-pills">
-                                        {periods.map((p) => (
-                                            <Button
-                                                key={p}
-                                                variant={period === p ? 'primary' : 'outline-light'}
-                                                className={`period-pill ${period === p ? 'active' : ''}`}
-                                                onClick={() => setPeriod(p)}
-                                            >
-                                                {p}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="d-flex justify-content-center gap-4 mt-5">
+                        {/* Period Pills */}
+                        <div className="d-flex flex-column align-items-center period-section">
+                            <div className="text-white fw-semibold mb-3 fs-4">Período</div>
+                            <div className="d-flex gap-3 period-pills">
+                                {periods.map((p) => (
                                     <Button
-                                        variant="secondary" size="lg" className="px-4 py-2
-                                    rounded-pill cancel-btn" onClick={handleGoBack}
+                                        key={p}
+                                        variant={period === p ? 'primary' : 'outline-light'}
+                                        className={`period-pill ${period === p ? 'active' : ''}`}
+                                        onClick={() => setPeriod(p)}
                                     >
-                                        Cancelar
+                                        {p}
                                     </Button>
-                                    <Button
-                                        variant="success" size="lg"
-                                        className="px-4 py-2 rounded-pill fw-bold save-btn" onClick={handleSaveTime}
-                                    >
-                                        Guardar
-                                    </Button>
-                                </div>
-                            </>
-                        )}
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="d-flex justify-content-center gap-4 mt-5">
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                className="px-4 py-2 rounded-pill cancel-btn"
+                                onClick={handleGoBack}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                variant="success"
+                                size="lg"
+                                className="px-4 py-2 rounded-pill fw-bold save-btn"
+                                onClick={handleSaveTime}
+                            >
+                                Guardar
+                            </Button>
+                        </div>
                     </div>
                 </Col>
             </Row>

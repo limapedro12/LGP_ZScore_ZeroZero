@@ -10,8 +10,6 @@ import CentralConsole from '../../components/scorersTable/centralConsole';
 import '../../styles/scorersTable.scss';
 import clockPaused from '../../../public/icons/clock_paused.png';
 import clockResumed from '../../../public/icons/clock_resumed.png';
-import clockRewind from '../../../public/icons/rewind-icon.png';
-import clockForward from '../../../public/icons/forward-icon.png';
 import clockEdit from '../../../public/icons/edit-clock-icon.png';
 import apiManager from '../../api/apiManager';
 
@@ -34,12 +32,18 @@ const ScorersTable = () => {
         away: { name: 'Sporting', logoSrc: '/teamLogos/scp.png' },
     });
 
-    // Adjustable time values in seconds
-    const timeOptions = [5, 10, 15, 30, 60];
-    const [rewindValue, setRewindValue] = useState(timeOptions[1]);
-    const [forwardValue, setForwardValue] = useState(timeOptions[1]);
-
     const isNonTimerSport = nonTimerSports.includes(sport);
+
+    const fetchTimerStatus = useCallback(async () => {
+        if (!placardIdParam || !sport) return;
+
+        try {
+            const response = await apiManager.getTimerStatus(placardIdParam, sport);
+            setTimerRunning(response.status === 'running');
+        } catch (error) {
+            console.error('Error fetching timer status:', error);
+        }
+    }, [placardIdParam, sport]);
 
     const fetchNonTimerSports = useCallback(async () => {
         try {
@@ -51,6 +55,11 @@ const ScorersTable = () => {
         }
     }, []);
 
+    useEffect(() => {
+        if (!isNonTimerSport && placardIdParam && sport) {
+            fetchTimerStatus();
+        }
+    }, [fetchTimerStatus, placardIdParam, sport, isNonTimerSport]);
     useEffect(() => {
         fetchNonTimerSports();
     }, [fetchNonTimerSports, placardIdParam]);
@@ -70,139 +79,76 @@ const ScorersTable = () => {
         }
     };
 
-    const handleTimerAdjust = (seconds: number) => {
-        if (!placardIdParam || !sport) return;
-
-        try {
-            apiManager.adjustTimer(placardIdParam, sport, seconds);
-        } catch (error) {
-            console.error(`Error adjusting timer by ${seconds} seconds:`, error);
-        }
-    };
-
-    const cycleTimeValue = (currentValue: number) => {
-        const currentIndex = timeOptions.indexOf(currentValue);
-        const nextIndex = (currentIndex + 1) % timeOptions.length;
-        return timeOptions[nextIndex];
-    };
-
     const navigateToClockAdjustment = () => {
         navigate(`/scorersTable/${sport}/${placardIdParam}/clockAdjustment`);
     };
 
     const handleCorrection = () => {
-        // Implement correction functionality here
         console.log('Correction button clicked - functionality to be implemented');
     };
 
-    const renderTimerControls = (isMobile: boolean = false) => {
-        if (isNonTimerSport) return null;
 
-        const containerClassName = isMobile ? 'timer-controls-mobile' : '';
-        const valueIndicatorClassName = isMobile ? 'value-indicator-mobile' : 'value-indicator';
+    const renderControlButtons = (isMobile: boolean = false) => {
+        if (isNonTimerSport) {
+            return (
+                <Row className={`w-100 justify-content-center my-auto ${isMobile ? '' : 'd-none d-md-flex'}`}>
+                    <Col xs={12} md={4} className="d-flex flex-column align-items-center">
+                        <p className="text-white fw-bold fs-5 mb-2 text-center">Corrigir</p>
+                        <Button
+                            variant="primary"
+                            className="event-button--large rounded-circle"
+                            aria-label="Corrigir"
+                            onClick={handleCorrection}
+                        />
+                    </Col>
+                </Row>
+            );
+        }
 
         return (
             <Row className={`w-100 justify-content-center my-auto ${isMobile ? '' : 'd-none d-md-flex'}`}>
-                <Col xs={12} md={8} className={`d-flex justify-content-around ${containerClassName}`}>
-
-                    {/* Rewind button */}
+                <Col xs={12} md={4} className="d-flex flex-column align-items-center">
+                    <p className="text-white fw-bold fs-5 mb-2 text-center">
+                        {timerRunning ? 'Parar' : 'Iniciar'}
+                    </p>
+                    <Button
+                        variant="light"
+                        className="event-button--large rounded-circle"
+                        aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
+                        onClick={handleTimerToggle}
+                    >
+                        <img
+                            src={timerRunning ? clockPaused : clockResumed}
+                            alt=""
+                            className="event-icon"
+                        />
+                    </Button>
+                </Col>
+                <Col xs={12} md={4} className="d-flex flex-column align-items-center">
+                    <p className="text-white fw-bold fs-5 mb-2 text-center">Corrigir</p>
+                    <Button
+                        variant="primary"
+                        className="event-button--large rounded-circle"
+                        aria-label="Corrigir"
+                        onClick={handleCorrection}
+                    />
+                </Col>
+                <Col xs={12} md={4} className="d-flex flex-column align-items-center">
                     <div className="d-flex flex-column align-items-center mx-2">
-                        <div className="d-flex align-items-center mb-2">
-                            <p className="text-white fw-bold fs-6 mb-0 me-1">+</p>
-                            <Button
-                                variant="outline-light"
-                                size="sm"
-                                className={valueIndicatorClassName}
-                                onClick={() => setRewindValue(cycleTimeValue(rewindValue))}
-                            >
-                                {rewindValue}
-                                s
-                            </Button>
-                        </div>
+                        <p className="text-white fw-bold fs-5 mb-2 text-center">Editar tempo</p>
                         <Button
                             variant="light"
                             className="event-button--large rounded-circle"
-                            aria-label={`+ ${rewindValue} segundos`}
-                            onClick={() => handleTimerAdjust(rewindValue)}
+                            aria-label="Ajustar timer manualmente"
+                            onClick={navigateToClockAdjustment}
                         >
-                            <img src={clockRewind} alt="" className="event-icon" />
-                        </Button>
-                    </div>
-
-                    {/* Play/pause button */}
-                    <div className="d-flex flex-column align-items-center mx-2">
-                        <p className="text-white fw-bold fs-5 mb-2 text-center">
-                            {timerRunning ? 'Parar' : 'Iniciar'}
-                        </p>
-                        <Button
-                            variant="light"
-                            className="event-button--large rounded-circle"
-                            aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
-                            onClick={handleTimerToggle}
-                        >
-                            <img
-                                src={timerRunning ? clockPaused : clockResumed}
-                                alt=""
-                                className="event-icon"
-                            />
-                        </Button>
-                    </div>
-
-                    {/* Forward button */}
-                    <div className="d-flex flex-column align-items-center mx-2">
-                        <div className="d-flex align-items-center mb-2">
-                            <p className="text-white fw-bold fs-6 mb-0 me-1">-</p>
-                            <Button
-                                variant="outline-light"
-                                size="sm"
-                                className={valueIndicatorClassName}
-                                onClick={() => setForwardValue(cycleTimeValue(forwardValue))}
-                            >
-                                {forwardValue}
-                                s
-                            </Button>
-                        </div>
-                        <Button
-                            variant="light"
-                            className="event-button--large rounded-circle"
-                            aria-label={`Avançar ${forwardValue} segundos`}
-                            onClick={() => handleTimerAdjust(-forwardValue)}
-                        >
-                            <img src={clockForward} alt="" className="event-icon" />
+                            <img src={clockEdit} alt="" className="event-icon" />
                         </Button>
                     </div>
                 </Col>
             </Row>
         );
     };
-
-    const renderCorrectionButton = (isMobile: boolean = false) => (
-        <Row className={`w-100 justify-content-center my-auto ${isMobile ? '' : 'd-none d-md-flex'}`}>
-            <Col xs={12} md={4} className="d-flex flex-column align-items-center">
-                <p className="text-white fw-bold fs-5 mb-2 text-center">Corrigir</p>
-                <Button
-                    variant="primary"
-                    className="event-button--large rounded-circle"
-                    aria-label="Corrigir"
-                    onClick={handleCorrection}
-                />
-            </Col>
-            <Col xs={12} md={4} className="d-flex flex-column align-items-center">
-                <div className="d-flex flex-column align-items-center mx-2">
-                    <p className="text-white fw-bold fs-5 mb-2 text-center">Editar tempo</p>
-                    <Button
-                        variant="light"
-                        className="event-button--large rounded-circle"
-                        aria-label="Ajustar timer manualmente"
-                        onClick={navigateToClockAdjustment}
-                    >
-                        <img src={clockEdit} alt="" className="event-icon" />
-                    </Button>
-                </div>
-            </Col>
-
-        </Row>
-    );
 
     return (
         <>
@@ -225,11 +171,7 @@ const ScorersTable = () => {
                     </Col>
                 </Row>
 
-                {/* Timer controls for desktop */}
-                {renderTimerControls(false)}
-
-                {/* Correction button for desktop */}
-                {renderCorrectionButton(false)}
+                {renderControlButtons(false)}
             </Container>
 
             {/* Mobile Layout */}
@@ -254,11 +196,7 @@ const ScorersTable = () => {
                     </div>
                 </Row>
 
-                {/* Timer controls for mobile */}
-                {renderTimerControls(true)}
-
-                {/* Correction button for mobile */}
-                {renderCorrectionButton(true)}
+                {renderControlButtons(true)}
             </Container>
         </>
     );

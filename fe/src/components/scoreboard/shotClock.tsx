@@ -54,19 +54,42 @@ const ShotClock: React.FC<ShotClockProps> = ({ onStatusChange }) => {
         return undefined;
     }, [placardId, fetchTimerStatus, sport]);
 
-    return status !== 'inactive' ? (
-        <div className="shotClock-timer-outer m-3">
-            <div className="shotClock-timer-box d-flex align-items-center justify-content-center position-relative">
-                {team === 'home' && <div className="arrow arrow-left" />}
-                <div className="shotClock-inner px-4">
-                    <span className="shotClock-timer-number">
-                        {formatTime(elapsedTime, true)}
-                    </span>
+    if (status === 'inactive' || status === 'expired') {
+        return (
+            <div className="shotClock-timer-outer m-3">
+                <div
+                    className="shotClock-timer-box d-flex
+                align-items-center justify-content-center position-relative" style={{ border: 'none' }}
+                >
+                    <div className="shotClock-inner px-4">
+                        <span className="shotClock-timer-number" style={{ visibility: 'hidden' }}>
+                            {formatTime(24, true)}
+                            {' '}
+                            {/* Use a default value to maintain space */}
+                        </span>
+                    </div>
                 </div>
-                {team === 'away' && <div className="arrow arrow-right" />}
             </div>
+        );
+    }
+
+    return (
+        <div className="shotClock-timer-outer m-3">
+            {elapsedTime > 0 ? (
+                <div className="shotClock-timer-box d-flex align-items-center justify-content-center position-relative">
+                    {team === 'home' && <div className="arrow arrow-left" />}
+                    <div className="shotClock-inner px-4">
+                        <span className="shotClock-timer-number">
+                            {formatTime(elapsedTime, true)}
+                        </span>
+                    </div>
+                    {team === 'away' && <div className="arrow arrow-right" />}
+                </div>
+            ) : (
+                <div className="shotClock-timer-box-placeholder" />
+            )}
         </div>
-    ) : null;
+    );
 };
 
 export default ShotClock;

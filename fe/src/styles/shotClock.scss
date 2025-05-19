@@ -42,6 +42,12 @@
     }
 }
 
+.shotClock-timer-box-placeholder {
+  height: 100%;
+  width: 100%;
+  visibility: hidden;
+}
+
 .shotClock-timer-number {
     font-family: config.$font-secondary;
     font-size: 3rem;

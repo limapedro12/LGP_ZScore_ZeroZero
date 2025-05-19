@@ -94,7 +94,7 @@ const ScoreBoard = () => {
                 </div>
             )}
             <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                <TimeoutTimer onStatusChange={handleTimeoutStatusChange} />
+                <TimeoutTimer onStatusChange={handleTimeoutStatusChange} substitute={false} />
             </div>
             {sport && !noPeriodBoxSports.includes(sport) && (
                 <SetBox
