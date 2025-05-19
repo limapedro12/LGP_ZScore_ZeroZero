@@ -23,7 +23,8 @@ type ActionType =
     | 'noCards'
     | 'noPeriodBox'
     | 'noShotClock'
-    | 'typeOfScore';
+    | 'typeOfScore'
+    | 'sportConfig';
 
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock';
 
@@ -156,6 +157,22 @@ interface CardsResponse {
 interface SportsResponse {
     sports?: string[];
     typeOfScore?: string;
+    sport?: string;
+    config?: {
+        periods?: number;
+        periodDuration?: number;
+        substitutionsPerTeam?: number;
+        timeoutDuration?: number;
+        timeoutsPerTeam?: number;
+        timeoutsPerPeriod?: number;
+        cards?: string[];
+        points?: number | number[];
+        typeOfScore?: string;
+        shotClock?: number;
+        periodEndScore?: number;
+        pointDifference?: number;
+        resetPointsEachPeriod?: boolean;
+    };
 }
 
 /**
@@ -430,6 +447,9 @@ class ApiManager {
 
     getSportScoreType = (sport: string) =>
         this.makeRequest<SportsResponse>('sports', 'typeOfScore', { sport }, 'GET');
+
+    getSportConfig = (sport: string) =>
+        this.makeRequest<SportsResponse>('sports', 'sportConfig', { sport }, 'GET');
 }
 
 const apiManager = new ApiManager();
