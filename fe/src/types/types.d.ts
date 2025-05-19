@@ -62,3 +62,30 @@ export interface FutsalPlacard extends AbstractPlacard {
     isTimeOut: boolean;
     isTimeStopped: boolean;
 }
+
+export type Game = {
+    id: string;
+    home: string;
+    away: string;
+    date: string;
+    time: string;
+    sport: string;
+};
+
+export type ApiGame = {
+    id: string;
+    firstTeamId: string;
+    secondTeamId: string;
+    isFinished: boolean;
+    sport: string;
+    startTime: string;
+};
+
+export type ApiTeam = {
+    id: string;
+    logoURL: string;
+    color: string;
+    acronym: string;
+    name: string;
+    sport: string;
+}

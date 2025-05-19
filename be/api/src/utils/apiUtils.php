@@ -42,6 +42,10 @@ function sendGetRequest($url, array $data = []) {
 }
 
 function login($username, $password) {
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
+
     $apiurl = getenv('API_URL');
     $appkey = getenv('APP_KEY');
     $url = $apiurl . 'authUser/AppKey/' . $appkey;
@@ -53,7 +57,6 @@ function login($username, $password) {
     $response = sendPostRequest($url, $data);
     $result = json_decode($response, true);
 
-    session_start();
     $_SESSION['api_cookie'] = $result['data']['Cookie'] ?? null;
     return $response;
 }
