@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -12,18 +12,53 @@ type Game = {
     away: string;
     date: string;
     time: string;
+    sport: string;
+};
+
+type ApiGame = {
+    id: string;
+    firstTeamId: string;
+    secondTeamId: string;
+    isFinished: boolean;
+    sport: string;
+    startTime: string;
 };
 
 const GameList = () => {
-    const games = [
-        { date: '22/03/2025', time: '16:00', home: 'Vitória SC', away: 'Sporting CP' },
-        { date: '10/04/2025', time: '14:00', home: 'Leixões', away: 'Sporting CP' },
-        { date: '22/03/2025', time: '18:00', home: 'Vitória SC', away: 'Benfica' },
-        { date: '07/04/2025', time: '20:00', home: 'Vitória SC', away: 'Leixões' },
-        { date: '16/04/2025', time: '20:00', home: 'Vitória SC', away: 'Clube K' },
-    ];
+    const [games, setGames] = useState<Game[]>([]);
+    const [filteredGames, setFilteredGames] = useState<Game[]>([]);
 
-    const [filteredGames, setFilteredGames] = useState(games);
+    useEffect(() => {
+        const fetchGames = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action: 'getAvailPlacards' }),
+                });
+
+                if (response.ok) {
+                    const data: ApiGame[] = await response.json();
+                    const formattedGames = data.map((game) => ({
+                        home: game.firstTeamId,
+                        away: game.secondTeamId,
+                        date: new Date(game.startTime).toLocaleDateString(),
+                        time: new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    }));
+                    setGames(formattedGames);
+                    setFilteredGames(formattedGames);
+                } else {
+                    console.error('Failed to fetch games:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching games:', error);
+            }
+        };
+
+        fetchGames();
+    }, []);
 
     const handleFilter = (filtered: Game[]) => {
         setFilteredGames(filtered);

@@ -6,6 +6,7 @@ type Game = {
     away: string;
     date: string;
     time: string;
+    sport: string;
 };
 
 type ShowGamesProps = {

@@ -7,6 +7,7 @@ type Game = {
     away: string;
     date: string;
     time: string;
+    sport: string;
 };
 
 type FiltersProps = {
@@ -28,6 +29,7 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
     const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [teamSearch, setTeamSearch] = useState<string>('');
+    const [selectedSport, setSelectedSport] = useState<string | null>(null);
 
     const handleFilterClick = (team: string) => {
         const updatedTeams = selectedTeams.includes(team)
@@ -39,7 +41,8 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         const filteredGames = games.filter((game) => {
             const matchesTeams = updatedTeams.every((team) => game.home === team || game.away === team);
             const matchesDate = selectedDate ? game.date.startsWith(selectedDate.toISOString().split('T')[0]) : true;
-            return matchesTeams && matchesDate;
+            const matchesSport = selectedSport ? game.sport === selectedSport : true;
+            return matchesTeams && matchesDate && matchesSport;
         });
 
         onFilter(filteredGames);
@@ -55,9 +58,21 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         const filteredGames = games.filter((game) => {
             const matchesDate = date ? game.date === formattedDate : true;
             const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
-            return matchesDate && matchesTeams;
+            const matchesSport = selectedSport ? game.sport === selectedSport : true;
+            return matchesDate && matchesTeams && matchesSport;
         });
 
+        onFilter(filteredGames);
+    };
+
+    const handleSportChange = (sport: string | null) => {
+        setSelectedSport(sport);
+        const filteredGames = games.filter((game) => {
+            const matchesSport = sport ? game.sport === sport : true;
+            const matchesDate = selectedDate ? game.date.startsWith(selectedDate.toISOString().split('T')[0]) : true;
+            const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
+            return matchesSport && matchesDate && matchesTeams;
+        });
         onFilter(filteredGames);
     };
 
@@ -90,6 +105,18 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
                             {team}
                         </button>
                     ))}
+            </div>
+            <label>Desporto</label>
+            <div className="sports">
+                {Object.entries({ 'Futsal': 'futsal', 'Voleibol': 'volleyball', 'Basket': 'basket' }).map(([label, sport]) => (
+                    <button
+                        key={sport}
+                        onClick={() => handleSportChange(selectedSport === sport ? null : sport)}
+                        className={selectedSport === sport ? 'active' : ''}
+                    >
+                        {label}
+                    </button>
+                ))}
             </div>
         </div>
     );

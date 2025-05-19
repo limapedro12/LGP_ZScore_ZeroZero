@@ -64,14 +64,14 @@ html, body {
   outline: none;
 }
 
-.teams {
+.teams, .sports {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 10px;
 }
 
-.teams button {
+.teams button, .sports button {
   background-color: #1e2b36;
   color: white;
   border: none;
@@ -80,7 +80,7 @@ html, body {
   cursor: pointer;
 }
 
-.teams button.active {
+.teams button.active, .sports button.active {
   background-color: white;
   color: #23323F;
   border: 2px solid #23323F;
