@@ -127,7 +127,7 @@ interface SportsResponse {
     sports?: string[];
 }
 
-interface ApiGame {
+export interface ApiGame {
     id: string;
     firstTeamId: string;
     secondTeamId: string;
@@ -136,14 +136,14 @@ interface ApiGame {
     startTime: string;
 }
 
-// interface ApiTeam {
-//     id: string;
-//     logoURL: string;
-//     color: string;
-//     acronym: string;
-//     name: string;
-//     sport: string;
-// }
+export interface ApiTeam {
+    id: string;
+    logoURL: string;
+    color: string;
+    acronym: string;
+    name: string;
+    sport: string;
+}
 
 /**
  * API Manager that handles all API requests
@@ -182,7 +182,6 @@ class ApiManager {
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include',
         };
 
         if (method === 'POST') {
@@ -198,7 +197,7 @@ class ApiManager {
             throw new Error(`API error: ${response.status}`);
         }
 
-        console.log('Response:', await response.text());
+        // console.log('Response:', await response.text());
 
         return response.json();
     };
@@ -211,7 +210,6 @@ class ApiManager {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(params),
-            credentials: 'include',
         };
 
         return fetch(url, options).then((response) => {

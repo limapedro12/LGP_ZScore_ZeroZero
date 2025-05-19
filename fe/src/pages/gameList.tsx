@@ -7,18 +7,18 @@ import '../styles/gameList.scss';
 import Filters from '../components/gameList/Filters';
 import ShowGames from '../components/gameList/ShowGames';
 import { Game } from '../types/types';
-import apiManager from '../api/apiManager';
+import { ApiGame, ApiTeam } from '../api/apiManager';
 
-// function getTeamInfo(teamId: string): ApiTeam | null {
-//     // Simulate fetching team info from an API
-//     const teams: ApiTeam[] = [
-//         { id: 'teamA', logoURL: '/images/teamA.png', color: '#FF0000', acronym: 'TA', name: 'Team A', sport: 'Football' },
-//         { id: 'teamB', logoURL: '/images/teamB.png', color: '#00FF00', acronym: 'TB', name: 'Team B', sport: 'Football' },
-//         { id: 'teamC', logoURL: '/images/teamC.png', color: '#0000FF', acronym: 'TC', name: 'Team C', sport: 'Basketball' },
-//         { id: 'teamD', logoURL: '/images/teamD.png', color: '#FFFF00', acronym: 'TD', name: 'Team D', sport: 'Basketball' },
-//     ];
-//     return teams.find((team) => team.id === teamId) || null;
-// }
+function getTeamInfo(teamId: string): ApiTeam | null {
+    // Simulate fetching team info from an API
+    const teams: ApiTeam[] = [
+        { id: 'teamA', logoURL: '/images/teamA.png', color: '#FF0000', acronym: 'TA', name: 'Team A', sport: 'Football' },
+        { id: 'teamB', logoURL: '/images/teamB.png', color: '#00FF00', acronym: 'TB', name: 'Team B', sport: 'Football' },
+        { id: 'teamC', logoURL: '/images/teamC.png', color: '#0000FF', acronym: 'TC', name: 'Team C', sport: 'Basketball' },
+        { id: 'teamD', logoURL: '/images/teamD.png', color: '#FFFF00', acronym: 'TD', name: 'Team D', sport: 'Basketball' },
+    ];
+    return teams.find((team) => team.id === teamId) || null;
+}
 
 const GameList = () => {
     const [games, setGames] = useState<Game[]>([]);
@@ -27,35 +27,33 @@ const GameList = () => {
     useEffect(() => {
         const fetchGames = async () => {
             try {
-                console.log('Logging in fetchGames');
-                const loginResp = await apiManager.login('xpsports', 'XPsports_2025');
-                console.log('Login response:', loginResp);
-                console.log('Fetching games...');
-                const response = await apiManager.getAvailPlacards();
-                console.log('Response body:', response);
+                // console.log('Fetching games...');
+                // const response = await apiManager.getAvailPlacards();
+                // console.log('Response body:', response);
+
                 // fake API response for demonstration
-                // const response = {
-                //     ok: true,
-                //     json: () => Promise.resolve(
-                //         [
-                //             {
-                //                 id: '1',
-                //                 firstTeamId: 'teamA',
-                //                 secondTeamId: 'teamB',
-                //                 isFinished: false,
-                //                 sport: 'futsal',
-                //                 startTime: '2023-10-01T15:00:00Z',
-                //             },
-                //             {
-                //                 id: '2',
-                //                 firstTeamId: 'teamC',
-                //                 secondTeamId: 'teamD',
-                //                 isFinished: false,
-                //                 sport: 'basket',
-                //                 startTime: '2023-10-02T18:00:00Z',
-                //             },
-                //         ]),
-                // };
+                const response = {
+                    ok: true,
+                    json: () => Promise.resolve(
+                        [
+                            {
+                                id: '1',
+                                firstTeamId: 'teamA',
+                                secondTeamId: 'teamB',
+                                isFinished: false,
+                                sport: 'futsal',
+                                startTime: '2023-10-01T15:00:00Z',
+                            },
+                            {
+                                id: '2',
+                                firstTeamId: 'teamC',
+                                secondTeamId: 'teamD',
+                                isFinished: false,
+                                sport: 'basket',
+                                startTime: '2023-10-02T18:00:00Z',
+                            },
+                        ]),
+                };
 
                 // console.log('Response:', response);
                 console.log('Response JSON:', await response.json());
@@ -63,14 +61,14 @@ const GameList = () => {
                 if (response.ok) {
                     const data: ApiGame[] = await response.json();
                     const formattedGames = data.map((game) => {
-                        const homeId = game.firstTeamId;
-                        const awayId = game.secondTeamId;
-                        // const homeTeam = getTeamInfo(game.firstTeamId);
-                        // const awayTeam = getTeamInfo(game.secondTeamId);
+                        // const homeId = game.firstTeamId;
+                        // const awayId = game.secondTeamId;
+                        const homeTeam = getTeamInfo(game.firstTeamId);
+                        const awayTeam = getTeamInfo(game.secondTeamId);
                         return {
                             id: game.id,
-                            home: homeId,
-                            away: awayId,
+                            home: homeTeam.name,
+                            away: awayTeam.name,
                             date: new Date(game.startTime).toLocaleDateString(),
                             time: new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             sport: game.sport,
