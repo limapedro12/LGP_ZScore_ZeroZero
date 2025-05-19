@@ -99,15 +99,13 @@ const EventHistory: React.FC = () => {
 
     const normalizeEventData = useCallback((
         fetchedItems: ReadonlyArray<FetchedEventItem>,
-        type: Event['type'],
-        currentSport: Sport,
+        type: Event['type']
     ): Event[] => fetchedItems.map((item: FetchedEventItem, index: number) => {
-        let description = '';
+        let baseDescription = ''; // Will store the core event action
         const playerInfo = item.playerName || (item.playerId ? `Jogador ${item.playerId}` : '');
         const teamInfo = item.teamId || item.team;
 
         let gameTimeSeconds = 0;
-
         let rawGameTimeValue: number | string | undefined | null = item.timestamp;
 
         if (rawGameTimeValue === undefined || rawGameTimeValue === null) {
@@ -126,40 +124,36 @@ const EventHistory: React.FC = () => {
         const randomSuffix = Math.random().toString(36).substring(7);
         const eventId: string | number = item.eventId || item.id || `${type}-${gameTimeSeconds}-${index}-${randomSuffix}`;
 
-
         switch (type) {
             case 'score': {
-                const scoreItem = item as ApiScoreEventData;
-                description = `${scoreItem.pointValue || 1} ${currentSport === 'volleyball' ? 'ponto(s)' : 'golo(s)'}`;
-                if (playerInfo) description += ` por ${playerInfo}`;
+                baseDescription = ''; // Remove prefix, playerInfo will be displayed
                 break;
             }
             case 'card': {
-                if (playerInfo) description += `${playerInfo}`;
+                baseDescription = ''; // Remove prefix, playerInfo will be displayed
                 break;
             }
             case 'foul': {
-                if (playerInfo) description += ` ${playerInfo}`;
+                baseDescription = ''; // Remove prefix, playerInfo will be displayed
                 break;
             }
             case 'timeout':
-                description = 'Pausa Técnica';
+                baseDescription = 'Pausa Técnica'; // Keep this description
                 break;
             case 'substitution':
-                description = `Substituição: Entra ${item.playerInName || item.playerInId}, Sai ${item.playerOutName
-                  || item.playerOutId}`;
+                baseDescription = 'Substituição'; // Keep this description
                 break;
             default:
-                description = 'Evento desconhecido';
+                baseDescription = 'Evento desconhecido';
         }
 
         return {
             id: eventId,
             timestamp: gameTimeSeconds,
             type,
-            description,
+            description: baseDescription,
             team: teamInfo || undefined,
-            player: playerInfo,
+            player: playerInfo, // Player name will be the main text for score, card, foul
             details: { ...item },
             icon: null,
             teamLogo: item.teamLogo,
@@ -192,7 +186,7 @@ const EventHistory: React.FC = () => {
 
             if (scoresResponse.status === 'fulfilled' && scoresResponse.value && (scoresResponse.value as { points: unknown[] }).points) {
                 allEvents = allEvents.concat(
-                    normalizeEventData((scoresResponse.value as { points: unknown[] }).points as ApiScoreEventData[], 'score', sport),
+                    normalizeEventData((scoresResponse.value as { points: unknown[] }).points as ApiScoreEventData[], 'score'),
                 );
             } else if (scoresResponse.status === 'rejected') {
                 // Intentionally empty
@@ -200,7 +194,7 @@ const EventHistory: React.FC = () => {
 
             if (foulsResponse.status === 'fulfilled' && foulsResponse.value && (foulsResponse.value as { data: unknown[] }).data) {
                 allEvents = allEvents.concat(
-                    normalizeEventData((foulsResponse.value as { data: unknown[] }).data as ApiFoulEventData[], 'foul', sport),
+                    normalizeEventData((foulsResponse.value as { data: unknown[] }).data as ApiFoulEventData[], 'foul'),
                 );
             } else if (foulsResponse.status === 'rejected') {
                 // Intentionally empty
@@ -208,7 +202,7 @@ const EventHistory: React.FC = () => {
 
             if (cardsData.status === 'fulfilled' && cardsData.value.cards) {
                 allEvents = allEvents.concat(
-                    normalizeEventData(cardsData.value.cards as ApiCardEventData[], 'card', sport),
+                    normalizeEventData(cardsData.value.cards as ApiCardEventData[], 'card'),
                 );
             } else if (cardsData.status === 'rejected') {
                 // Intentionally empty
@@ -216,7 +210,7 @@ const EventHistory: React.FC = () => {
 
             if (timeoutEventsData.status === 'fulfilled' && timeoutEventsData.value.events) {
                 allEvents = allEvents.concat(
-                    normalizeEventData(timeoutEventsData.value.events as ApiTimeoutEventData[], 'timeout', sport),
+                    normalizeEventData(timeoutEventsData.value.events as ApiTimeoutEventData[], 'timeout'),
                 );
             } else if (timeoutEventsData.status === 'rejected') {
                 // Intentionally empty
@@ -264,7 +258,6 @@ const EventHistory: React.FC = () => {
         }
         setFilteredEvents(currentFilteredEvents);
     }, [activeTab, events]);
-
 
     const handleEdit = (event: Event) => {
         alert(`Edição para '${event.description}' iniciada.\nImplementar navegação para formulário de edição específico.`);
@@ -411,22 +404,56 @@ const EventHistory: React.FC = () => {
                             {event.icon}
                         </div>
                         <div className="event-details-main">
+                            {/* This is the flex container */}
                             <span className="event-description-text">
                                 {event.description}
                             </span>
-                            <div className="event-player-team-info">
-                                {event.playerNumber && (
-                                    <PlayerJersey number={parseInt(String(event.playerNumber), 10)} />
-                                )}
-                                {event.teamLogo && (
-                                    <img
-                                        src={event.teamLogo}
-                                        alt={`${event.team || 'Equipa'} logo`}
-                                        className="team-logo-miniature"
+
+                            {/* Display player name if it exists and not a timeout event */}
+                            {event.player && event.type !== 'timeout' && (
+                                <span className="player-name-text">
+                                    {/*
+                                        For scores, "por" can be added if desired,
+                                        e.g., event.type === 'score' ? `por ${event.player}` : event.player
+                                    */}
+                                    {event.player}
+                                </span>
+                            )}
+
+                            {/* Display PlayerJersey if playerNumber exists and not a timeout event */}
+                            {event.playerNumber && event.type !== 'timeout' && (
+                                <div className="player-jersey-history-item">
+                                    <PlayerJersey
+                                        number={typeof event.playerNumber === 'string' ?
+                                            parseInt(event.playerNumber, 10) : event.playerNumber}
+                                        // Pass team to PlayerJersey if it uses it for color
+                                        // team={event.team === 'home' ? 'home' : 'away'}
                                     />
-                                )}
-                            </div>
+                                </div>
+                            )}
+
+                            {/* Display team logo if it exists */}
+                            {event.teamLogo && (
+                                <img
+                                    src={event.teamLogo}
+                                    alt={`${event.team || 'Equipa'} logo`}
+                                    className="team-logo-miniature" // Ensure this class is styled
+                                />
+                            )}
+
+                            {/* Special handling for substitution details */}
+                            {event.type === 'substitution' && event.details && (
+                                <span className="substitution-details-text">
+                                    {event.details.playerInName || event.details.playerInId ?
+                                        ` Entra: ${String(event.details.playerInName || event.details.playerInId)}` : ''}
+                                    {event.details.playerInNumber ? ` (${String(event.details.playerInNumber)})` : ''}
+                                    {event.details.playerOutName || event.details.playerOutId ?
+                                        `, Sai: ${String(event.details.playerOutName || event.details.playerOutId)}` : ''}
+                                    {event.details.playerOutNumber ? ` (${String(event.details.playerOutNumber)})` : ''}
+                                </span>
+                            )}
                         </div>
+                        {/* The separate event-description div is removed */}
                         <div className="event-actions">
                             <button
                                 onClick={() => handleEdit(event)}
