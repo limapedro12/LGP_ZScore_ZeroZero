@@ -5,6 +5,7 @@ const ENDPOINTS = {
     SCORE: () => '/events/score',
     CARDS: () => '/events/card',
     SPORTS: () => '/utils/sports',
+    INFO: () => '/api/info',
 };
 
 export default ENDPOINTS;

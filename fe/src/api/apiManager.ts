@@ -19,7 +19,10 @@ type ActionType =
     | 'create'
     | 'update'
     | 'delete'
-    | 'noTimer';
+    | 'noTimer'
+    | 'getAvailPlacards'
+    | 'getTeamInfo'
+    | 'getPlacardInfo'
 
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
 
@@ -124,6 +127,24 @@ interface SportsResponse {
     sports?: string[];
 }
 
+interface ApiGame {
+    id: string;
+    firstTeamId: string;
+    secondTeamId: string;
+    isFinished: boolean;
+    sport: string;
+    startTime: string;
+}
+
+// interface ApiTeam {
+//     id: string;
+//     logoURL: string;
+//     color: string;
+//     acronym: string;
+//     name: string;
+//     sport: string;
+// }
+
 /**
  * API Manager that handles all API requests
  */
@@ -161,6 +182,7 @@ class ApiManager {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
         };
 
         if (method === 'POST') {
@@ -176,6 +198,8 @@ class ApiManager {
             throw new Error(`API error: ${response.status}`);
         }
 
+        console.log('Response:', await response.text());
+
         return response.json();
     };
 
@@ -187,6 +211,7 @@ class ApiManager {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(params),
+            credentials: 'include',
         };
 
         return fetch(url, options).then((response) => {
@@ -249,6 +274,9 @@ class ApiManager {
 
     deleteCard = (placardId: string, sport: string, eventId: string) =>
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });
+
+    getAvailPlacards = () =>
+        this.makeRequest<ApiGame>('info', 'getAvailPlacards', {});
 
     updateCard = (params: UpdateCardParams) => {
         const filteredParams: RequestParams = {

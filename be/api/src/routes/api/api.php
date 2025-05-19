@@ -2,6 +2,17 @@
 require_once __DIR__ . '/../../index.php';
 require_once __DIR__ . '/../../utils/apiUtils.php';
 
+header("Access-Control-Allow-Origin: http://localhost:3000"); // Must match request origin exactly
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Headers: Content-Type, Content-Length, Authorization, Accept, X-Requested-With");
+header("Access-Control-Allow-Methods: PUT, POST, GET, DELETE, OPTIONS");
+
+// Handle preflight (OPTIONS) requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 header('Content-Type: application/json');
 $jsonBody = null;
 if($_SERVER['REQUEST_METHOD'] === 'POST') {

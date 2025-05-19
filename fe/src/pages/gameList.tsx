@@ -6,7 +6,8 @@ import '../styles/scoreBoard.scss';
 import '../styles/gameList.scss';
 import Filters from '../components/gameList/Filters';
 import ShowGames from '../components/gameList/ShowGames';
-import { Game, ApiGame } from '../types/types';
+import { Game } from '../types/types';
+import apiManager from '../api/apiManager';
 
 // function getTeamInfo(teamId: string): ApiTeam | null {
 //     // Simulate fetching team info from an API
@@ -26,14 +27,12 @@ const GameList = () => {
     useEffect(() => {
         const fetchGames = async () => {
             try {
-                const response = await fetch('http://localhost:8080/api/info', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ action: 'getAvailPlacards' }),
-                });
-
+                console.log('Logging in fetchGames');
+                const loginResp = await apiManager.login('xpsports', 'XPsports_2025');
+                console.log('Login response:', loginResp);
+                console.log('Fetching games...');
+                const response = await apiManager.getAvailPlacards();
+                console.log('Response body:', response);
                 // fake API response for demonstration
                 // const response = {
                 //     ok: true,

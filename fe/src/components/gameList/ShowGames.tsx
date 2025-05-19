@@ -1,5 +1,6 @@
 // Create a new ShowGames component
 import React from 'react';
+import { Game } from '../../types/types';
 
 type ShowGamesProps = {
     games: Game[];
