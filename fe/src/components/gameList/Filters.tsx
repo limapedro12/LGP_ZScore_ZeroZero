@@ -12,8 +12,8 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
     const getUniqueTeams = (games: Game[]): string[] => {
         const teams = new Set<string>();
         games.forEach((game) => {
-            teams.add(game.home);
-            teams.add(game.away);
+            if (game.home) teams.add(game.home); // Ensure `home` is defined
+            if (game.away) teams.add(game.away); // Ensure `away` is defined
         });
         return Array.from(teams);
     };
@@ -68,6 +68,8 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         });
         onFilter(filteredGames);
     };
+
+    console.log('teamLabels', teamLabels);
 
     return (
         <div className="filters">

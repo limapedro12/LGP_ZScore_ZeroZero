@@ -1,6 +1,7 @@
 import config from '../config/config';
 import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
+import { getAvailPlacardsMock, getPlacardInfoMock, getTeamInfoMock } from './mockResponse';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
@@ -274,7 +275,16 @@ class ApiManager {
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });
 
     getAvailPlacards = () =>
-        this.makeRequest<ApiGame>('info', 'getAvailPlacards', {});
+        getAvailPlacardsMock();
+        // this.makeRequest<ApiGame>('info', 'getAvailPlacards', {});
+
+    getTeamInfo = (teamId: string) =>
+        getTeamInfoMock(teamId);
+        // this.makeRequest<ApiTeam>('info', 'getTeamInfo', { teamId });
+
+    getPlacardInfo = (placardId: string) =>
+        getPlacardInfoMock(placardId);
+        // this.makeRequest<ApiGame>('info', 'getPlacardInfo', { placardId });
 
     updateCard = (params: UpdateCardParams) => {
         const filteredParams: RequestParams = {
