@@ -42,3 +42,8 @@
         &.arrow-right { border-left-width: 80px; }
     }
 }
+
+.thicker-arrow-icon path {
+  stroke: white;
+  stroke-width: 1.3px; 
+}

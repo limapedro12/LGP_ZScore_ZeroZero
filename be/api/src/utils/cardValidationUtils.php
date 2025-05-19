@@ -132,16 +132,15 @@ class CardValidationUtils {
             case 'volleyball':
                 $sanctionLevels = [
                     'white' => 0,
-                    'yellow' => 1,
+                    'yellow' => 1, 
                     'red' => 2,
                     'yellow_red_together' => 3, 
                     'yellow_red_separately' => 4, 
                 ];
+            
                 $currentMaxLevel = -1; 
-
                 foreach ($hypotheticalSequence as $card) {
                     $currentCardType = $card['cardType'];
-
                     $level = $sanctionLevels[$currentCardType] ?? -1;
 
                     if ($level === -1) {

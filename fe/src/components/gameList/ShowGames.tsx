@@ -1,14 +1,6 @@
 // Create a new ShowGames component
 import React from 'react';
 
-type Game = {
-    home: string;
-    away: string;
-    date: string;
-    time: string;
-    sport: string;
-};
-
 type ShowGamesProps = {
     games: Game[];
 };
@@ -29,7 +21,13 @@ const ShowGames: React.FC<ShowGamesProps> = ({ games }) => {
     return (
         <div className="games-section">
             {sortedGames.map((game, index) => (
-                <div className="game-card" key={index}>
+                <div
+                    className="game-card"
+                    key={index}
+                    onClick={() => {
+                        window.location.href = `http://localhost:3000/scoreboard/${game.sport}/${index}`;
+                    }}
+                >
                     <div className="team">
                         <div className="team-logo">Image</div>
                         <div className="team-name">

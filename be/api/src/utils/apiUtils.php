@@ -1,4 +1,7 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 function sendPostRequest($url, array $data = []) {
     $content = http_build_query($data);
@@ -38,7 +41,9 @@ function sendGetRequest($url, array $data = []) {
     return $result;
 }
 
-function login($apiurl, $appkey, $username, $password) {
+function login($username, $password) {
+    $apiurl = getenv('API_URL');
+    $appkey = getenv('APP_KEY');
     $url = $apiurl . 'authUser/AppKey/' . $appkey;
     $data = [
         'username' => $username,
@@ -46,7 +51,10 @@ function login($apiurl, $appkey, $username, $password) {
     ];
 
     $response = sendPostRequest($url, $data);
-    
+    $result = json_decode($response, true);
+
+    session_start();
+    $_SESSION['api_cookie'] = $result['data']['Cookie'] ?? null;
     return $response;
 }
 
@@ -54,20 +62,38 @@ function buildMethodUrl($apiurl, $method, $appkey, $cookie) {
     return $apiurl . $method . '/AppKey/' . $appkey . '/Key/' . $cookie;
 }
 
-function getMatchesColab($apiurl, $appkey, $cookie) {
+function getMatchesColab() {
+    $apiurl = getenv('API_URL');
+    $appkey = getenv('APP_KEY');
+    $cookie = $_SESSION['api_cookie'];
+    if (is_null($cookie)) {
+        return json_encode(['error' => 'Cookie not found']);
+    }
     $url = buildMethodUrl($apiurl, 'getMatchesColab', $appkey, $cookie);
     $response = sendGetRequest($url);
     return $response;
 }
 
-function getMatchLiveInfo($apiurl, $appkey, $cookie, $matchId) {
+function getMatchLiveInfo($matchId) {
+    $apiurl = getenv('API_URL');
+    $appkey = getenv('APP_KEY');
+    $cookie = $_SESSION['api_cookie'];
+    if (is_null($cookie)) {
+        return json_encode(['error' => 'Cookie not found']);
+    }
     $url = buildMethodUrl($apiurl, 'getMatchLiveInfo/MatchID/' . $matchId, $appkey, $cookie);
     $response = sendGetRequest($url);
     return $response;
 }
 
-function getTeamLive($apiurl, $appkey, $cookie, $matchId, $teamId) {
-    $url = buildMethodUrl($apiurl, 'getTeamLive/MatchID/' . $matchId . '/TeamID/' . $teamId, $appkey, $cookie);
+function getTeamLive($matchId,$teamId) {
+    $apiurl = getenv('API_URL');
+    $appkey = getenv('APP_KEY');
+    $cookie = $_SESSION['api_cookie'];
+    if (is_null($cookie)) {
+        return json_encode(['error' => 'Cookie not found']);
+    }
+    $url = buildMethodUrl($apiurl, 'getTeamLive'.'/MatchID/'. $matchId . '/TeamID/' . $teamId, $appkey, $cookie);
     $response = sendGetRequest($url);
     return $response;
 }

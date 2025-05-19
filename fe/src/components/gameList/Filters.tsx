@@ -2,14 +2,6 @@ import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-type Game = {
-    home: string;
-    away: string;
-    date: string;
-    time: string;
-    sport: string;
-};
-
 type FiltersProps = {
     games: Game[];
     onFilter: (filteredGames: Game[]) => void;

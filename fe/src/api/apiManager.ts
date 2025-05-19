@@ -1,4 +1,5 @@
 import config from '../config/config';
+import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
@@ -6,8 +7,19 @@ const BASE_URL = `${config.API_HOSTNAME}`;
 /**
  * Defines the possible timer actions that can be sent to the API
  */
-type ActionType = 'start' | 'pause' | 'reset' | 'adjust' | 'set' | 'status' | 'get' |
-                  'gameStatus' | 'create' | 'update' | 'delete' | 'noTimer';
+type ActionType =
+    | 'start'
+    | 'pause'
+    | 'reset'
+    | 'adjust'
+    | 'set'
+    | 'status'
+    | 'get'
+    | 'gameStatus'
+    | 'create'
+    | 'update'
+    | 'delete'
+    | 'noTimer';
 
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
 
@@ -41,7 +53,6 @@ interface ApiParams {
     action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
     username?: string;
     password?: string;
-    cookie?: string;
     placardId?: string;
     teamId?: string;
 }
@@ -104,6 +115,7 @@ interface CardsResponse {
         placardId: string;
         playerId: string;
         cardType: string;
+        team: 'home' | 'away';
         timestamp: number;
     }>;
 }
@@ -232,8 +244,8 @@ class ApiManager {
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
-    createCard = (placardId: string, sport: string, playerId: string, cardType: string) =>
-        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, playerId, cardType });
+    createCard = (placardId: string, sport: string, team: TeamTag, playerId: string, cardType: string) =>
+        this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, team, playerId, cardType });
 
     deleteCard = (placardId: string, sport: string, eventId: string) =>
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });
