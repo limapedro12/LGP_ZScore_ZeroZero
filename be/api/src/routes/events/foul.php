@@ -206,7 +206,7 @@ try {
                  
                  $responseMessage = 'Foul created.';
 
-                 if ($foulsPenaltyThreshold !== null && $accumulatedFoulsThisPeriod > 0 && ($accumulatedFoulsThisPeriod % $foulsPenaltyThreshold === 0)) {
+                 if ($foulsPenaltyThreshold !== null && $accumulatedFoulsThisPeriod > 0 && ($accumulatedFoulsThisPeriod > $foulsPenaltyThreshold  )) {
                      $responseData['penalty'] = true;
                      $responseData['penaltyFouls'] = $accumulatedFoulsThisPeriod;
                      $responseData['penaltyThreshold'] = $foulsPenaltyThreshold;
@@ -277,7 +277,7 @@ try {
                 }
             }
 
-            if (!$isChanged) { / break; }
+            if (!$isChanged) {  break; }
 
             $redis->multi();
             $redis->hMSet($foulEventKey, $updateData);
@@ -379,7 +379,7 @@ try {
             
             $filterPlayerIdStr = null;
             if ($action === 'get_player_fouls') {
-                $filterPlayerIdStr = $params['playerId']; /
+                $filterPlayerIdStr = $params['playerId'];
             }
 
             $foulEventKeysWithScores = $redis->zRange($gameFoulsKey, 0, -1, ['withscores' => true]);
