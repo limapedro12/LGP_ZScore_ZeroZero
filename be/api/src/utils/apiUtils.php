@@ -53,7 +53,8 @@ function login($username, $password) {
     $response = sendPostRequest($url, $data);
     $result = json_decode($response, true);
 
-    session_start();
+    if (session_status() == PHP_SESSION_NONE)
+        session_start();
     $_SESSION['api_cookie'] = $result['data']['Cookie'] ?? null;
     return $response;
 }
