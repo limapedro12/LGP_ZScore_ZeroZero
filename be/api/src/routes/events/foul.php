@@ -147,8 +147,8 @@ try {
                 break;
             }
 
-            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfigManager);
-            $currentPeriod = RequestUtils::getGamePeriod($placardId, $gameConfigManager);
+            $timestamp = RequestUtils::getGameTimePosition($placardId, $sportSpecificConfig);
+            $currentPeriod = RequestUtils::getGamePeriod($placardId, $sportSpecificConfig);
             if ($currentPeriod > $totalPeriods) {
                  http_response_code(400);
                  $response = ['status' => 'error', 'message' => "Cannot record foul: Provided period ({$currentPeriod}) exceeds total periods ({$totalPeriods}) for sport '{$sport}'."];
@@ -379,7 +379,9 @@ try {
             
             $filterPlayerIdStr = null;
             if ($action === 'get_player_fouls') {
-                $filterPlayerIdStr = $params['playerId'];
+
+                $filterPlayerIdStr = $params['playerId']; 
+
             }
 
             $foulEventKeysWithScores = $redis->zRange($gameFoulsKey, 0, -1, ['withscores' => true]);
