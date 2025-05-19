@@ -49,3 +49,36 @@
   gap: 0.5rem;
   padding: 0.75rem;
 }
+
+.event-button--large {
+  width: clamp(4rem, 15vw, 5rem);
+  height: clamp(4rem, 15vw, 5rem);
+  min-width: 4rem;
+  min-height: 4rem;
+  padding: 0.5rem;
+}
+
+.timer-controls-mobile {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.value-indicator {
+  border-radius: 1rem;
+  font-weight: bold;
+  min-width: 3rem;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+
+}
+
+.value-indicator-mobile {
+  border-radius: 1rem;
+  font-weight: bold;
+  min-width: 2.5rem;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}

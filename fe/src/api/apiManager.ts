@@ -57,6 +57,8 @@ export interface ScoreEvent {
     period: number;
     pointValue: number;
     periodTotalPoints: number;
+    teamPoints: number;
+    timeSpan: number;
 }
 
 export interface ScoreHistoryResponse {

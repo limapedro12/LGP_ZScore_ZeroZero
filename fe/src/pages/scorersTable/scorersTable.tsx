@@ -10,6 +10,8 @@ import CentralConsole from '../../components/scorersTable/centralConsole';
 import '../../styles/scorersTable.scss';
 import clockPaused from '../../../public/icons/clock_paused.png';
 import clockResumed from '../../../public/icons/clock_resumed.png';
+import clockRewind from '../../../public/icons/rewind-icon.png';
+import clockForward from '../../../public/icons/forward-icon.png';
 import apiManager from '../../api/apiManager';
 
 const ScorersTable = () => {
@@ -17,6 +19,13 @@ const ScorersTable = () => {
     const [timerRunning, setTimerRunning] = React.useState(false);
     const sport = (sportParam as Sport) || 'volleyball';
     const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
+
+    // Adjustable time values in seconds
+    const [rewindValue, setRewindValue] = useState(10);
+    const [forwardValue, setForwardValue] = useState(10);
+
+    // Available options for time adjustments
+    const timeOptions = [5, 10, 15, 30, 60];
 
     const handleTimerToggle = () => {
         if (!placardIdParam || !sport) return;
@@ -31,6 +40,30 @@ const ScorersTable = () => {
         } catch (error) {
             console.error('Error toggling timer:', error);
         }
+    };
+
+    const handleTimerAdjust = (seconds: number) => {
+        if (!placardIdParam || !sport) return;
+
+        try {
+            apiManager.adjustTimer(placardIdParam, sport, seconds);
+        } catch (error) {
+            console.error(`Error adjusting timer by ${seconds} seconds:`, error);
+        }
+    };
+
+    const changeRewindValue = () => {
+        // Cycle through time options
+        const currentIndex = timeOptions.indexOf(rewindValue);
+        const nextIndex = (currentIndex + 1) % timeOptions.length;
+        setRewindValue(timeOptions[nextIndex]);
+    };
+
+    const changeForwardValue = () => {
+        // Cycle through time options
+        const currentIndex = timeOptions.indexOf(forwardValue);
+        const nextIndex = (currentIndex + 1) % timeOptions.length;
+        setForwardValue(timeOptions[nextIndex]);
     };
 
     const fetchNonTimerSports = React.useCallback(async () => {
@@ -76,23 +109,42 @@ const ScorersTable = () => {
                         <TeamLogo logoSrc="/teamLogos/scp.png" teamName="Sporting" />
                     </Col>
                 </Row>
-                <Row className="w-100 d-none d-md-flex align-items-center justify-content-around h-25">
-                    <Col md={4} className="d-flex flex-column align-items-center">
-                        <p className="text-white fw-bold fs-5 mb-2">Corrigir</p>
-                        <Button
-                            variant="primary"
-                            className="event-button rounded-circle"
-                            aria-label="Corrigir"
-                        />
-                    </Col>
-                    {!isNonTimerSport && (
-                        <Col md={4} className="d-flex flex-column align-items-center">
+                {/* Timer Button Row */}
+                {!isNonTimerSport && (
+                    <Row className="w-100 d-none d-md-flex align-items-center justify-content-center p-3">
+                        <Col md={2} className="d-flex flex-column align-items-center">
+                            <div className="d-flex align-items-center mb-2">
+                                <p className="text-white fw-bold fs-5 mb-0 me-2">+</p>
+                                <Button
+                                    variant="outline-light"
+                                    size="sm"
+                                    className="value-indicator"
+                                    onClick={changeRewindValue}
+                                >
+                                    {rewindValue}
+                                    s
+                                </Button>
+                            </div>
+                            <Button
+                                variant="light"
+                                className="event-button--large rounded-circle"
+                                aria-label={`Recuar ${rewindValue} segundos`}
+                                onClick={() => handleTimerAdjust(rewindValue)}
+                            >
+                                <img
+                                    src={clockRewind}
+                                    alt=""
+                                    className="event-icon"
+                                />
+                            </Button>
+                        </Col>
+                        <Col md={2} className="d-flex flex-column align-items-center">
                             <p className="text-white fw-bold fs-5 mb-2">
                                 {timerRunning ? 'Parar' : 'Iniciar'}
                             </p>
                             <Button
                                 variant="light"
-                                className="event-button rounded-circle"
+                                className="event-button--large rounded-circle"
                                 aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
                                 onClick={handleTimerToggle}
                             >
@@ -103,7 +155,44 @@ const ScorersTable = () => {
                                 />
                             </Button>
                         </Col>
-                    )}
+                        <Col md={2} className="d-flex flex-column align-items-center">
+                            <div className="d-flex align-items-center mb-2">
+                                <p className="text-white fw-bold fs-5 mb-0 me-2">-</p>
+                                <Button
+                                    variant="outline-light"
+                                    size="sm"
+                                    className="value-indicator"
+                                    onClick={changeForwardValue}
+                                >
+                                    {forwardValue}
+                                    s
+                                </Button>
+                            </div>
+                            <Button
+                                variant="light"
+                                className="event-button--large rounded-circle"
+                                aria-label={`Avançar ${forwardValue} segundos`}
+                                onClick={() => handleTimerAdjust(-forwardValue)}
+                            >
+                                <img
+                                    src={clockForward}
+                                    alt=""
+                                    className="event-icon"
+                                />
+                            </Button>
+                        </Col>
+                    </Row>
+                )}
+                {/* Corrigir Button Row */}
+                <Row className="w-100 d-none d-md-flex align-items-center justify-content-center p-5">
+                    <Col md={4} className="d-flex flex-column align-items-center">
+                        <p className="text-white fw-bold fs-5 mb-2">Corrigir</p>
+                        <Button
+                            variant="primary"
+                            className="event-button--large rounded-circle"
+                            aria-label="Corrigir"
+                        />
+                    </Col>
                 </Row>
             </Container>
 
@@ -123,34 +212,93 @@ const ScorersTable = () => {
                         <CentralConsole sport={sport} />
                     </div>
                 </Row>
-                <Row className="w-100 py-3 justify-content-around">
-                    <Col xs={isNonTimerSport ? 12 : 5} className="d-flex flex-column align-items-center">
+                {/* Timer Buttons Row (Mobile) */}
+                {!isNonTimerSport && (
+                    <Row className="w-100 py-3 justify-content-center">
+                        <Col xs={12} className="d-flex justify-content-center timer-controls-mobile">
+                            <div className="d-flex flex-column align-items-center mx-2">
+                                <div className="d-flex align-items-center mb-2">
+                                    <p className="text-white fw-bold fs-6 mb-0 me-1">+</p>
+                                    <Button
+                                        variant="outline-light"
+                                        size="sm"
+                                        className="value-indicator-mobile"
+                                        onClick={changeRewindValue}
+                                    >
+                                        {rewindValue}
+                                        {' '}
+
+                                    </Button>
+                                </div>
+                                <Button
+                                    variant="light"
+                                    className="event-button--large rounded-circle"
+                                    aria-label={`+ ${rewindValue} segundos`}
+                                    onClick={() => handleTimerAdjust(rewindValue)}
+                                >
+                                    <img
+                                        src={clockRewind}
+                                        alt=""
+                                        className="event-icon"
+                                    />
+                                </Button>
+                            </div>
+                            <div className="d-flex flex-column align-items-center mx-2">
+                                <p className="text-white fw-bold fs-5 mb-2 text-center">
+                                    {timerRunning ? 'Parar' : 'Iniciar'}
+                                </p>
+                                <Button
+                                    variant="light"
+                                    className="event-button--large rounded-circle"
+                                    aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
+                                    onClick={handleTimerToggle}
+                                >
+                                    <img
+                                        src={timerRunning ? clockPaused : clockResumed}
+                                        alt=""
+                                        className="event-icon"
+                                    />
+                                </Button>
+                            </div>
+                            <div className="d-flex flex-column align-items-center mx-2">
+                                <div className="d-flex align-items-center mb-2">
+                                    <p className="text-white fw-bold fs-6 mb-0 me-1">-</p>
+                                    <Button
+                                        variant="outline-light"
+                                        size="sm"
+                                        className="value-indicator-mobile"
+                                        onClick={changeForwardValue}
+                                    >
+                                        {forwardValue}
+
+                                    </Button>
+                                </div>
+                                <Button
+                                    variant="light"
+                                    className="event-button--large rounded-circle"
+                                    aria-label={`Avançar ${forwardValue} segundos`}
+                                    onClick={() => handleTimerAdjust(-forwardValue)}
+                                >
+                                    <img
+                                        src={clockForward}
+                                        alt=""
+                                        className="event-icon"
+                                    />
+                                </Button>
+                            </div>
+                        </Col>
+                    </Row>
+                )}
+                {/* Corrigir Button Row (Mobile) */}
+                <Row className="w-100 justify-content-center p-3">
+                    <Col xs={12} className="d-flex flex-column align-items-center">
                         <p className="text-white fw-bold fs-5 mb-2 text-center">Corrigir</p>
                         <Button
                             variant="primary"
-                            className="event-button rounded-circle"
+                            className="event-button--large rounded-circle"
                             aria-label="Corrigir"
                         />
                     </Col>
-                    {!isNonTimerSport && (
-                        <Col xs={5} className="d-flex flex-column align-items-center">
-                            <p className="text-white fw-bold fs-5 mb-2 text-center">
-                                {timerRunning ? 'Parar' : 'Iniciar'}
-                            </p>
-                            <Button
-                                variant="light"
-                                className="event-button rounded-circle"
-                                aria-label={timerRunning ? 'Parar cronómetro' : 'Iniciar cronómetro'}
-                                onClick={handleTimerToggle}
-                            >
-                                <img
-                                    src={timerRunning ? clockPaused : clockResumed}
-                                    alt=""
-                                    className="event-icon"
-                                />
-                            </Button>
-                        </Col>
-                    )}
                 </Row>
             </Container>
         </>
