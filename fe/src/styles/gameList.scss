@@ -28,6 +28,11 @@ html, body {
   height: 15vh;
 }
 
+.logoCol {
+  min-height: 12vh;
+  display: flex;
+}
+
 .jogosTitle {
   font-size: 2rem;
   whiteSpace: 'nowrap';
