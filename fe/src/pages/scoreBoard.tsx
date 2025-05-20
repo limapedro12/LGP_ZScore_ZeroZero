@@ -93,14 +93,21 @@ const ScoreBoard = () => {
                     <ShotClock />
                 </div>
             )}
-            <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                <TimeoutTimer onStatusChange={handleTimeoutStatusChange} substitute={false} />
-            </div>
+            {sport && noPeriodBoxSports.includes(sport) && (
+                <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
+                    <TimeoutTimer onStatusChange={handleTimeoutStatusChange} />
+                </div>
+            )}
             {sport && !noPeriodBoxSports.includes(sport) && (
-                <SetBox
-                    scoreData={scoreData}
-                    timeoutActive={timeoutStatus !== 'inactive'}
-                />
+                <>
+                    <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
+                        <TimeoutTimer onStatusChange={handleTimeoutStatusChange} substitute={true} />
+                    </div>
+                    <SetBox
+                        scoreData={scoreData}
+                        timeoutActive={timeoutStatus !== 'inactive'}
+                    />
+                </>
             )}
             <div className="timer-wrapper w-100 d-flex justify-content-center">
                 <Timer />
@@ -111,7 +118,6 @@ const ScoreBoard = () => {
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
             </div>
-
         </>
     );
 

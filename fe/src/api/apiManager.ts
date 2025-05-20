@@ -445,6 +445,9 @@ class ApiManager {
     getNoShotClockSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noShotClock', { }, 'GET');
 
+    setShotClock = (placardId: string, sport: string, team: TeamTag, time: number) =>
+        this.makeRequest<ShotClockResponse>('shotclock', 'set', { placardId, sport, team, time });
+
     getSportScoreType = (sport: string) =>
         this.makeRequest<SportsResponse>('sports', 'typeOfScore', { sport }, 'GET');
 

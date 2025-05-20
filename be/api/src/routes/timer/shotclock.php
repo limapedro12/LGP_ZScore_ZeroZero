@@ -9,7 +9,7 @@ $params = RequestUtils::getRequestParams();
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 $requiredParams = ['placardId', 'sport', 'action'];
-$allowedActions = ['start', 'pause', 'reset', 'status'];
+$allowedActions = ['start', 'pause', 'reset', 'status', 'set'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -99,7 +99,7 @@ try {
                 
                 $redis->multi();
                 $redis->set($keys['start_time'], $currentTime);
-                $redis->set($keys['remaining_time'], $shotClockDuration); // Reset time for team switch
+                $redis->set($keys['remaining_time'], $shotClockDuration); 
                 $redis->set($keys['status'], 'running');
                 $redis->set($keys['active_team'], $team);
                 $redis->exec();
@@ -113,11 +113,9 @@ try {
                 break;
             }
             
-            // If we're resuming the clock for the same team after a timeout
             $timeToUse = ($status === 'paused' && $activeTeam === $team) 
-                ? $remainingTime  // Use existing remaining time when resuming
-                : $shotClockDuration; // Use full duration for new start
-            
+                ? $remainingTime
+                : $shotClockDuration;
             $redis->multi();
             $redis->set($keys['start_time'], $currentTime);
             $redis->set($keys['remaining_time'], $timeToUse);
@@ -202,6 +200,52 @@ try {
                 "status" => $newStatus,
                 "team" => $teamToReset,
                 "remaining_time" => $shotClockDuration
+            ];
+            break;
+        case 'set':
+            if ($requestMethod !== 'POST') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only POST is allowed for set action."];
+                break;
+            }
+
+            $newTime = isset($params['time']) ? intval($params['time']) : null;
+            if ($newTime === null) {
+                http_response_code(400);
+                $response = ["error" => "Missing time parameter"];
+                break;
+            }
+            if ($newTime < 0) {
+                http_response_code(400);
+                $response = ["error" => "Time must be a non-negative value"];
+                break;
+            }
+
+            $newTeam = $team ?? $activeTeam;
+
+            $wasRunning = ($status === 'running');
+            if ($wasRunning) {
+                $redis->set($keys['status'], 'paused');
+            }
+
+            $boundedTime = min($shotClockDuration, $newTime);
+            $redis->set($keys['remaining_time'], $boundedTime);
+
+            if ($newTeam !== $activeTeam) {
+                $redis->set($keys['active_team'], $newTeam);
+            }
+
+            if ($wasRunning) {
+                $redis->set($keys['start_time'], $currentTime);
+                $redis->set($keys['status'], 'running');
+            }
+
+            $response = [
+                "message" => "Shot clock set to $boundedTime seconds" . ($newTeam !== $activeTeam ? " for $newTeam team" : ""),
+                "status" => $wasRunning ? "running" : $status,
+                "team" => $newTeam,
+                "remaining_time" => $boundedTime,
+                "duration" => $shotClockDuration
             ];
             break;
             

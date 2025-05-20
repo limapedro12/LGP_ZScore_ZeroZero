@@ -9,7 +9,7 @@ interface TimeoutTimerProps {
     substitute?: boolean;
 }
 
-const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange, substitute = true }) => {
+const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange, substitute = false }) => {
     const [elapsedTime, setElapsedTime] = useState(0);
     const [status, setStatus] = useState('default');
     const [placardId, setplacardId] = useState<string>('default');
@@ -54,7 +54,7 @@ const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange, substitute 
         return undefined;
     }, [placardId, fetchTimerStatus, sport]);
 
-    if (status === 'inactive' && substitute) {
+    if (status === 'inactive' && !substitute) {
         return (
             <div className="timeout-timer-outer m-3">
                 <div
