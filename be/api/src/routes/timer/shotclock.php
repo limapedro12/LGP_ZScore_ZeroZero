@@ -240,6 +240,7 @@ try {
                 $redis->set($keys['status'], 'running');
             }
 
+
             $response = [
                 "message" => "Shot clock set to $boundedTime seconds" . ($newTeam !== $activeTeam ? " for $newTeam team" : ""),
                 "status" => $wasRunning ? "running" : $status,

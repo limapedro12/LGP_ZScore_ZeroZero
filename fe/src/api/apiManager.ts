@@ -1,6 +1,8 @@
 import config from '../config/config';
 import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
+import { toast } from 'react-toastify';
+
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
@@ -246,33 +248,48 @@ class ApiManager {
             });
         }
 
-        const response = await fetch(url, options);
+        try {
+            const response = await fetch(url, options);
 
-        if (!response.ok) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let errorPayload: any = { error: `API error: ${response.status} - ${response.statusText}` };
-            try {
-                const responseData = await response.json();
-                if (responseData && typeof responseData === 'object') {
-                    errorPayload = responseData; // Use backend's error structure
+            if (!response.ok) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                let errorPayload: any = { error: `API error: ${response.status} - ${response.statusText}` };
+                try {
+                    const responseData = await response.json();
+                    if (responseData && typeof responseData === 'object') {
+                        errorPayload = responseData; // Use backend's error structure
+                    }
+                } catch (e) {
+                    // ignore JSON parse error
                 }
-            } catch (e) {
-                console.error('Failed to parse error response JSON:', e);
+
+                toast.error(errorPayload.error || `API error: ${response.status}`);
+                const error = new Error(errorPayload.error || `API error: ${response.status}`);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (error as any).response = {
+                    data: errorPayload,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                    config: options,
+                };
+                throw error;
             }
 
-            const error = new Error(errorPayload.error || `API error: ${response.status}`);
+            const data = await response.json();
+            // Optionally show a success toast for certain actions
+            if (['create', 'update', 'delete', 'reset', 'start', 'pause', 'adjust', 'set'].includes(action) && data?.message) {
+                toast.success(data.message);
+            }
+            return data;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (error as any).response = {
-                data: errorPayload,
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers,
-                config: options,
-            };
+        } catch (error: any) {
+            if (!error?.response) {
+                toast.error(error?.message || 'Network error');
+            }
             throw error;
         }
 
-        return response.json();
     };
 
     ApiRequest = (params: ApiParams, method: 'GET' | 'POST' = 'POST') => {

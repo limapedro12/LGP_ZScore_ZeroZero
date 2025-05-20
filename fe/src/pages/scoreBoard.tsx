@@ -88,7 +88,7 @@ const ScoreBoard = () => {
 
     const Center = (
         <>
-            {sport && !noShotClockSports.includes(sport) && (
+            {sport && !noShotClockSports.includes(sport) && (noShotClockSports.length > 0) && (
                 <div className="shot-clock-wrapper w-100 d-flex justify-content-center">
                     <ShotClock />
                 </div>

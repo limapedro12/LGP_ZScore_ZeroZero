@@ -14,6 +14,8 @@ import clockEdit from '../../../public/icons/edit-clock-icon.png';
 import shotClockEdit from '../../../public/icons/shot-clock-edit-icon.png';
 import shotClockIcon from '../../../public/icons/start-stop-shot-clock-icon.png';
 import apiManager from '../../api/apiManager';
+import { ToastContainer } from 'react-toastify';
+
 
 interface TeamData {
     name: string;
@@ -103,7 +105,7 @@ const ScorersTable = () => {
     }, [fetchTimerStatus, placardIdParam, sport, isNonTimerSport]);
 
     useEffect(() => {
-        if (!noShotClockSports.includes(sport)) {
+        if (!noShotClockSports.includes(sport) && noShotClockSports.length > 0) {
             fetchShotClockStatus();
 
             const interval = setInterval(() => {
@@ -318,6 +320,8 @@ const ScorersTable = () => {
 
     return (
         <>
+            <ToastContainer />
+
             {loading ? (
                 <div className="d-flex justify-content-center align-items-center vh-100">
                     <span className="text-white fs-4">A carregar...</span>
