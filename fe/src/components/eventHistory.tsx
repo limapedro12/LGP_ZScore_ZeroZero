@@ -17,7 +17,7 @@ interface Event {
     timestamp: number;
     type: 'card' | 'foul' | 'score' | 'timeout' | 'substitution';
     description: string;
-    team?: string; // 'home' or 'away'
+    team?: 'home' | 'away'; // 'home' or 'away'
     player?: string; // Player name or identifier string
     details?: FetchedEventItem; // Store the original fetched item for more details
     icon?: React.ReactNode;
@@ -62,14 +62,16 @@ interface EditFormData {
 
 // Define a more specific type for API parameters used in handleEditFormSubmit
 interface EventUpdateParams {
-    [key: string]: any; // Maintained for flexibility, but ideally type more strictly
+    [key: string]: any; // Added to satisfy RequestParams
     placardId: string;
     sport: Sport;
     eventId: string;
     team?: 'home' | 'away';
     playerId?: string | number;
+    timestamp?: number; // Added for editing time, ensure it's part of the type
     pointValue?: string | number; // For score
     cardType?: string; // For card
+    // Add any other potential properties that might be passed in `params`
 }
 
 const EventHistory: React.FC = () => {
@@ -193,14 +195,23 @@ const EventHistory: React.FC = () => {
             }
         }
 
-        // const eventTeamProperty = effectiveTeamDesignation || item.teamId || item.team; // Unused
+        // Determine the final team value ('home', 'away', or undefined)
+        let finalTeamValue: 'home' | 'away' | undefined = effectiveTeamDesignation;
+        if (!finalTeamValue) {
+            const rawTeamSource = item.teamId || item.team;
+            if (rawTeamSource === 'home' || rawTeamSource === 'away') {
+                finalTeamValue = rawTeamSource;
+            }
+            // If rawTeamSource is some other string, finalTeamValue remains undefined.
+        }
 
         let currentTeamLogo: string | undefined;
-        if (effectiveTeamDesignation === 'home' && homeTeamLogoUrl) {
+        if (finalTeamValue === 'home' && homeTeamLogoUrl) {
             currentTeamLogo = homeTeamLogoUrl;
-        } else if (effectiveTeamDesignation === 'away' && awayTeamLogoUrl) {
+        } else if (finalTeamValue === 'away' && awayTeamLogoUrl) {
             currentTeamLogo = awayTeamLogoUrl;
         } else {
+            // Fallback to item.teamLogo if team is not 'home'/'away' or specific logos aren't available
             currentTeamLogo = item.teamLogo || undefined;
         }
 
@@ -240,7 +251,7 @@ const EventHistory: React.FC = () => {
             timestamp: gameTimeSeconds,
             type,
             description: newDescription,
-            team: effectiveTeamDesignation || item.teamId || item.team || undefined,
+            team: finalTeamValue, // Use the normalized team value
             player: newPlayerProperty,
             details: item,
             icon: null,
@@ -368,16 +379,15 @@ const EventHistory: React.FC = () => {
         setEditFormData((prev) => {
             const updatedData = { ...prev, [name]: value };
             if (name === 'playerId') {
-                const selectedTeamPlayers = updatedData.team === 'home' ? homePlayers : awayPlayers;
+                // Determine the correct list of players based on the original team of the event
+                // prev.team in editFormData should hold the original team from eventToEdit
+                const selectedTeamPlayers = prev.team === 'home' ? homePlayers : awayPlayers;
                 const selectedPlayer = selectedTeamPlayers.find((p) => String(p.id) === String(value));
                 if (selectedPlayer) {
                     updatedData.playerNumber = selectedPlayer.number;
                 }
             }
-            if (name === 'team') { // Reset player if team changes
-                updatedData.playerId = undefined;
-                updatedData.playerNumber = undefined;
-            }
+            // The 'if (name === 'team')' block is removed as team is no longer editable
             return updatedData;
         });
     };
@@ -386,12 +396,13 @@ const EventHistory: React.FC = () => {
         if (!eventToEdit || !placardId || !sport) return;
         setEditFormError(null);
 
-        const params: EventUpdateParams = { // Use the more specific type
+        const params: EventUpdateParams = {
             placardId,
             sport,
             eventId: String(eventToEdit.id),
-            team: editFormData.team,
+            team: eventToEdit.team, // Use the original team from eventToEdit
             playerId: editFormData.playerId,
+            // timestamp will be added if/when timestamp editing is implemented
         };
 
         try {
@@ -732,24 +743,22 @@ const EventHistory: React.FC = () => {
                             className="edit-event-form"
                         >
                             <div className="form-group">
-                                <label htmlFor="team">Equipa:</label>
-                                <select
-                                    id="team"
-                                    name="team"
-                                    value={editFormData.team || ''}
-                                    onChange={handleEditFormChange}
-                                    required
-                                >
-                                    <option value="home">Casa</option>
-                                    <option value="away">Fora</option>
-                                </select>
-                                {editFormData.team && (
-                                    <img
-                                        src={editFormData.team === 'home' ? homeTeamLogoUrl : awayTeamLogoUrl}
-                                        alt={`${editFormData.team} logo`}
-                                        className="team-logo-form-preview"
-                                    />
-                                )}
+                                <label>
+                                    Equipa:
+                                </label>
+                                {/* Label for the static team display */}
+                                <div className="team-display-info">
+                                    {/* Container for the logo and name */}
+                                    {editFormData.team && ( // Check if team info is available in form data
+                                        <img
+                                            src={editFormData.team === 'home' ? homeTeamLogoUrl : awayTeamLogoUrl}
+                                            alt={`${editFormData.team} logo`}
+                                            className="team-logo-form-preview"
+                                        />
+                                    )}
+                                    {/* Optionally, display team name if desired */}
+                                    {/* <span>{editFormData.team === 'home' ? 'Casa' : 'Fora'}</span> */}
+                                </div>
                             </div>
 
                             <div className="form-group">
