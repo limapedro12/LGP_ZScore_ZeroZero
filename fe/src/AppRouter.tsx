@@ -1,4 +1,3 @@
-// ...existing code...
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import config from './config/config';
@@ -10,6 +9,7 @@ import ScorersTable from './pages/scorersTable/scorersTable';
 import SelectCardPage from './pages/scorersTable/selectCard';
 import PlayerSelectionPage from './pages/scorersTable/playerSelection';
 import PointValueSelection from './pages/scorersTable/pointValueSelection';
+import SelectView from './pages/selectView';
 
 /**
  * AppRouter component
@@ -28,6 +28,7 @@ const AppRouter = () => (
             <Route path="/scorersTable/:sport/:placardId/selectCard/:teamTag" element={<SelectCardPage />} />
             <Route path="/scorersTable/:sport/:placardId/playerSelection/:teamTag" element={<PlayerSelectionPage />} />
             <Route path="/scorersTable/:sport/:placardId/pointValueSelection/:teamTag" element={<PointValueSelection />} />
+            <Route path="/selectView" element={<SelectView />} />
         </Routes>
     </BrowserRouter>
 );

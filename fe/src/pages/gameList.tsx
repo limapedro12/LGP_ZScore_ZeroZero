@@ -6,23 +6,20 @@ import '../styles/scoreBoard.scss';
 import '../styles/gameList.scss';
 import Filters from '../components/gameList/Filters';
 import ShowGames from '../components/gameList/ShowGames';
-
-type Game = {
-    home: string;
-    away: string;
-    date: string;
-    time: string;
-    sport: string;
-    placardId: string;
-};
+import { Game } from '../utils/gameUtils';
 
 const GameList = () => {
     const games = [
-        { date: '22/03/2025', time: '16:00', home: 'Vitória SC', away: 'Sporting CP', sport: 'futsal', placardId: '1' },
-        { date: '10/04/2025', time: '14:00', home: 'Leixões', away: 'Sporting CP', sport: 'futsal', placardId: '2' },
-        { date: '22/03/2025', time: '18:00', home: 'Vitória SC', away: 'Benfica', sport: 'volleyball', placardId: '3' },
-        { date: '07/04/2025', time: '20:00', home: 'Vitória SC', away: 'Leixões', sport: 'volleyball', placardId: '4' },
-        { date: '16/04/2025', time: '20:00', home: 'Vitória SC', away: 'Clube K', sport: 'basketball', placardId: '5' },
+        { date: '22/03/2025', time: '16:00', home: 'Vitória SC', away: 'Sporting CP',
+            sport: 'futsal', placardId: '1', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock' },
+        { date: '10/04/2025', time: '14:00', home: 'Leixões', away: 'Sporting CP',
+            sport: 'futsal', placardId: '2', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock' },
+        { date: '22/03/2025', time: '18:00', home: 'Vitória SC', away: 'Benfica',
+            sport: 'volleyball', placardId: '3', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock' },
+        { date: '07/04/2025', time: '20:00', home: 'Vitória SC', away: 'Leixões',
+            sport: 'volleyball', placardId: '4', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock' },
+        { date: '16/04/2025', time: '20:00', home: 'Vitória SC', away: 'Clube K',
+            sport: 'basketball', placardId: '5', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock' },
     ];
 
     const [filteredGames, setFilteredGames] = useState(games);
@@ -33,9 +30,6 @@ const GameList = () => {
 
     const logo = (
         <div className="logo text-white">
-            {/* <strong>LOGO</strong>
-            <br />
-            <span>ZScore</span> */}
             <img src="/images/logo.png" alt="XP Sports Logo" />
         </div>
     );

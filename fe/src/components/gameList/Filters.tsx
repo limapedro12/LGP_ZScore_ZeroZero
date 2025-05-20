@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
-type Game = {
-    home: string;
-    away: string;
-    date: string;
-    time: string;
-};
+import { Game } from '../../utils/gameUtils';
 
 type FiltersProps = {
     games: Game[];
