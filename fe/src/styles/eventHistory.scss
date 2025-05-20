@@ -116,6 +116,13 @@
         align-items: center; // Vertical alignment
         gap: 0.5rem; // Space between elements
 
+        .event-info-left {
+          // Styles for description and player name container
+          display: flex;
+          flex-direction: column; // Or row if preferred, adjust alignment
+          // flex-grow: 1; // Allow it to take available space before visuals group
+        }
+
         .event-description-text {
           font-family: config.$font-secondary, sans-serif;
           font-size: 1rem;
@@ -128,47 +135,57 @@
           // font-weight: bold;
           white-space: nowrap; // Prevent player name from wrapping
           color: #333333; // Match other text or define as needed
+          font-size: 0.9rem; // Slightly smaller if needed
         }
 
-        .player-jersey-history-item {
-          width: 28px; // Target size for the jersey wrapper
-          height: 28px; // Target size for the jersey wrapper
+        .event-visuals-group {
+          margin-left: auto; // Pushes this group to the right
           display: flex;
           align-items: center;
-          justify-content: center;
-          flex-shrink: 0; // Prevent jersey from shrinking
+          gap: 8px; // Space between jersey and logo
+          flex-shrink: 0; // Prevent this group from shrinking
 
-          // Assuming PlayerJersey's direct child is its main container
-          // Adjust if PlayerJersey has a different internal structure
-          & > div {
-            width: 100% !important;
-            height: 100% !important;
+          .player-jersey-history-item {
+            width: 30px; // Define a fixed small size
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
 
-            img { // Target the jersey image
-              max-width: 100%;
-              max-height: 100%;
-              object-fit: contain;
+            // Target PlayerJersey's inner structure to scale it down
+            & > div { // Assuming PlayerJersey's root is a div
+              width: 100% !important;
+              height: 100% !important;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+
+              img { // The jersey t-shirt image
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+              }
+
+              div[class*="position-absolute"] { // The number text
+                font-size: 0.6em; // Make number smaller to fit
+                // Adjust positioning if needed, though translate-middle should work
+                // e.g., top: 50% !important; left: 50% !important;
+              }
             }
-            // Target the number text (assuming it's a div with position-absolute)
-            div[class*="position-absolute"] {
-              font-size: 0.6em; // Smaller font for the number
-              // May need to adjust top/left/transform for precise centering
-              // e.g., top: 50% !important; transform: translateY(-50%) translateX(-50%) !important; left: 50% !important;
-            }
+          }
+
+          .team-logo-miniature {
+            width: 30px; // Define a fixed small size
+            height: 30px;
+            object-fit: contain; // Ensures logo scales within bounds
+            flex-shrink: 0;
           }
         }
 
-        // .team-logo-miniature is already defined in your SCSS at the root of .event-player-team-info
-        // We'll rely on that, but ensure it's correctly applied.
-        // If it's not applying, you might need to define it here or ensure the class name matches.
-        // For clarity, I'll assume the existing .team-logo-miniature class from your SCSS will work.
-
         .substitution-details-text {
-            font-size: 0.9rem;
-            color: #555;
+          font-size: 0.9rem;
+          color: #555;
         }
       }
 
@@ -358,6 +375,20 @@
       &.cancel {
         background-color: #dc3545; 
         color: white;
+      }
+    }
+  }
+
+  &.edit-modal {
+    .edit-event-form {
+      .form-group {
+        .team-logo-form-preview {
+          width: 24px; // Keep this consistent if it's okay
+          height: 24px;
+          object-fit: contain;
+          margin-left: 10px;
+          vertical-align: middle;
+        }
       }
     }
   }
