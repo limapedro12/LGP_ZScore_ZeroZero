@@ -66,7 +66,9 @@ export interface FutsalPlacard extends AbstractPlacard {
 export type Game = {
     id: string;
     home: string;
+    homeLogo: string;
     away: string;
+    awayLogo: string;
     date: string;
     time: string;
     sport: string;

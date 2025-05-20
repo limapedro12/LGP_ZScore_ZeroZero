@@ -25,7 +25,9 @@ const GameList = () => {
                         return {
                             id: game.id,
                             home: homeTeam?.name || 'Unknown', // Ensure `home` is defined
+                            homeLogo: homeTeam?.logoURL || '', // Ensure `homeLogo` is defined
                             away: awayTeam?.name || 'Unknown', // Ensure `away` is defined
+                            awayLogo: awayTeam?.logoURL || '', // Ensure `awayLogo` is defined
                             date: new Date(game.startTime).toLocaleDateString(),
                             time: new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             sport: game.sport,
@@ -34,7 +36,7 @@ const GameList = () => {
                     setGames(formattedGames);
                     setFilteredGames(formattedGames);
                 } else {
-                    console.error('Failed to fetch games:', response.statusText);
+                    console.error('Failed to fetch games');
                 }
             } catch (error) {
                 console.error('Error fetching games:', error);

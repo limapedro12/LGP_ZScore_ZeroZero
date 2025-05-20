@@ -29,8 +29,10 @@ const ShowGames: React.FC<ShowGamesProps> = ({ games }) => {
                         window.location.href = `http://localhost:3000/scoreboard/${game.sport}/${index}`;
                     }}
                 >
-                    <div className="team">
-                        <div className="team-logo">Image</div>
+                    <div className="team1">
+                        <div className="team-logo">
+                            <img src={game.homeLogo} alt={`${game.home} logo`} />
+                        </div>
                         <div className="team-name">
                             {game.home}
                         </div>
@@ -44,8 +46,10 @@ const ShowGames: React.FC<ShowGamesProps> = ({ games }) => {
                             {game.time}
                         </div>
                     </div>
-                    <div className="team">
-                        <div className="team-logo">Image</div>
+                    <div className="team2">
+                        <div className="team-logo">
+                            <img src={game.awayLogo} alt={`${game.away} logo`} />
+                        </div>
                         <div className="team-name">
                             {game.away}
                         </div>

@@ -1,3 +1,5 @@
+import { ApiTeam } from '../api/apiManager';
+
 export function getAvailPlacardsMock() {
     return Promise.resolve({
         ok: true,
@@ -47,10 +49,38 @@ export function getPlacardInfoMock(placardId: string) {
 
 export function getTeamInfoMock(teamId: string): Promise<ApiTeam | null> {
     const teams: ApiTeam[] = [
-        { id: 'teamA', logoURL: '/images/teamA.png', color: '#FF0000', acronym: 'TA', name: 'Team A', sport: 'Football' },
-        { id: 'teamB', logoURL: '/images/teamB.png', color: '#00FF00', acronym: 'TB', name: 'Team B', sport: 'Football' },
-        { id: 'teamC', logoURL: '/images/teamC.png', color: '#0000FF', acronym: 'TC', name: 'Team C', sport: 'Basketball' },
-        { id: 'teamD', logoURL: '/images/teamD.png', color: '#FFFF00', acronym: 'TD', name: 'Team D', sport: 'Basketball' },
+        {
+            id: 'teamA',
+            logoURL: 'https://www.zerozero.pt/img/logos/equipas/89/77789_logo_retorta.jpg',
+            color: '#FF0000',
+            acronym: 'TA',
+            name: 'Retorta Futsal',
+            sport: 'futsal',
+        },
+        {
+            id: 'teamB',
+            logoURL: 'https://www.zerozero.pt/img/logos/equipas/37/236537_logo_supreme_chonburi.png',
+            color: '#00FF00',
+            acronym: 'TB',
+            name: 'Supreme Chonburi',
+            sport: 'volleyball',
+        },
+        {
+            id: 'teamC',
+            logoURL: 'https://www.zerozero.pt/img/logos/equipas/212592_imgbank.png',
+            color: '#0000FF',
+            acronym: 'TC',
+            name: 'Guangdong Southern Tigers',
+            sport: 'basket',
+        },
+        {
+            id: 'teamD',
+            logoURL: 'https://www.zerozero.pt/img/logos/equipas/6027_imgbank_1697705961.png',
+            color: '#FFFF00',
+            acronym: 'TD',
+            name: 'Beijing Guoan',
+            sport: 'basket',
+        },
     ];
     return Promise.resolve(teams.find((team) => team.id === teamId) || null);
 }
