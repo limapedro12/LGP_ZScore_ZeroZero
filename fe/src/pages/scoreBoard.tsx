@@ -7,6 +7,7 @@ import Col from 'react-bootstrap/Col';
 import Timer from '../components/timer';
 import TimeoutTimer from '../components/timeoutTimer';
 import TimeoutCounter from '../components/timeoutCounter';
+import FoulsCounter from '../components/foulsCounter';
 import ScoresRow from '../components/scoresCounter';
 import SetBox from '../components/setBox';
 import Slider from '../components/scoreboard/slider';
@@ -73,6 +74,9 @@ const ScoreBoard = () => {
             </div>
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
+            </div>
+            <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
+                <FoulsCounter />
             </div>
         </>
     );

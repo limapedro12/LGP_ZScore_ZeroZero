@@ -25,7 +25,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $params = RequestUtils::getRequestParams();
 $response = ['status' => 'error', 'message' => 'Invalid request.'];
 
-$allowedActions = ['create', 'update', 'delete', 'get_accumulated', 'list_game_fouls', 'get_player_fouls', 'gameStatus'];
+$allowedActions = ['create', 'update', 'delete', 'gameStatus'];
 
 $actionParam = $params['action'] ?? null;
 if ($actionParam === null || trim((string)$actionParam) === '') {
@@ -186,7 +186,7 @@ try {
                  $redis->del($foulEventKey);
                  $redis->zRem($gameFoulsKey, $foulEventKey);
                  http_response_code(500);
-                 $response = ["status" => "error", "message" => "Failed to atomically record foul."]; // Simplificado
+                 $response = ["status" => "error", "message" => "Failed to atomically record foul."];
                  error_log("Redis MULTI/EXEC failed for foul creation. Placard: {$placardId}, eventId Attempted: {$eventIdStringForRedis}, Results: " . print_r($results, true));
             } else {
                  http_response_code(201);
@@ -223,7 +223,14 @@ try {
             break;
 
         case 'update':
-            if ($requestMethod !== 'POST' && $requestMethod !== 'PUT') { /* ... */ }
+            if ($requestMethod !== 'POST' && $requestMethod !== 'PUT') {
+                http_response_code(405);
+                $response = [
+                    'status' => 'error',
+                    'message' => "Invalid request method. Only POST or PUT is allowed for 'update'."
+                ];
+                break;
+            }
 
             $eventIdToUpdate = $params['eventId'];
 
@@ -231,7 +238,15 @@ try {
             $redis->watch($foulEventKey);
             $originalFoulData = $redis->hGetAll($foulEventKey);
 
-            if (empty($originalFoulData)) {  break; }
+            if (empty($originalFoulData)) {
+                $redis->unwatch();
+                http_response_code(404);
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Update failed: foul event not found.'
+                ];
+                break;
+            }
 
        
             $originalPlayerId = (string)($originalFoulData['playerId'] ?? '');
@@ -277,7 +292,24 @@ try {
                 }
             }
 
-            if (!$isChanged) {  break; }
+            if (!$isChanged) {
+                $redis->unwatch();
+                http_response_code(200);
+                $response = [
+                    'status' => 'success',
+                    'message' => 'No changes detected. Foul event not updated.',
+                    'foul' => [
+                        'eventId' => (string)$originalFoulData['eventId'],
+                        'placardId' => (string)$originalFoulData['placardId'],
+                        'sport' => (string)$originalFoulData['sport'],
+                        'playerId' => (string)$originalFoulData['playerId'],
+                        'team' => (string)$originalFoulData['team'],
+                        'timestamp' => (float)$originalFoulData['timestamp'],
+                        'period' => (int)$originalFoulData['period'],
+                    ]
+                ];
+                break;
+            }
 
             $redis->multi();
             $redis->hMSet($foulEventKey, $updateData);
@@ -297,8 +329,22 @@ try {
             
             $results = $redis->exec();
 
-            if ($results === false) {  } 
-            elseif (is_array($results) && isset($results[0]) && $results[0] === false) { /* ... 500 ... */ } 
+            if ($results === false) {
+                $redis->unwatch();
+                http_response_code(500);
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Update failed: Redis transaction error.'
+                ];
+            }
+            elseif (is_array($results) && isset($results[0]) && $results[0] === false) {
+                $redis->unwatch();
+                http_response_code(500);
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Update failed: Redis did not update the foul event (possibly modified by another process).'
+                ];
+            }
             else {
                 $finalFoulDataFromRedis = $redis->hGetAll($foulEventKey);
                 $updatedFoulResponseData = [
@@ -317,7 +363,7 @@ try {
                     $newTeamFoulCountForAlert = (int)$results[$idxOffset-1];
                     $updatedFoulResponseData['accumulatedFoulsThisPeriod'] = $newTeamFoulCountForAlert;
 
-                    if ($foulsPenaltyThreshold !== null && $newTeamFoulCountForAlert > 0 && ($newTeamFoulCountForAlert % $foulsPenaltyThreshold === 0)) {
+                    if ($foulsPenaltyThreshold !== null && $accumulatedFoulsThisPeriod > 0 && ($accumulatedFoulsThisPeriod > $foulsPenaltyThreshold  )) {
                         $updatedFoulResponseData['penalty'] = true;
       
                         $responseMessage .= " Team '{$updatedFoulResponseData['team']}' reached penalty threshold.";
@@ -342,11 +388,17 @@ try {
             $redis->watch($foulEventKey);
             $originalFoulData = $redis->hGetAll($foulEventKey);
 
-            if (empty($originalFoulData)) {  break; }
+            if (empty($originalFoulData)) { 
+                http_response_code(400);
+                $response = ['status' => 'error', 'message' => 'Delete failed: foul event not found or already deleted.'];
+                break; }
             $originalTeam = (string)($originalFoulData['team'] ?? ''); 
             $originalPeriod = isset($originalFoulData['period']) ? (int)$originalFoulData['period'] : null;
 
-            if (empty($originalTeam) || $originalPeriod === null) { break; }
+            if (empty($originalTeam) || $originalPeriod === null) { 
+                http_response_code(422);
+                $response = ['status' => 'error', 'message' => 'Delete failed: missing team or period information for the foul event.'];
+                break; }
             
             $accumulatedFoulKey = $accumulatedFoulBaseKey . "{$originalTeam}:period:{$originalPeriod}:fouls_accumulated";
             
@@ -357,8 +409,20 @@ try {
             $results = $redis->exec();
 
 
-            if ($results === false) {} 
-            elseif (is_array($results) && (!isset($results[0]) || $results[0] < 1)) { /* ... 404 ... */ } 
+            if ($results === false) {
+                http_response_code(500);
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Delete failed: Redis transaction error.'
+                ];
+            }
+            elseif (is_array($results) && (!isset($results[0]) || $results[0] < 1)) {
+                http_response_code(404);
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Delete failed: foul event not found or already deleted (nothing removed).'
+                ];
+            }
             else {
                 http_response_code(200);
                 $newAccumulatedCount = (isset($results[2]) && $results[2] !== false) ? (int)$results[2] : null;
@@ -373,58 +437,51 @@ try {
             }
             break;
 
-        case 'list_game_fouls':
-        case 'get_player_fouls':
-            if ($requestMethod !== 'GET') {  }
+        case 'gameStatus':
+            if ($requestMethod !== 'POST' && $requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["status" => "error", "message" => "Invalid request method."];
+                break;
+            }
+
+   
+            $currentPeriod = RequestUtils::getGamePeriod($placardId, $sportSpecificConfig);
             
-            $filterPlayerIdStr = null;
-            if ($action === 'get_player_fouls') {
 
-                $filterPlayerIdStr = $params['playerId']; 
+            $homeFoulsCurrentPeriodKey = $accumulatedFoulBaseKey . "home:period:{$currentPeriod}:fouls_accumulated";
+            $awayFoulsCurrentPeriodKey = $accumulatedFoulBaseKey . "away:period:{$currentPeriod}:fouls_accumulated";
 
+            $pipeline = $redis->pipeline();
+            $pipeline->get($homeFoulsCurrentPeriodKey);
+            $pipeline->get($awayFoulsCurrentPeriodKey);
+            $foulCounts = $pipeline->exec();
+
+            $homeFoulsThisPeriod = 0;
+            $awayFoulsThisPeriod = 0;
+
+            if ($foulCounts === false) {
+                error_log("Redis pipeline failed in gameStatus (fouls) for placardId: {$placardId}");
+            } else {
+                $homeFoulsThisPeriod = (int)($foulCounts[0] ?? 0);
+                $awayFoulsThisPeriod = (int)($foulCounts[1] ?? 0);
             }
 
-            $foulEventKeysWithScores = $redis->zRange($gameFoulsKey, 0, -1, ['withscores' => true]);
-            $foulsList = [];
-
-            if (!empty($foulEventKeysWithScores)) {
-                $pipe = $redis->pipeline();
-                foreach (array_keys($foulEventKeysWithScores) as $eventKey) { $pipe->hGetAll($eventKey); }
-                $foulHashes = $pipe->exec();
-
-                if ($foulHashes === false) throw new Exception("Pipeline failed for listing fouls HGETALLs");
-
-                foreach ($foulHashes as $index => $hash) {
-                    if ($hash && is_array($hash)) {
-                        if ($filterPlayerIdStr && (!isset($hash['playerId']) || (string)$hash['playerId'] !== $filterPlayerIdStr)) {
-                            continue;
-                        }
-                        $foulsList[] = [
-                            'eventId' => (string)($hash['eventId'] ?? ''),
-                            'placardId' => (string)($hash['placardId'] ?? ''),
-                            'sport' => (string)($hash['sport'] ?? ''),
-                            'playerId' => (string)($hash['playerId'] ?? ''),
-                            'team' => (string)($hash['team'] ?? ''),
-                            'timestamp' => isset($hash['timestamp']) ? (float)$hash['timestamp'] : 0.0,
-                            'period' => isset($hash['period']) ? (int)$hash['period'] : 0
-                        ];
-                    }
-                }
-                usort($foulsList, function ($a, $b) { /* ... */ });
-            }
-            
-            $message = $action === 'get_player_fouls' ?
-                (empty($foulsList) ? "No fouls for player '{$filterPlayerIdStr}'." : "Fouls for player '{$filterPlayerIdStr}'.") :
-                (empty($foulsList) ? "No game fouls." : "Game fouls.");
-
-            $response = ['status' => 'success', 'message' => $message, 'fouls' => $foulsList ];
-            if ($action === 'get_player_fouls') {
-                $response['playerId'] = $filterPlayerIdStr;
-                $response['foulCount'] = count($foulsList);
-            }
             http_response_code(200);
+            $response = [
+                'status' => 'success',
+                'message' => "Game foul status for period {$currentPeriod} retrieved.",
+                'data' => [
+                    'placardId' => $placardId,
+                    'sport' => $sport,
+                    'currentGamePeriod' => (int)$currentPeriod,
+                    'currentPeriodFouls' => [
+                        'home' => $homeFoulsThisPeriod,
+                        'away' => $awayFoulsThisPeriod,
+                    ],
+                    'foulsPenaltyThreshold' => $foulsPenaltyThreshold,
+                ]
+            ];
             break;
-    
         default:
             http_response_code(400);
             $response = ['status' => 'error', "message" => "Action '{$action}' is not supported or invalid."];

@@ -186,6 +186,21 @@ interface CreateFoulResponse {
     foul: CreatedFoulDetails;
 }
 
+interface GameFoulStatusResponse {
+    status: 'success';
+    message: string;
+    data: {
+        placardId: string;
+        sport: string;
+        currentGamePeriod: number;
+        currentPeriodFouls: {
+            home: number;
+            away: number;
+        };
+        foulsPenaltyThreshold: number | null;
+    };
+}
+
 /**
  * API Manager that handles all API requests
  */
@@ -412,6 +427,16 @@ class ApiManager {
 
     createFoul = (placardId: string, sport: string, playerId: string, team: string) =>
         this.makeRequest<CreateFoulResponse>('foul', 'create', { placardId, sport, playerId, team });
+
+    getSimpleGameFoulStatus = (placardId: string, sport: string): Promise<GameFoulStatusResponse> => {
+        const params: RequestParams = { placardId, sport };
+        return this.makeRequest<GameFoulStatusResponse>(
+            'foul',
+            'gameStatus',
+            params,
+            'GET'
+        );
+    };
 
 }
 
