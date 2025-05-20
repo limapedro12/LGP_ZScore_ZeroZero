@@ -26,7 +26,7 @@ const ShowGames: React.FC<ShowGamesProps> = ({ games }) => {
                     className="game-card"
                     key={index}
                     onClick={() => {
-                        window.location.href = `http://localhost:3000/scoreboard/${game.sport}/${index}`;
+                        window.location.href = `http://localhost:3000/scoreboard/${game.sport}/${game.id}`;
                     }}
                 >
                     <div className="team1">

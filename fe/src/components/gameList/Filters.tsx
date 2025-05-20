@@ -69,8 +69,6 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         onFilter(filteredGames);
     };
 
-    console.log('teamLabels', teamLabels);
-
     return (
         <div className="filters">
             <h2>Filtros</h2>
