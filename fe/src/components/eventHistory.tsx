@@ -783,7 +783,7 @@ const EventHistory: React.FC = () => {
 
                             {eventToEdit.type === 'score' && (
                                 <div className="form-group">
-                                    <label htmlFor="pointValue">Valor (Golos/Pontos):</label>
+                                    <label htmlFor="pointValue">Pontuação:</label>
                                     <input
                                         type="number"
                                         id="pointValue"
