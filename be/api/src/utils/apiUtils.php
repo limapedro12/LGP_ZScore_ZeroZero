@@ -127,17 +127,17 @@ function getAllowColab($matchId) {
     $appkey = getenv('APP_KEY');
     $cookie = $_SESSION['api_cookie'];
     if (is_null($cookie)) {
-        return json_encode(['error' => 'Cookie not found']);
+        return ['error' => 'Cookie not found'];
     }
     $url = $apiurl . 'allowColab'. '/AppKey/'. $appkey. '/key/' . $cookie . '/fk_jogo/' . $matchId;
     $response = sendGetRequest($url);
     $result = json_decode($response, true);
     if (isset($result['data']['Data'])) {
         if ($result['data']['Data'] == 'sucess') {
-            return json_encode(['allowColab' => true]);
+            return ['allowColab' => true];
         }
     }
-    return json_encode(['allowColab' => false]); 
+    return ['allowColab' => false];
 }
 
 // Example usage

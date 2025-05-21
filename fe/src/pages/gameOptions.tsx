@@ -14,17 +14,21 @@ const GameOptions: React.FC = () => {
     useEffect(() => {
         const checkPermission = async () => {
             try {
-                let response = await apiManager.getAllowColab(id);
-                if (response) {
-                    response = JSON.parse(response);
-                    setAllowColab(response.allowColab);
-                    if (!response.allowColab) {
-                        navigate(`/scoreboard/${sport}/${id}`);
+                if (id) {
+                    const response = await apiManager.getAllowColab(id);
+                    if (response) {
+                        setAllowColab(response.allowColab);
+                        if (!response.allowColab) {
+                            navigate(`/scoreboard/${sport}/${id}`);
+                        }
                     }
+                } else {
+                    console.error('ID is undefined');
+                    setAllowColab(false);
                 }
             } catch (error) {
                 console.error('Error checking allowColab:', error);
-                setAllowColab(false); // Or handle differently if needed
+                setAllowColab(false);
             } finally {
                 setLoading(false);
             }

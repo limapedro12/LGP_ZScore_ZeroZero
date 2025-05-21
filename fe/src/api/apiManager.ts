@@ -24,6 +24,7 @@ type ActionType =
     | 'getTeamInfo'
     | 'getPlacardInfo'
     | 'getAllowColab'
+    | 'getTeamLineup'
 
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports' | 'info';
 
