@@ -333,7 +333,6 @@ class ApiManager {
         const url = `${BASE_URL}${ENDPOINTS.API()}`;
 
         if (method === 'GET') {
-            // Convert params to URL query parameters
             const queryParams = new URLSearchParams();
             Object.entries(params).forEach(([key, value]) => {
                 if (value !== undefined) {
@@ -346,6 +345,7 @@ class ApiManager {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
             }).then((response) => {
                 if (!response.ok) {
                     throw new Error(`API error: ${response.status}`);
@@ -353,13 +353,13 @@ class ApiManager {
                 return response.json();
             });
         } else {
-            // Use POST method with JSON body
             return fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(params),
+                credentials: 'include',
             }).then((response) => {
                 if (!response.ok) {
                     throw new Error(`API error: ${response.status}`);
