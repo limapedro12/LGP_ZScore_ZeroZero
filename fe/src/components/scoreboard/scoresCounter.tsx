@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/scoresCounter.scss';
+import '../../styles/scoresCounter.scss';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import type { ScoreResponse } from '../api/apiManager';
+import type { ScoreResponse } from '../../api/apiManager';
 
 
 interface ScoresRowProps {

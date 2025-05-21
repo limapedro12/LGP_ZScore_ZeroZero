@@ -6,6 +6,7 @@ const ENDPOINTS = {
     CARDS: () => '/events/card',
     SUBSTITUTION: () => '/events/substitution',
     SPORTS: () => '/utils/sports',
+    SHOTCLOCK: () => '/timer/shotclock',
 };
 
 export default ENDPOINTS;

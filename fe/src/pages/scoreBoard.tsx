@@ -4,12 +4,13 @@ import { useParams } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Timer from '../components/timer';
-import TimeoutTimer from '../components/timeoutTimer';
-import TimeoutCounter from '../components/timeoutCounter';
-import ScoresRow from '../components/scoresCounter';
-import SetBox from '../components/setBox';
+import Timer from '../components/scoreboard/timer';
+import TimeoutTimer from '../components/scoreboard/timeoutTimer';
+import TimeoutCounter from '../components/scoreboard/timeoutCounter';
+import ScoresRow from '../components/scoreboard/scoresCounter';
+import SetBox from '../components/scoreboard/setBox';
 import Slider from '../components/scoreboard/slider';
+import ShotClock from '../components/scoreboard/shotClock';
 import '../styles/scoreBoard.scss';
 import { Sport } from '../utils/cardUtils';
 
@@ -21,6 +22,7 @@ const ScoreBoard = () => {
 
     const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
     const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
+    const [noShotClockSports, setNoShotClockSports] = useState<string[]>([]);
     const [timeoutStatus, setTimeoutStatus] = useState('inactive');
     const [sliderItemsCount, setSliderItemsCount] = useState(4);
     const [sliderIndex, setSliderIndex] = useState(0);
@@ -42,6 +44,19 @@ const ScoreBoard = () => {
         }
     }, []);
 
+    const fetchNoShotClockSports = useCallback(async () => {
+        try {
+            const response = await apiManager.getNoShotClockSports();
+            if (response && Array.isArray(response.sports)) {
+                setNoShotClockSports(response.sports);
+            } else {
+                setNoShotClockSports([]);
+            }
+        } catch (error) {
+            setNoShotClockSports([]);
+        }
+    }, []);
+
     const fetchScores = useCallback(async () => {
         if (!placardId || !sport) return;
         try {
@@ -59,9 +74,10 @@ const ScoreBoard = () => {
     useEffect(() => {
         fetchScores();
         fetchNoPeriodSports();
+        fetchNoShotClockSports();
         const intervalId = setInterval(fetchScores, 5000);
         return () => clearInterval(intervalId);
-    }, [fetchScores, fetchNoPeriodSports]);
+    }, [fetchScores, fetchNoPeriodSports, fetchNoShotClockSports]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -72,14 +88,26 @@ const ScoreBoard = () => {
 
     const Center = (
         <>
-            <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                <TimeoutTimer onStatusChange={handleTimeoutStatusChange} />
-            </div>
+            {sport && !noShotClockSports.includes(sport) && (noShotClockSports.length > 0) && (
+                <div className="shot-clock-wrapper w-100 d-flex justify-content-center">
+                    <ShotClock />
+                </div>
+            )}
+            {sport && noPeriodBoxSports.includes(sport) && (
+                <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
+                    <TimeoutTimer onStatusChange={handleTimeoutStatusChange} />
+                </div>
+            )}
             {sport && !noPeriodBoxSports.includes(sport) && (
-                <SetBox
-                    scoreData={scoreData}
-                    timeoutActive={timeoutStatus !== 'inactive'}
-                />
+                <>
+                    <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
+                        <TimeoutTimer onStatusChange={handleTimeoutStatusChange} substitute={true} />
+                    </div>
+                    <SetBox
+                        scoreData={scoreData}
+                        timeoutActive={timeoutStatus !== 'inactive'}
+                    />
+                </>
             )}
             <div className="timer-wrapper w-100 d-flex justify-content-center">
                 <Timer />
@@ -87,12 +115,14 @@ const ScoreBoard = () => {
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
             </div>
-
+            {/* <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
+                <TimeoutCounter />
+            </div> */}
         </>
     );
 
     const containerClassName =
-        'scoreboard-container d-flex flex-column vh-100 p-0';
+        'scoreboard-container d-flex flex-column min-vh-100 p-0';
 
     return (
         <Container

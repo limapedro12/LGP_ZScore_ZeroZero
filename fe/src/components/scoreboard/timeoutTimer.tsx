@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import apiManager from '../api/apiManager';
-import { formatTime } from '../utils/timeUtils';
-import '../styles/timeoutTimer.scss';
+import apiManager from '../../api/apiManager';
+import { formatTime } from '../../utils/timeUtils';
+import '../../styles/timeoutTimer.scss';
 
 interface TimeoutTimerProps {
     onStatusChange?: (status: string) => void;
+    substitute?: boolean;
 }
 
-const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange }) => {
+const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange, substitute = false }) => {
     const [elapsedTime, setElapsedTime] = useState(0);
     const [status, setStatus] = useState('default');
     const [placardId, setplacardId] = useState<string>('default');
@@ -53,17 +54,36 @@ const TimeoutTimer: React.FC<TimeoutTimerProps> = ({ onStatusChange }) => {
         return undefined;
     }, [placardId, fetchTimerStatus, sport]);
 
-    return status !== 'inactive' ? (
-        <div className="timeout-timer-outer m-3">
-            <div className="timeout-timer-box d-flex align-items-center justify-content-center position-relative">
-                {team === 'home' && <div className="arrow arrow-left" />}
-                <span className="timeout-timer-number">
-                    {formatTime(elapsedTime, true)}
-                </span>
-                {team === 'away' && <div className="arrow arrow-right" />}
+    if (status === 'inactive' && !substitute) {
+        return (
+            <div className="timeout-timer-outer m-3">
+                <div
+                    className="timeout-timer-box
+                d-flex align-items-center justify-content-center position-relative" style={{ background: 'none' }}
+                >
+                    <span className="timeout-timer-number" style={{ visibility: 'hidden' }}>
+                        {formatTime(60, true)}
+                        {' '}
+                        {/* Use a default timeout value to maintain space */}
+                    </span>
+                </div>
             </div>
-        </div>
-    ) : null;
+        );
+    } else if (status === 'inactive') {
+        return null;
+    } else {
+        return (
+            <div className="timeout-timer-outer m-3">
+                <div className="timeout-timer-box d-flex align-items-center justify-content-center position-relative">
+                    {team === 'home' && <div className="arrow arrow-left" />}
+                    <span className="timeout-timer-number">
+                        {formatTime(elapsedTime, true)}
+                    </span>
+                    {team === 'away' && <div className="arrow arrow-right" />}
+                </div>
+            </div>
+        );
+    }
 };
 
 export default TimeoutTimer;

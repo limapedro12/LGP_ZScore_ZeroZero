@@ -1,6 +1,8 @@
 import config from '../config/config';
 import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
+import { toast } from 'react-toastify';
+
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
@@ -22,9 +24,11 @@ type ActionType =
     | 'noTimer'
     | 'noCards'
     | 'noPeriodBox'
-    | 'typeOfScore';
+    | 'noShotClock'
+    | 'typeOfScore'
+    | 'sportConfig';
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -56,6 +60,8 @@ export interface ScoreEvent {
     period: number;
     pointValue: number;
     periodTotalPoints: number;
+    teamPoints: number;
+    timeSpan: number;
 }
 
 export interface ScoreHistoryResponse {
@@ -129,6 +135,15 @@ interface TimeoutResponse {
     error?: string;
 }
 
+interface ShotClockResponse {
+    message?: string;
+    status: 'running' | 'paused' | 'inactive' | 'expired';
+    team?: TeamTag;
+    remaining_time: number;
+    duration?: number;
+    error?: string;
+}
+
 
 interface CardsResponse {
     cards: Array<{
@@ -144,6 +159,22 @@ interface CardsResponse {
 interface SportsResponse {
     sports?: string[];
     typeOfScore?: string;
+    sport?: string;
+    config?: {
+        periods?: number;
+        periodDuration?: number;
+        substitutionsPerTeam?: number;
+        timeoutDuration?: number;
+        timeoutsPerTeam?: number;
+        timeoutsPerPeriod?: number;
+        cards?: string[];
+        points?: number | number[];
+        typeOfScore?: string;
+        shotClock?: number;
+        periodEndScore?: number;
+        pointDifference?: number;
+        resetPointsEachPeriod?: boolean;
+    };
 }
 
 /**
@@ -217,33 +248,48 @@ class ApiManager {
             });
         }
 
-        const response = await fetch(url, options);
+        try {
+            const response = await fetch(url, options);
 
-        if (!response.ok) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let errorPayload: any = { error: `API error: ${response.status} - ${response.statusText}` };
-            try {
-                const responseData = await response.json();
-                if (responseData && typeof responseData === 'object') {
-                    errorPayload = responseData; // Use backend's error structure
+            if (!response.ok) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                let errorPayload: any = { error: `API error: ${response.status} - ${response.statusText}` };
+                try {
+                    const responseData = await response.json();
+                    if (responseData && typeof responseData === 'object') {
+                        errorPayload = responseData; // Use backend's error structure
+                    }
+                } catch (e) {
+                    // ignore JSON parse error
                 }
-            } catch (e) {
-                console.error('Failed to parse error response JSON:', e);
+
+                toast.error(errorPayload.error || `API error: ${response.status}`);
+                const error = new Error(errorPayload.error || `API error: ${response.status}`);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (error as any).response = {
+                    data: errorPayload,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                    config: options,
+                };
+                throw error;
             }
 
-            const error = new Error(errorPayload.error || `API error: ${response.status}`);
+            const data = await response.json();
+            // Optionally show a success toast for certain actions
+            if (['create', 'update', 'delete', 'reset', 'start', 'pause', 'adjust', 'set'].includes(action) && data?.message) {
+                toast.success(data.message);
+            }
+            return data;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (error as any).response = {
-                data: errorPayload,
-                status: response.status,
-                statusText: response.statusText,
-                headers: response.headers,
-                config: options,
-            };
+        } catch (error: any) {
+            if (!error?.response) {
+                toast.error(error?.message || 'Network error');
+            }
             throw error;
         }
 
-        return response.json();
     };
 
     ApiRequest = (params: ApiParams, method: 'GET' | 'POST' = 'POST') => {
@@ -304,6 +350,22 @@ class ApiManager {
     setTimer = (placardId: string, sport: string, time: number, period: number) =>
         this.makeRequest<TimerResponse>('timer', 'set', { placardId, sport, time, period });
 
+    startShotClock = (placardId: string, sport: string, team: TeamTag) =>
+        this.makeRequest<ShotClockResponse>('shotclock', 'start', { placardId, sport, team });
+
+    pauseShotClock = (placardId: string, sport: string) =>
+        this.makeRequest<ShotClockResponse>('shotclock', 'pause', { placardId, sport });
+
+    resetShotClock = (placardId: string, sport: string, team?: TeamTag) => {
+        const params: RequestParams = { placardId, sport };
+        if (team) params.team = team;
+        return this.makeRequest<ShotClockResponse>('shotclock', 'reset', params);
+    };
+
+    getShotClockStatus = (placardId: string, sport: string) =>
+        this.makeRequest<ShotClockResponse>('shotclock', 'status', { placardId, sport }, 'GET');
+
+
     startTimeout = (placardId: string, sport: string, team: TeamTag) =>
         this.makeRequest<TimeoutResponse>('timeout', 'start', { placardId, sport, team });
 
@@ -346,7 +408,6 @@ class ApiManager {
     getCards = (placardId: string, sport: string): Promise<CardsResponse> =>
         this.makeRequest<CardsResponse>('cards', 'get', { placardId, sport }, 'GET');
 
-    // Substitution-specific methods
     getSubstitutionStatus = (placardId: string, sport: string) =>
         this.makeRequest<SubstitutionResponse>('substitution', 'get', { placardId, sport }, 'GET');
 
@@ -398,8 +459,17 @@ class ApiManager {
     getNoCardSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noCards', { }, 'GET');
 
+    getNoShotClockSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noShotClock', { }, 'GET');
+
+    setShotClock = (placardId: string, sport: string, team: TeamTag, time: number) =>
+        this.makeRequest<ShotClockResponse>('shotclock', 'set', { placardId, sport, team, time });
+
     getSportScoreType = (sport: string) =>
         this.makeRequest<SportsResponse>('sports', 'typeOfScore', { sport }, 'GET');
+
+    getSportConfig = (sport: string) =>
+        this.makeRequest<SportsResponse>('sports', 'sportConfig', { sport }, 'GET');
 }
 
 const apiManager = new ApiManager();

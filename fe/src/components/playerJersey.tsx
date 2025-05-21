@@ -7,15 +7,12 @@ interface PlayerJerseyProps {
 }
 
 const PlayerJersey: React.FC<PlayerJerseyProps> = ({ number, color = '#273E7C', hideIcon = false }) => {
-    // Convert hex to RGB for filter
     const hexToRgb = (hex: string): { r: number, g: number, b: number } => {
-    // Remove # if present
         const cleanHex = hex.startsWith('#') ? hex.slice(1) : hex;
 
-        // Parse hex values
-        const r = parseInt(cleanHex.substr(0, 2), 16) / 255;
-        const g = parseInt(cleanHex.substr(2, 2), 16) / 255;
-        const b = parseInt(cleanHex.substr(4, 2), 16) / 255;
+        const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
+        const g = parseInt(cleanHex.substring(2, 4), 16) / 255;
+        const b = parseInt(cleanHex.substring(4, 6), 16) / 255;
 
         return { r, g, b };
     };

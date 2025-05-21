@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ScoreResponse, PeriodScore }  from '../api/apiManager';
-import '../styles/setBox.scss';
+import { ScoreResponse, PeriodScore }  from '../../api/apiManager';
+import '../../styles/setBox.scss';
 
 interface SetBoxProps {
     scoreData?: ScoreResponse | null;
