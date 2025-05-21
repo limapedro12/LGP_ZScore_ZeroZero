@@ -115,9 +115,9 @@ const ScoreBoard = () => {
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
             </div>
-            <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
+            {/* <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
-            </div>
+            </div> */}
         </>
     );
 
