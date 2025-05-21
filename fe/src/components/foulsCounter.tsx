@@ -14,7 +14,6 @@ const FoulsCounter: React.FC = () => {
     const [sport, setSport] = useState<string>('default');
     const [teamFouls, setTeamFouls] = useState<{ home: number, away: number }>({ home: 0, away: 0 });
     const [foulsThreshold, setFoulsThreshold] = useState<number | undefined>(undefined);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const { placardId: urlPlacardId, sport: urlSport } = useParams<{ placardId: string, sport: string }>();
 
@@ -30,17 +29,11 @@ const FoulsCounter: React.FC = () => {
     const fetchTeamFouls = useCallback(async () => {
 
         if (placardId === 'default' || sport === 'default') {
-
-            if (isLoading) {
-                setIsLoading(false);
-            }
             return;
         }
 
-        setIsLoading(true);
         try {
             const response = await apiManager.getSimpleGameFoulStatus(placardId, sport);
-
 
             setTeamFouls({
                 home: response.data.currentPeriodFouls.home,
@@ -63,14 +56,10 @@ const FoulsCounter: React.FC = () => {
             console.error('Error fetching foul status:', errorMessage);
             setTeamFouls({ home: 0, away: 0 });
             setFoulsThreshold(undefined);
-        } finally {
-            setIsLoading(false);
         }
-
-    }, [placardId, sport, isLoading]);
+    }, [placardId, sport]);
 
     useEffect(() => {
-
         fetchTeamFouls();
         const intervalId = setInterval(fetchTeamFouls, 5000);
         return () => clearInterval(intervalId);
