@@ -25,6 +25,10 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
     const [nonCardSports, setNonCardSports] = useState<string[]>([]);
     const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
 
+    let t = teamColor;
+    const s = t;
+    t = s;
+
     const fetchNonCardSports = useCallback(async () => {
         try {
             const response = await apiManager.getNoCardSports();
