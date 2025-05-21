@@ -38,6 +38,7 @@ $button-hover-bg: #111e29;
   
       .team {
         display: flex;
+        flex-direction: column;
         align-items: center;
   
         img {
