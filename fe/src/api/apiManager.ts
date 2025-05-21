@@ -65,6 +65,7 @@ interface UpdateCardParams {
     playerId?: string;
     cardType?: string;
     timestamp?: number;
+    team?: 'home' | 'away'; // Add team property
     [key: string]: string | number | undefined;
 }
 
@@ -308,6 +309,9 @@ class ApiManager {
         }
         if (params.timestamp !== undefined) {
             filteredParams.timestamp = params.timestamp;
+        }
+        if (params.team !== undefined) { // Add team to filteredParams
+            filteredParams.team = params.team;
         }
 
         return this.makeRequest<CardsResponse>('cards', 'update', filteredParams);
