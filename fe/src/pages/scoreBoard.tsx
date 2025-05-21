@@ -168,6 +168,7 @@ const ScoreBoard = () => {
                         sport={sport} team="home"
                         placardId={placardId} sliderIndex={sliderIndex}
                         onItemsCountChange={handleSliderItemsCountChange}
+                        teamColor={homeTeam?.color}
                     />
                 </Col>
 
@@ -179,6 +180,7 @@ const ScoreBoard = () => {
                     <Slider
                         sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
                         onItemsCountChange={handleSliderItemsCountChange}
+                        teamColor={awayTeam?.color}
                     />
                 </Col>
             </Row>
