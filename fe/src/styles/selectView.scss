@@ -8,11 +8,14 @@ $button-hover-bg: #111e29;
   color: black;
   position: relative;
   
-  .logo {
+  .back-button {
     color: white;
     position: absolute;
-    top: 1.4vh;
+    top: 2vh;
     left: 1vw;
+    width: 60px;
+    height: 60px;
+    // margin-bottom: 1rem;
   }
   
   .card {

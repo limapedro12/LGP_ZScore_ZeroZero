@@ -16,15 +16,37 @@ const SelectView: React.FC = () => {
         }
     }, [game, navigate]);
 
+    const color = '#000000';
+
     return (
         <div className="select-view-container">
-            <div className="logo">
-                <div className="logo text-white">
-                    <img src="/images/logo.png" alt="XP Sports Logo" />
-                </div>
+            <div
+                className="back-button"
+                onClick={() => {
+                    navigate('/gameList');
+                }}
+            >
+                <svg width="0" height="0">
+                    <filter id={`color-${color.replace('#', '')}`} colorInterpolationFilters="sRGB">
+                        <feColorMatrix
+                            type="matrix"
+                            values={`0 0 0 0 1
+                        0 0 0 0 1
+                        0 0 0 0 1
+                        0 0 0 1 0`}
+                        />
+                    </filter>
+                </svg>
+                <img
+                    src={'/icons/back.svg'}
+                    alt="Player Jersey"
+                    className="img-fluid"
+                    style={{ filter: `url(#color-${color.replace('#', '')})` }}
+                />
             </div>
 
             <div className="card">
+
                 <div className="header">
                     <div className="team">
                         <img
