@@ -211,7 +211,7 @@
     }
 
     .score-center-col {
-        flex-direction: column !important;
+        flex-direction: column;
         gap: 0.5rem;
     }
 
@@ -221,19 +221,20 @@
     }
 
     .score-box {
-        font-size: 2rem !important;
-        min-width: 68px !important;
-        min-height: 68px !important;
+        font-size: 2rem ;
+        min-width: 68px ;
+        min-height: 68px;
     }
 
     .team-logo-scoreboard {
-        width: auto !important;
-        max-width: 70px !important;
-        height: auto !important;
-        max-height: 70px !important;
+        width: auto ;
+        max-width: 70px ;
+        height: auto ;
+        max-height: 70px ;
+        margin-top: 0.75rem ;
     }
 
     .team-abbr {
-        font-size: 1.2rem !important;
+        font-size: 1.2rem ;
     }
 }

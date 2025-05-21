@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import apiManager from '../api/apiManager';
-import { formatTime, sportsFormat } from '../utils/timeUtils';
+import apiManager from '../../api/apiManager';
+import { formatTime, sportsFormat } from '../../utils/timeUtils';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import '../styles/timer.scss';
+import '../../styles/timer.scss';
 
 const Timer: React.FC = () => {
     const [elapsedTime, setElapsedTime] = useState(0);
@@ -63,7 +63,7 @@ const Timer: React.FC = () => {
 
     if (!nonTimerSports?.includes(sport)) {
         return (
-            <Container className="timer d-flex flex-column align-items-center justify-content-center">
+            <Container className="timer d-flex flex-column align-items-center justify-content-center mt-5 mb-5">
                 <Row className="w-100">
                     <Col xs={12} className="text-center">
                         <div className="period display-4 fw-bold">

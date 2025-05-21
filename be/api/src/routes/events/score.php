@@ -171,6 +171,7 @@ try {
                 'period' => $currentPeriod,
                 'pointValue' => $pointValue,
                 'periodTotalPoints' => $currentSetTotalPoints,
+                'teamPoints' => $points,
                 'timeSpan' => $gameTimePosition
             ];
 

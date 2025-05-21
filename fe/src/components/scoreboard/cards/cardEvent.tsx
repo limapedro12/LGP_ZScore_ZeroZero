@@ -27,8 +27,8 @@ const CardEvent = <S extends Sport>({
                 <div
                     className="card-icon-wrapper"
                     style={{
-                        height: '2.5rem',
-                        width: '1.75rem',
+                        height: '3.5rem',
+                        width: '2.5rem',
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
