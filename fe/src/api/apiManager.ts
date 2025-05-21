@@ -150,6 +150,16 @@ export interface ApiColab {
     allowColab: boolean;
 }
 
+export interface ApiPlayer {
+    id: string;
+    playerId: string;
+    isStarting: string;
+    name: string;
+    number: string;
+    position: string;
+    teamId: string;
+}
+
 
 /**
  * API Manager that handles all API requests
@@ -289,6 +299,8 @@ class ApiManager {
         this.makeRequest<ApiGame>('info', 'getPlacardInfo', { placardId, sport });
     getAllowColab = (placardId: string) =>
         this.makeRequest<ApiColab>('info', 'getAllowColab', { placardId });
+    getTeamLineup = (placardId: string, teamId: string) =>
+        this.makeRequest<ApiPlayer>('info', 'getTeamLineup', { placardId, teamId });
 
     updateCard = (params: UpdateCardParams) => {
         const filteredParams: RequestParams = {
