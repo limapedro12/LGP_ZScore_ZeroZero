@@ -43,7 +43,7 @@
 
         public static function insertTeam($teamId, $teamDesc,$acronym, $sport, $color, $logoURL)
         {
-            if ($sport !== 'futsal' && $sport !== 'voleibol' && $sport !== 'basquetebol') {
+            if ($sport !== 'futsal' && $sport !== 'volleyball' && $sport !== 'basketball') {
                 return true; // Invalid sport
             }
             $conn = DbUtils::connect();
@@ -60,10 +60,10 @@
                     case 'futsal':
                         $table = 'FutsalTeam';
                         break;
-                    case 'voleibol':
+                    case 'volleyball':
                         $table = 'VolleyballTeam';
                         break;
-                    case 'basquetebol':
+                    case 'basketball':
                         $table = 'BasketballTeam';
                         break;
                 }
@@ -87,7 +87,7 @@
 
         public static function insertPlacard($placardId, $team1, $team2, $isFinished, $sport, $date)
         {
-            if ($sport !== 'futsal' && $sport !== 'voleibol' && $sport !== 'basquetebol') {
+            if ($sport !== 'futsal' && $sport !== 'volleyball' && $sport !== 'basketball') {
                 return true; // Invalid sport
             }
 
@@ -131,7 +131,7 @@
 
         public static function updatePlacard($placardId, $team1, $team2, $isFinished, $sport)
         {
-            if ($sport !== 'futsal' && $sport !== 'voleibol' && $sport !== 'basquetebol') {
+            if ($sport !== 'futsal' && $sport !== 'volleyball' && $sport !== 'basketball') {
                 return true; // Invalid sport
             }
 

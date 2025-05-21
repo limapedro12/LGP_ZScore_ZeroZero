@@ -29,6 +29,12 @@
             if (!in_array($sport, ['futsal', 'voleibol', 'basquetebol'])) {
                 continue; // Skip invalid sport
             }
+            $map = [
+                'futsal' => 'futsal',
+                'voleibol' => 'volleyball',
+                'basquetebol' => 'basketball'
+            ];
+            $sport = $map[$sport];
             foreach ($placards as $placard)
             {
                 $placardId = $placard['jogo_id'];
@@ -127,8 +133,8 @@
         $teamLive = getTeamLive($placardId,$teamId);
         $sportIds = [
             '3' => 'futsal',
-            '10' =>  'basquetebol',
-            '11' => 'voleibol'
+            '10' =>  'basketball',
+            '11' => 'voleyball'
         ];
         $teamLive = json_decode($teamLive, true);
         $data = $teamLive['data'];
