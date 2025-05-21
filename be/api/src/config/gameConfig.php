@@ -4,29 +4,36 @@ class GameConfig {
         'futsal' => [
             'periods' => 2,
             'periodDuration' => 60*20,
+            'substitutionsPerTeam' => 0,
             'timeoutDuration' => 60,
             'timeoutsPerTeam' => 1,
             'timeoutsPerPeriod' => 1,
             'cards' => ['yellow', 'red'],
-            'points' => 1
+            'points' => 1,
+            'typeOfScore' => 'g',
         ],
         'basketball' => [
             'periods' => 4,
             'periodDuration' => 10 * 60,
+            'substitutionsPerTeam' => 0,
             'timeoutDuration' => 60,
             'timeoutsPerTeam' => 5,
             'points' => [1, 2, 3],
+            'shotClock' => 24,
+            'typeOfScore' => 'p',
         ],
         'volleyball' => [
             'periods' => 5,
+            'substitutionsPerTeam' => 6,
             'timeoutDuration' => 30,
             'timeoutsPerTeam' => 2,
             'timeoutsPerPeriod' => 2,
-            'cards' => ['white', 'yellow', 'red', 'yellow_red_together', 'yellow_red_separately'],
+            'cards' => ['white', 'yellow', 'red', 'yellowRedTogether', 'yellowRedSeparately'],
             'points' => 1,
             'periodEndScore' => 25,
             'pointDifference' => 2,
             'resetPointsEachPeriod' => true,
+            'typeOfScore' => 'p',
         ]
     ];
     
@@ -35,5 +42,9 @@ class GameConfig {
             return $this->configs[strtolower($sport)];
         }
         throw new Exception("Unknown sport: $sport");
+    }
+
+    public function getAllConfigs() {
+        return $this->configs;
     }
 }

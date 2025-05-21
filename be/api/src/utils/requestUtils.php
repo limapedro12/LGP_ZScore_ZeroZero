@@ -67,11 +67,24 @@ class RequestUtils {
                     'status' => $prefix . 'timeout_status',
                     'team' => $prefix . 'timeout_team',
                 ];
+            case 'shotclock':
+                return [
+                    'start_time' => $prefix . 'shotclock:start_time',
+                    'remaining_time' => $prefix . 'shotclock:remaining_time',
+                    'status' => $prefix . 'shotclock:status',
+                    'active_team' => $prefix . 'shotclock:active_team'
+                ];
             case 'cards':
                 return [
                     'game_cards' => $prefix . 'cards',
                     'event_counter' => $prefix . 'eventcounter',
-                    'card_event' => 'cardevent:'
+                    'card_event' => $prefix . 'cardevent:'
+                ];
+            case 'substitutions':
+                return [
+                    'substitutions' => $prefix . 'substitutions',
+                    'event_counter' => $prefix . 'event_counter',
+                    'substitution_event' => $prefix . 'substitutionevent:'
                 ];
             case 'points':
                 return [
@@ -82,6 +95,7 @@ class RequestUtils {
                     'away_points' => $prefix . 'away_points',
                     'total_game_points' => $prefix . 'total_game_points',
                     'set_points' => $prefix . 'set_points:',
+                    'current_server' => $prefix . 'current_server',
                 ];
             case 'fouls':
                 return [

@@ -11,9 +11,14 @@ abstract class AbstractEvent {
         $this->placard = $placard;
     }
 
-    public function loadFromDatabase($conn, $id) {}
+    public function loadFromDatabase($conn, $id) {
+        throw new Exception("Method 'loadFromDatabase' must be implemented in the child class.");
+    }
 
-    public function saveToDatabase($conn) {}
+    public function saveToDatabase($conn) {
+        throw new Exception("Method 'saveToDatabase' must be implemented in the child class.");
+
+    }
 
     public function getId() {
         return $this->id;

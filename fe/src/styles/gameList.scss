@@ -5,7 +5,7 @@ html, body {
   height: 100%;
 }
 
-.scoreboard-container {
+.gameList-container {
   display: grid;
   grid-template-columns: 300px 1fr; 
   height: 100vh;
@@ -195,7 +195,7 @@ html, body {
 }
 
 @media (min-width: 2000px) {
-  .scoreboard-container {
+  .gameList-container {
     display: grid;
     grid-template-columns: 20vw 1fr; 
   }
@@ -220,7 +220,7 @@ html, body {
     font-size: 2vw;
   }
 
-  .scoreboard-container {
+  .gameList-container {
     font-size: 1vw;
   }
 
@@ -254,7 +254,7 @@ html, body {
 }
 
 @media (max-width: 768px) {
-  .scoreboard-container {
+  .gameList-container {
     grid-template-columns: 90vw 1fr;
   }
 

@@ -3,48 +3,17 @@
 .timer {
     font-family: config.$font-secondary;
     color: config.$text-color;
+    width: 100%;
 
     .period {
-        font-size: 3rem;
+        font-size: clamp(2rem, 5vw, 6rem);
         font-weight: bold;
         line-height: 1;
-
-        @include config.xxl {
-            font-size: 3.5rem;
-        }
-        @include config.placard1 {
-            font-size: 4rem;
-        }
-        @include config.placard2 {
-            font-size: 5rem;
-        }
-        @include config.placard3 {
-            font-size: 7rem;
-        }
-        @include config.placard4 {
-            font-size: 9rem;
-        }
-
     }
+    
     .time {
-        font-size: 4.5rem;
+        font-size: clamp(3rem, 7vw, 8rem);
         font-weight: bold;
         line-height: 1;
-
-        @include config.xxl {
-            font-size: 5.5rem;
-        }
-        @include config.placard1 {
-            font-size: 7rem;
-        }
-        @include config.placard2 {
-            font-size: 9rem;
-        }
-        @include config.placard3 {
-            font-size: 11rem;
-        }
-        @include config.placard4 {
-            font-size: 13rem;
-        }
     }
 }

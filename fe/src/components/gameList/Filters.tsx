@@ -8,6 +8,8 @@ type FiltersProps = {
     onFilter: (filteredGames: Game[]) => void;
 };
 
+const normalizeString = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
     const getUniqueTeams = (games: Game[]): string[] => {
         const teams = new Set<string>();
@@ -31,9 +33,17 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
 
         setSelectedTeams(updatedTeams);
 
+        let localFormattedDate: string | null = null;
+        if (selectedDate) {
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
+            const year = selectedDate.getFullYear();
+            localFormattedDate = `${day}/${month}/${year}`;
+        }
+
         const filteredGames = games.filter((game) => {
-            const matchesTeams = updatedTeams.every((team) => game.home === team || game.away === team);
-            const matchesDate = selectedDate ? game.date.startsWith(selectedDate.toISOString().split('T')[0]) : true;
+            const matchesTeams = updatedTeams.length === 0 ? true : updatedTeams.every((t) => game.home === t || game.away === t);
+            const matchesDate = localFormattedDate ? game.date === localFormattedDate : true;
             const matchesSport = selectedSport ? game.sport === selectedSport : true;
             return matchesTeams && matchesDate && matchesSport;
         });
@@ -43,13 +53,17 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
 
     const handleDateChange = (date: Date | null) => {
         setSelectedDate(date);
-        let formattedDate = date ? date.toISOString().split('T')[0] : null;
-        formattedDate = formattedDate
-            ? formattedDate.split('-').reverse().join('/')
-            : null;
+
+        let localFormattedDate: string | null = null;
+        if (date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
+            const year = date.getFullYear();
+            localFormattedDate = `${day}/${month}/${year}`;
+        }
 
         const filteredGames = games.filter((game) => {
-            const matchesDate = date ? game.date === formattedDate : true;
+            const matchesDate = localFormattedDate ? game.date === localFormattedDate : true;
             const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
             const matchesSport = selectedSport ? game.sport === selectedSport : true;
             return matchesDate && matchesTeams && matchesSport;
@@ -88,7 +102,9 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
             />
             <div className="teams">
                 {teamLabels
-                    .filter((team) => team.toLowerCase().includes(teamSearch.toLowerCase()))
+                    .filter((team) =>
+                        normalizeString(team.toLowerCase()).includes(normalizeString(teamSearch.toLowerCase()))
+                    )
                     .map((team, index) => (
                         <button
                             key={index}

@@ -1,4 +1,4 @@
-// AppRouter.tsx
+// ...existing code...
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import config from './config/config';
@@ -8,8 +8,11 @@ import LoginPage from './pages/login';
 import GameList from './pages/gameList';
 import ScorersTable from './pages/scorersTable/scorersTable';
 import SelectCardPage from './pages/scorersTable/selectCard';
-import CardSelectPlayerPage from './pages/scorersTable/cardSelectPlayer';
 import GameOptions from './pages/gameOptions';
+import PlayerSelectionPage from './pages/scorersTable/playerSelection';
+import PointValueSelection from './pages/scorersTable/pointValueSelection';
+import TimeAdjustment from './pages/scorersTable/timeAdjustment';
+import ShotClockAdjustment from './pages/scorersTable/shotClockAdjustment';
 
 /**
  * AppRouter component
@@ -25,15 +28,12 @@ const AppRouter = () => (
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
             <Route path="/gameList" element={<GameList />} />
             <Route path="/scorersTable/:sport/:placardId" element={<ScorersTable />} />
-            <Route
-                path="/scorersTable/:sport/:placardId/selectCard/:teamTag"
-                element={<SelectCardPage />}
-            />
-            <Route
-                path="/scorersTable/:sport/:placardId/selectCard/:teamTag/:cardType/cardSelectPlayer"
-                element={<CardSelectPlayerPage />}
-            />
             <Route path="/gameOptions/:sport/:id" element={<GameOptions />} />
+            <Route path="/scorersTable/:sport/:placardId/selectCard/:teamTag" element={<SelectCardPage />} />
+            <Route path="/scorersTable/:sport/:placardId/playerSelection/:teamTag" element={<PlayerSelectionPage />} />
+            <Route path="/scorersTable/:sport/:placardId/clockAdjustment" element={<TimeAdjustment />} />
+            <Route path="/scorersTable/:sport/:placardId/shotClockAdjustment" element={<ShotClockAdjustment />} />
+            <Route path="/scorersTable/:sport/:placardId/pointValueSelection/:teamTag" element={<PointValueSelection />} />
         </Routes>
     </BrowserRouter>
 );
