@@ -7,7 +7,7 @@ import '../styles/gameList.scss';
 import Filters from '../components/gameList/Filters';
 import ShowGames from '../components/gameList/ShowGames';
 import { Game } from '../types/types';
-import apiManager, { ApiGame } from '../api/apiManager';
+import apiManager from '../api/apiManager';
 
 const GameList = () => {
     const [games, setGames] = useState<Game[]>([]);
@@ -17,8 +17,8 @@ const GameList = () => {
         const fetchGames = async () => {
             try {
                 const response = await apiManager.getAvailPlacards();
-                if (response.ok) {
-                    const data: ApiGame[] = await response.json();
+                if (response) {
+                    const data = await response;
                     const formattedGames = await Promise.all(data.map(async (game) => {
                         const homeTeam = await apiManager.getTeamInfo(game.firstTeamId);
                         const awayTeam = await apiManager.getTeamInfo(game.secondTeamId);

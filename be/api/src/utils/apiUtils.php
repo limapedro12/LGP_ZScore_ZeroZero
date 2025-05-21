@@ -1,7 +1,15 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() == PHP_SESSION_NONE){
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => '/',
+            'domain' => 'localhost', // or your domain
+            'secure' => false, // Set to true in production over HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax' // Use 'None' + 'secure' for cross-site if needed
+        ]);
+        session_start();
+    }
 
 function sendPostRequest($url, array $data = []) {
     $content = http_build_query($data);
@@ -42,9 +50,6 @@ function sendGetRequest($url, array $data = []) {
 }
 
 function login($username, $password) {
-    if (session_status() == PHP_SESSION_NONE) {
-        session_start();
-    }
 
     $apiurl = getenv('API_URL');
     $appkey = getenv('APP_KEY');
@@ -57,10 +62,24 @@ function login($username, $password) {
     $response = sendPostRequest($url, $data);
     $result = json_decode($response, true);
 
-    if (session_status() == PHP_SESSION_NONE)
+    if (session_status() == PHP_SESSION_NONE){
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => '/',
+            'domain' => 'localhost', // or your domain
+            'secure' => false, // Set to true in production over HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax' // Use 'None' + 'secure' for cross-site if needed
+        ]);
         session_start();
-    $_SESSION['api_cookie'] = $result['data']['Cookie'] ?? null;
-    return $response;
+    }
+    if (isset($result['data']['Cookie'])) {
+        $_SESSION['api_cookie'] = $result['data']['Cookie'];
+        
+    } else {
+        return json_encode(['error' => 'Login failed']);
+    }
+    return json_encode(['success' => true]);
 }
 
 function buildMethodUrl($apiurl, $method, $appkey, $cookie) {
@@ -101,6 +120,18 @@ function getTeamLive($matchId,$teamId) {
     $url = buildMethodUrl($apiurl, 'getTeamLive'.'/MatchID/'. $matchId . '/TeamID/' . $teamId, $appkey, $cookie);
     $response = sendGetRequest($url);
     return $response;
+}
+
+function getAllowColab($matchId) {
+    $apiurl = getenv('API_URL');
+    $appkey = getenv('APP_KEY');
+    $cookie = $_SESSION['api_cookie'];
+    if (is_null($cookie)) {
+        return json_encode(['error' => 'Cookie not found']);
+    }
+    $url = $apiurl . 'allowColab'. '/AppKey/'. $appkey. '/key/' . $cookie . '/fk_jogo/' . $matchId;
+    $response = sendGetRequest($url);
+    return $response; 
 }
 
 // Example usage

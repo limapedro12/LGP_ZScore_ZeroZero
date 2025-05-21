@@ -100,6 +100,14 @@
             }
             $response = getTeamInfo($teamId);
             break;
+        case 'getAllowColab':
+            if ($placardId === null) {
+                echo json_encode(["error" => "Missing placardId"]);
+                exit;
+            }
+            $response = getAllowColab($placardId);
+            break;
+        
         default:
             echo json_encode(["error" => "Invalid action"]);
             exit;

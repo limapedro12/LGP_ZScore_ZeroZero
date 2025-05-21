@@ -2,16 +2,6 @@
 require_once __DIR__ . '/../../index.php';
 require_once __DIR__ . '/../../utils/apiUtils.php';
 
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Headers: Content-Type, Content-Length, Authorization, Accept, X-Requested-With");
-header("Access-Control-Allow-Methods: PUT, POST, GET, DELETE, OPTIONS");
-
-// Handle preflight (OPTIONS) requests
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
 header('Content-Type: application/json');
 $jsonBody = null;
 if($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -21,13 +11,15 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+
+
 $action = $_GET['action'] ?? $jsonBody['action'] ?? null;
 if (is_null($action)) {
     echo json_encode(["error" => "Missing action"]);
     exit;
 }
 
-$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive'];
+$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive', 'getAllowColab'];
 if (!in_array($action, $allowedActions)) {
     echo json_encode(["error" => "Invalid action"]);
     exit;
@@ -41,7 +33,7 @@ if ((is_null($username) || is_null($password)) && $action === 'login') {
 }
 
 $matchId = $_GET['matchId'] ?? $jsonBody['matchId'] ?? null;
-if (is_null($matchId) && ($action === 'getMatchLiveInfo' || $action === 'getTeamLive')) {
+if (is_null($matchId) && ($action === 'getMatchLiveInfo' || $action === 'getTeamLive' || $action === 'getAllowGame')) {
     echo json_encode(["error" => "Missing matchId"]);
     exit;
 }
@@ -64,6 +56,9 @@ switch ($action) {
         break;
     case 'getTeamLive':
         $response = getTeamLive($matchId,$teamId);
+        break;
+    case 'getAllowColab':
+        $response = getAllowColab($matchId);
         break;
     default:
         echo json_encode(["error" => "Invalid action"]);

@@ -1,7 +1,6 @@
 import config from '../config/config';
 import { TeamTag } from '../utils/scorersTableUtils';
 import ENDPOINTS from './endPoints';
-import { getAvailPlacardsMock, getPlacardInfoMock, getTeamInfoMock } from './mockResponse';
 
 const BASE_URL = `${config.API_HOSTNAME}`;
 
@@ -24,8 +23,9 @@ type ActionType =
     | 'getAvailPlacards'
     | 'getTeamInfo'
     | 'getPlacardInfo'
+    | 'getAllowColab'
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'sports' | 'info';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 type TeamType = 'home' | 'away';
@@ -146,6 +146,12 @@ export interface ApiTeam {
     sport: string;
 }
 
+export interface ApiColab {
+    error_code?: string;
+    error_text?: string;
+}
+
+
 /**
  * API Manager that handles all API requests
  */
@@ -180,6 +186,7 @@ class ApiManager {
 
         const options: RequestInit = {
             method,
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -207,6 +214,7 @@ class ApiManager {
         const url = `${BASE_URL}${ENDPOINTS.API()}`;
         const options: RequestInit = {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -275,16 +283,13 @@ class ApiManager {
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });
 
     getAvailPlacards = () =>
-        getAvailPlacardsMock();
-        // this.makeRequest<ApiGame>('info', 'getAvailPlacards', {});
-
+        this.makeRequest<ApiGame[]>('info', 'getAvailPlacards', {});
     getTeamInfo = (teamId: string) =>
-        getTeamInfoMock(teamId);
-        // this.makeRequest<ApiTeam>('info', 'getTeamInfo', { teamId });
-
+        this.makeRequest<ApiTeam>('info', 'getTeamInfo', { teamId });
     getPlacardInfo = (placardId: string) =>
-        getPlacardInfoMock(placardId);
-        // this.makeRequest<ApiGame>('info', 'getPlacardInfo', { placardId });
+        this.makeRequest<ApiGame>('info', 'getPlacardInfo', { placardId });
+    getAllowColab = (placardId: string) =>
+        this.makeRequest<ApiColab>('info', 'getAllowColab', { placardId });
 
     updateCard = (params: UpdateCardParams) => {
         const filteredParams: RequestParams = {
