@@ -147,8 +147,7 @@ export interface ApiTeam {
 }
 
 export interface ApiColab {
-    error_code?: string;
-    error_text?: string;
+    allowColab: boolean;
 }
 
 

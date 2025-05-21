@@ -131,7 +131,13 @@ function getAllowColab($matchId) {
     }
     $url = $apiurl . 'allowColab'. '/AppKey/'. $appkey. '/key/' . $cookie . '/fk_jogo/' . $matchId;
     $response = sendGetRequest($url);
-    return $response; 
+    $result = json_decode($response, true);
+    if (isset($result['data']['Data'])) {
+        if ($result['data']['Data'] == 'sucess') {
+            return json_encode(['allowColab' => true]);
+        }
+    }
+    return json_encode(['allowColab' => false]); 
 }
 
 // Example usage
