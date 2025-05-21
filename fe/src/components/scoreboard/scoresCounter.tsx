@@ -1,19 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/scoresCounter.scss';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import apiManager, { ApiTeam, ScoreResponse } from '../../api/apiManager';
-import { useParams } from 'react-router-dom';
+import { ApiTeam, ScoreResponse } from '../../api/apiManager';
 
-const ScoresRow: React.FC<ScoreResponse> = (scoreData) => {
+interface ScoresRowProps {
+    scoreData?: ScoreResponse | null;
+    homeTeam?: ApiTeam | null;
+    awayTeam?: ApiTeam | null;
+}
+
+const ScoresRow: React.FC<ScoresRowProps> = ({
+    scoreData,
+    homeTeam,
+    awayTeam,
+}) => {
     const [scores, setScores] = useState<{ home: number, away: number }>({ home: 0, away: 0 });
-    const [placardId, setPlacardId] = useState<string>('default');
-    const [sport, setSport] = useState<string>('default');
-    const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
-    const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
-    const { placardId: urlPlacardId, sport: urlSport } = useParams<{ placardId: string, sport: string }>();
-
     useEffect(() => {
         if (scoreData && scoreData.currentScore) {
             setScores({
@@ -22,35 +25,6 @@ const ScoresRow: React.FC<ScoreResponse> = (scoreData) => {
             });
         }
     }, [scoreData]);
-
-    useEffect(() => {
-        if (urlPlacardId) setPlacardId(urlPlacardId);
-        if (urlSport) setSport(urlSport);
-    }, [urlPlacardId, urlSport]);
-
-    const fetchTeams = useCallback(async () => {
-        if (placardId === 'default') {
-            return;
-        }
-        try {
-            const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
-            if (placardInfo) {
-                const home = await apiManager.getTeamInfo(placardInfo.firstTeamId);
-                const away = await apiManager.getTeamInfo(placardInfo.secondTeamId);
-                setHomeTeam(home);
-                setAwayTeam(away);
-            }
-        } catch (error) {
-            console.error('Error fetching teams:', error);
-        }
-    }, [placardId]);
-
-    useEffect(() => {
-        fetchTeams();
-        const intervalId = setInterval(fetchTeams, 5000);
-
-        return () => clearInterval(intervalId);
-    }, [fetchTeams]);
 
     return (
         <Container fluid className="scores-row-container">
