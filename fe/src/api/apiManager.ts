@@ -286,8 +286,8 @@ class ApiManager {
         this.makeRequest<ApiGame[]>('info', 'getAvailPlacards', {});
     getTeamInfo = (teamId: string) =>
         this.makeRequest<ApiTeam>('info', 'getTeamInfo', { teamId });
-    getPlacardInfo = (placardId: string) =>
-        this.makeRequest<ApiGame>('info', 'getPlacardInfo', { placardId });
+    getPlacardInfo = (placardId: string, sport: string) =>
+        this.makeRequest<ApiGame>('info', 'getPlacardInfo', { placardId, sport });
     getAllowColab = (placardId: string) =>
         this.makeRequest<ApiColab>('info', 'getAllowColab', { placardId });
 

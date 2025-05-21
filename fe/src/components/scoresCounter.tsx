@@ -54,7 +54,7 @@ const ScoresRow: React.FC<ScoresRowProps> = () => {
             return;
         }
         try {
-            const placardInfo = await apiManager.getPlacardInfo(placardId);
+            const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
             if (placardInfo) {
                 const home = await apiManager.getTeamInfo(placardInfo.firstTeamId);
                 const away = await apiManager.getTeamInfo(placardInfo.secondTeamId);
