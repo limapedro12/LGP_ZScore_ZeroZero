@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ScoreResponse, PeriodScore }  from '../api/apiManager';
-import '../styles/setBox.scss';
+import { ScoreResponse, PeriodScore }  from '../../api/apiManager';
+import '../../styles/setBox.scss';
 
 interface SetBoxProps {
     scoreData?: ScoreResponse | null;
@@ -35,7 +35,7 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData, timeoutActive = false }) => 
     return (
         <>
             {!timeoutActive && (
-                <div className="row justify-content-center">
+                <div className="row justify-content-center m-3">
                     <div className="col-12 d-flex justify-content-center align-items-center">
                         <div className="sets-results mb-2">
                             <span className="sets-home">
@@ -49,7 +49,7 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData, timeoutActive = false }) => 
                     </div>
                 </div>
             )}
-            <div className="current-period-outer">
+            <div className="current-period-outer m-3">
                 <div className="current-period-box">
                     {currentServer === 'home' && <div className="arrow arrow-left" />}
                     <span className="current-period">
@@ -58,7 +58,7 @@ const SetBox: React.FC<SetBoxProps> = ({ scoreData, timeoutActive = false }) => 
                     {currentServer === 'away' && <div className="arrow arrow-right" />}
                 </div>
             </div>
-            <div className="set-box">
+            <div className="set-box m-4">
                 <table>
                     <tbody>
                         {periods.slice(0, periods.length - 1).map((set) => {

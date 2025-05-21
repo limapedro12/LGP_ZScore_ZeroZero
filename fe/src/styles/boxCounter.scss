@@ -63,7 +63,7 @@
     @include config.placard4 { font-size: 5rem; height: 5rem; }
 }
 
-@include config.below-xl {
+@include config.below-xxl {
 
     .box-counter-container {
         flex-direction: row;

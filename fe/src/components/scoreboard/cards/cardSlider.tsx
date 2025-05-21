@@ -4,6 +4,8 @@ import apiManager from '../../../api/apiManager';
 import BaseSlider from '../baseSlider';
 import '../../../styles/sliderComponents.scss';
 import CardEvent from './cardEvent';
+import { useMediaQuery } from 'react-responsive';
+import { BREAKPOINTS } from '../../../media-queries';
 
 export interface TransformedCardEventData {
   id: string | number;
@@ -21,6 +23,8 @@ interface CardSliderProps {
 const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
     const [displayedCards, setDisplayedCards] = useState<Array<TransformedCardEventData>>([]);
     const MAX_EVENTS_TO_DISPLAY = 5;
+    const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
+
 
     const fetchAndSetCards = useCallback(async () => {
         if (!placardId || !sport) {
@@ -71,7 +75,7 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
                     <div key={eventData.id} className="player-score-item">
                         <CardEvent
                             sport={sport}
-                            playerName={eventData.playerName}
+                            playerName={!small ? eventData.playerName : '' }
                             playerNumber={eventData.playerNumber}
                             cardType={eventData.cardType as CardTypeForSport<typeof sport>}
                             team={team}

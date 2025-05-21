@@ -1,48 +1,80 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import CardSlider from './cards/cardSlider';
 import ScoreHistorySlider from './scores/scoreHistorySlider';
 import PlayerScoreSlider from './scores/playerScoreSlider';
 import SquadSlider from './scores/squadSlider';
 import { Sport } from '../../utils/cardUtils';
+import apiManager from '../../api/apiManager';
+
+const SCORE_TYPES: Record<string, string> = {
+    'p': 'Pontos',
+    'g': 'Golos',
+    'default': 'Pontos',
+};
 
 interface SliderProps {
   sport: Sport;
   placardId: string;
   team: 'home' | 'away';
+  sliderIndex?: number;
+  onItemsCountChange?: (count: number) => void;
 }
 
-const Slider: React.FC<SliderProps> = ({ sport, placardId, team }) => {
-    const [currentSliderIndex, setCurrentSliderIndex] = useState(0);
-    const [waitingForSquadComplete, setWaitingForSquadComplete] = useState(false);
+const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0, onItemsCountChange }) => {
+    const [nonCardSports, setNonCardSports] = useState<string[]>([]);
+    const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
 
-    const handleSquadComplete = () => {
-        if (waitingForSquadComplete) {
-            setWaitingForSquadComplete(false);
-            setCurrentSliderIndex((prevIndex) => (prevIndex + 1) % sliderItems.length);
+    const fetchNonCardSports = useCallback(async () => {
+        try {
+            const response = await apiManager.getNoCardSports();
+            if (response && Array.isArray(response.sports)) {
+                setNonCardSports(response.sports);
+            } else {
+                setNonCardSports([]);
+            }
+        } catch (error) {
+            console.error('Error fetching non-card sports:', error);
+            setNonCardSports([]);
         }
-    };
+    }, []);
+
+    const fetchScoreType = useCallback(async () => {
+        if (!sport) {
+            setScoreType(SCORE_TYPES.default);
+            return;
+        }
+
+        try {
+            const response = await apiManager.getSportScoreType(sport);
+            const typeCode = response.typeOfScore?.toLowerCase();
+
+            // Use the mapping to get the display text
+            setScoreType(typeCode && SCORE_TYPES[typeCode] ? SCORE_TYPES[typeCode] : SCORE_TYPES.default);
+        } catch (error) {
+            console.error('Error fetching score type:', error);
+            setScoreType(SCORE_TYPES.default);
+        }
+    }, [sport]);
+
+    useEffect(() => {
+        fetchNonCardSports();
+        fetchScoreType();
+    }, [fetchNonCardSports, fetchScoreType]);
+
+    const isNonCardSport = nonCardSports?.includes(sport);
 
     const sliderItems: React.ReactNode[] = [
-        <CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />,
-        <ScoreHistorySlider sport={sport} team={team} placardId={placardId} key="score-history-item" />,
-        <PlayerScoreSlider sport={sport} team={team} placardId={placardId} key="player-score-item" />,
-        <SquadSlider team={team} onComplete={handleSquadComplete} key="squad-slider-item" />,
+        ...(!isNonCardSport ? [<CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />] : []),
+        <ScoreHistorySlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="score-history-item" />,
+        <PlayerScoreSlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="player-score-item" />,
+        <SquadSlider team={team} key="squad-slider-item" />,
     ];
 
     useEffect(() => {
-        if (sliderItems.length > 0) {
-            const interval = setInterval(() => {
-                if (currentSliderIndex === 3) {
-                    setWaitingForSquadComplete(true);
-                } else {
-                    setCurrentSliderIndex((prevIndex) => (prevIndex + 1) % sliderItems.length);
-                }
-            }, 10000);
-            return () => clearInterval(interval);
+        if (onItemsCountChange) {
+            onItemsCountChange(sliderItems.length);
         }
-
-        return undefined;
-    }, [sliderItems.length, currentSliderIndex]);
+    }, [sliderItems.length, onItemsCountChange]);
 
     if (sliderItems.length === 0) {
         return null;
@@ -50,7 +82,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team }) => {
 
     return (
         <div className="w-100 h-100 d-flex justify-content-center align-items-center">
-            {sliderItems[currentSliderIndex]}
+            {sliderItems[sliderIndex]}
         </div>
     );
 };

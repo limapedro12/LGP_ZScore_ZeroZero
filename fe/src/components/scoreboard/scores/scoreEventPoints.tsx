@@ -8,9 +8,9 @@ interface ScoreEventPointsProps {
 }
 
 const ScoreEventPoints: React.FC<ScoreEventPointsProps> = ({ scoreEvent, team }) => {
-    const { periodTotalPoints } = scoreEvent;
+    const { teamPoints } = scoreEvent;
 
-    return <ScorePoint value={periodTotalPoints} team={team} />;
+    return <ScorePoint value={teamPoints} team={team} />;
 };
 
 export default ScoreEventPoints;
