@@ -87,7 +87,7 @@ BEGIN
                 -- Insert players into AbstractPlayer for the first team
                 FOR i IN 0..(v_roster_size - 1) DO
                     INSERT INTO AbstractPlayer (name, position, number, teamId, sport)
-                    VALUES (JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))), i + 1, v_firstTeamId, v_sport);
+                    VALUES (CONCAT(JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), ' (T', v_firstTeamId, ')'), JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))), i + 1, v_firstTeamId, v_sport);
                 END FOR;
             END IF;
 
@@ -124,7 +124,7 @@ BEGIN
                 -- Insert players into AbstractPlayer for the second team
                 FOR i IN 0..(v_roster_size - 1) DO
                     INSERT INTO AbstractPlayer (name, position, number, teamId, sport)
-                    VALUES (JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))), i + 1, v_secondTeamId, v_sport);
+                    VALUES (CONCAT(JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), ' (T', v_secondTeamId, ')'), JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))), i + 1, v_secondTeamId, v_sport);
                 END FOR;
             END IF;
 
