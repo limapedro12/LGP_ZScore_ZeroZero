@@ -9,6 +9,7 @@ interface EventDisplayProps {
   team: 'home' | 'away';
   rightElement?: ReactNode;
   compact?: boolean;
+  teamColor?: string;
 }
 
 const EventDisplay: React.FC<EventDisplayProps> = ({
@@ -17,17 +18,14 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
     team,
     rightElement,
     compact = false,
+    teamColor,
 }) => {
-    const homeColor = '#E83030';
-    const awayColor = '#008057';
     const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
     let isCompact = compact;
 
     if (small) {
         isCompact = false;
     }
-
-    const jerseyColor = team === 'home' ? homeColor : awayColor;
 
     const hasPlayerName = Boolean(playerName && playerName.trim() !== '');
 
@@ -43,7 +41,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
 
     const jerseyElement = (
         <div className={`${jerseyWidthClass} d-flex align-items-center justify-content-center`}>
-            <PlayerJersey number={playerNumber} color={jerseyColor} hideIcon={small} />
+            <PlayerJersey number={playerNumber} color={teamColor} hideIcon={small} />
         </div>
     );
 

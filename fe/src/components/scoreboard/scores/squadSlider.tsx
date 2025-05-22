@@ -11,6 +11,7 @@ import { BREAKPOINTS } from '../../../media-queries';
 interface SquadSliderProps {
   team: 'home' | 'away';
   onComplete?: () => void;
+  teamColor?: string;
 }
 
 interface Player {
@@ -22,7 +23,7 @@ interface Player {
   INTEAM: string;
 }
 
-const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete }) => {
+const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete, teamColor }) => {
     const [squadPlayers, setSquadPlayers] = useState<Player[]>([]);
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
     const [hasCompletedCycle, setHasCompletedCycle] = useState(false);
@@ -106,6 +107,7 @@ const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete }) => {
                                 rightElement={
                                     !small ? <PositionSigla sigla={player.player_position_sigla} team={team} /> : undefined
                                 }
+                                teamColor={teamColor}
                             />
                         </div>
                     ))

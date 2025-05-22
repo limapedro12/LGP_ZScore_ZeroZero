@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import apiManager, { ScoreResponse } from '../api/apiManager';
+import apiManager, { ApiTeam, ScoreResponse } from '../api/apiManager';
 import { useParams } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -124,6 +124,33 @@ const ScoreBoard = () => {
     const containerClassName =
         'scoreboard-container d-flex flex-column min-vh-100 p-0';
 
+    const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
+    const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
+
+    const fetchTeams = useCallback(async () => {
+        if (placardId === 'default') {
+            return;
+        }
+        try {
+            const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
+            if (placardInfo) {
+                const home = await apiManager.getTeamInfo(placardInfo.firstTeamId);
+                const away = await apiManager.getTeamInfo(placardInfo.secondTeamId);
+                setHomeTeam(home);
+                setAwayTeam(away);
+            }
+        } catch (error) {
+            console.error('Error fetching teams:', error);
+        }
+    }, [placardId]);
+
+    useEffect(() => {
+        fetchTeams();
+        const intervalId = setInterval(fetchTeams, 5000);
+
+        return () => clearInterval(intervalId);
+    }, [fetchTeams]);
+
     return (
         <Container
             fluid
@@ -131,7 +158,7 @@ const ScoreBoard = () => {
         >
             <Row className="scores-row-wrapper w-100">
                 <Col xs={12} className="p-0">
-                    <ScoresRow scoreData={scoreData} />
+                    <ScoresRow scoreData={scoreData} homeTeam={homeTeam} awayTeam={awayTeam} />
                 </Col>
             </Row>
 
@@ -141,6 +168,7 @@ const ScoreBoard = () => {
                         sport={sport} team="home"
                         placardId={placardId} sliderIndex={sliderIndex}
                         onItemsCountChange={handleSliderItemsCountChange}
+                        teamColor={homeTeam?.color}
                     />
                 </Col>
 
@@ -152,6 +180,7 @@ const ScoreBoard = () => {
                     <Slider
                         sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
                         onItemsCountChange={handleSliderItemsCountChange}
+                        teamColor={awayTeam?.color}
                     />
                 </Col>
             </Row>

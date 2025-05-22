@@ -18,9 +18,10 @@ interface SliderProps {
   team: 'home' | 'away';
   sliderIndex?: number;
   onItemsCountChange?: (count: number) => void;
+  teamColor?: string;
 }
 
-const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0, onItemsCountChange }) => {
+const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0, onItemsCountChange, teamColor }) => {
     const [nonCardSports, setNonCardSports] = useState<string[]>([]);
     const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
 
@@ -67,7 +68,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
         ...(!isNonCardSport ? [<CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />] : []),
         <ScoreHistorySlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="score-history-item" />,
         <PlayerScoreSlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="player-score-item" />,
-        <SquadSlider team={team} key="squad-slider-item" />,
+        <SquadSlider team={team} key="squad-slider-item" teamColor={teamColor} />,
     ];
 
     useEffect(() => {
