@@ -261,7 +261,7 @@
                 return false;
             }
 
-            $stmt = $conn->prepare("SELECT id,playerId,isStarting,AbstractPlayer.name as name,AbstractPlayer.position as position,AbstractPlayer.number as number,AbstractPlayer.teamId as teamId FROM PlacardPlayer JOIN AbstractPlayer ON PlacardPlayer.playerId = AbstractPlayer.id WHERE PlacardPlayer.placardId = ? AND AbstractPlayer.teamId = ?");
+            $stmt = $conn->prepare("SELECT PlacardPlayer.id as id, PlacardPlayer.playerId as playerId, PlacardPlayer.isStarting as isStarting, AbstractPlayer.name as name,AbstractPlayer.position as position,AbstractPlayer.number as number,AbstractPlayer.teamId as teamId FROM PlacardPlayer JOIN AbstractPlayer ON PlacardPlayer.playerId = AbstractPlayer.id WHERE PlacardPlayer.placardId = ? AND AbstractPlayer.teamId = ?");
             $stmt->bind_param("ii", $placardId, $teamId);
             $stmt->execute();
             $result = $stmt->get_result();
