@@ -22,13 +22,18 @@ type ActionType =
     | 'update'
     | 'delete'
     | 'noTimer'
+    | 'getAvailPlacards'
+    | 'getTeamInfo'
+    | 'getPlacardInfo'
+    | 'getAllowColab'
+    | 'getTeamLineup'
     | 'noCards'
     | 'noPeriodBox'
     | 'noShotClock'
     | 'typeOfScore'
     | 'sportConfig';
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock' | 'info';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -78,7 +83,6 @@ interface ApiParams {
     action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive' | 'getTeamPlayers' | 'getPlayerInfo';
     username?: string;
     password?: string;
-    cookie?: string;
     placardId?: string;
     teamId?: string;
     [key: string]: string | undefined;
@@ -199,6 +203,39 @@ interface SubstitutionResponse{
     error?: string;
 }
 
+export interface ApiGame {
+    id: string;
+    firstTeamId: string;
+    secondTeamId: string;
+    isFinished: boolean;
+    sport: string;
+    startTime: string;
+}
+
+export interface ApiTeam {
+    id: string;
+    logoURL: string;
+    color: string;
+    acronym: string;
+    name: string;
+    sport: string;
+}
+
+export interface ApiColab {
+    allowColab: boolean;
+}
+
+export interface ApiPlayer {
+    id: string;
+    playerId: string;
+    isStarting: string;
+    name: string;
+    number: string;
+    position: string;
+    teamId: string;
+}
+
+
 /**
  * API Manager that handles all API requests
  */
@@ -236,6 +273,7 @@ class ApiManager {
 
         const options: RequestInit = {
             method,
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -289,14 +327,12 @@ class ApiManager {
             }
             throw error;
         }
-
     };
 
     ApiRequest = (params: ApiParams, method: 'GET' | 'POST' = 'POST') => {
         const url = `${BASE_URL}${ENDPOINTS.API()}`;
 
         if (method === 'GET') {
-            // Convert params to URL query parameters
             const queryParams = new URLSearchParams();
             Object.entries(params).forEach(([key, value]) => {
                 if (value !== undefined) {
@@ -309,6 +345,7 @@ class ApiManager {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
             }).then((response) => {
                 if (!response.ok) {
                     throw new Error(`API error: ${response.status}`);
@@ -316,13 +353,13 @@ class ApiManager {
                 return response.json();
             });
         } else {
-            // Use POST method with JSON body
             return fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(params),
+                credentials: 'include',
             }).then((response) => {
                 if (!response.ok) {
                     throw new Error(`API error: ${response.status}`);
@@ -429,6 +466,17 @@ class ApiManager {
 
     deleteCard = (placardId: string, sport: string, eventId: string) =>
         this.makeRequest<CardsResponse>('cards', 'delete', { placardId, sport, eventId });
+
+    getAvailPlacards = () =>
+        this.makeRequest<ApiGame[]>('info', 'getAvailPlacards', {});
+    getTeamInfo = (teamId: string) =>
+        this.makeRequest<ApiTeam>('info', 'getTeamInfo', { teamId });
+    getPlacardInfo = (placardId: string, sport: string) =>
+        this.makeRequest<ApiGame>('info', 'getPlacardInfo', { placardId, sport });
+    getAllowColab = (placardId: string) =>
+        this.makeRequest<ApiColab>('info', 'getAllowColab', { placardId });
+    getTeamLineup = (placardId: string, teamId: string) =>
+        this.makeRequest<ApiPlayer>('info', 'getTeamLineup', { placardId, teamId });
 
     updateCard = (params: UpdateCardParams) => {
         const filteredParams: RequestParams = {

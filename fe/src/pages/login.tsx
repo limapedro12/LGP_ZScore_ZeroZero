@@ -8,7 +8,9 @@ const LoginPage: React.FC = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        apiManager.login(username, password);
+        apiManager.login(username, password).then(() => {
+            window.location.href = '/gameList';
+        });
     };
 
     return (
