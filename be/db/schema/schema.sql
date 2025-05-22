@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS BasketballPlacard (
 );
 
 CREATE TABLE IF NOT EXISTS AbstractPlayer (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT, 
     name VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
     number INT NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS AbstractPlayer (
 );
 
 CREATE TABLE IF NOT EXISTS VolleyballPlayer (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY, 
     abstractPlayerId INT NOT NULL,
     teamId INT NOT NULL,
     FOREIGN KEY (abstractPlayerId) REFERENCES AbstractPlayer(id),
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS VolleyballPlayer (
 );
 
 CREATE TABLE IF NOT EXISTS FutsalPlayer (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY, 
     abstractPlayerId INT NOT NULL,
     teamId INT NOT NULL,
     FOREIGN KEY (abstractPlayerId) REFERENCES AbstractPlayer(id),
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS FutsalPlayer (
 );
 
 CREATE TABLE IF NOT EXISTS BasketballPlayer (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY, 
     abstractPlayerId INT NOT NULL,
     teamId INT NOT NULL,
     FOREIGN KEY (abstractPlayerId) REFERENCES AbstractPlayer(id),
