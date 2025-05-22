@@ -62,7 +62,6 @@ interface EditFormData {
 
 // Define a more specific type for API parameters used in handleEditFormSubmit
 interface EventUpdateParams {
-    [key: string]: any; // Added to satisfy RequestParams
     placardId: string;
     sport: Sport;
     eventId: string;
@@ -71,7 +70,19 @@ interface EventUpdateParams {
     timestamp?: number; // Added for editing time, ensure it's part of the type
     pointValue?: string | number; // For score
     cardType?: string; // For card
-    // Add any other potential properties that might be passed in `params`
+    // Align with RequestParams from apiManager.ts for broader compatibility if needed by makeRequest
+    [key: string]: string | number | undefined;
+}
+
+interface UpdateCardParams {
+    placardId: string;
+    sport: Sport;
+    eventId: string;
+    team: 'home' | 'away';
+    playerId: string;
+    cardType: string;
+    timestamp: number;
+    [key: string]: string | number | undefined; // Added to match expected type with index signature
 }
 
 const EventHistory: React.FC = () => {
@@ -156,8 +167,6 @@ const EventHistory: React.FC = () => {
         fetchedItems: ReadonlyArray<FetchedEventItem>,
         type: Event['type']
     ): Event[] => fetchedItems.map((item: FetchedEventItem, index: number) => {
-        // const playerInfo = item.playerName || (item.playerId ? `Jogador ${item.playerId}` : ''); // Unused
-
         let gameTimeSeconds = 0;
         let rawGameTimeValue: number | string | undefined | null = item.timestamp;
 
@@ -178,8 +187,6 @@ const EventHistory: React.FC = () => {
         const eventId: string | number = item.eventId || item.id || `${type}-${gameTimeSeconds}-${index}-${randomSuffix}`;
 
         let effectiveTeamDesignation: 'home' | 'away' | undefined;
-
-        // Priority 1: Direct 'home'/'away' from item.team or item.teamId
         if (item.team === 'home' || item.teamId === 'home') {
             effectiveTeamDesignation = 'home';
         } else if (item.team === 'away' || item.teamId === 'away') {
@@ -187,7 +194,7 @@ const EventHistory: React.FC = () => {
         } else if (
             item.playerId &&
             (type === 'foul' || type === 'card' || type === 'score')
-        ) { // Priority 2: Infer from playerId for relevant event types
+        ) {
             if (homePlayers.some((p) => String(p.id) === String(item.playerId))) {
                 effectiveTeamDesignation = 'home';
             } else if (awayPlayers.some((p) => String(p.id) === String(item.playerId))) {
@@ -195,14 +202,12 @@ const EventHistory: React.FC = () => {
             }
         }
 
-        // Determine the final team value ('home', 'away', or undefined)
         let finalTeamValue: 'home' | 'away' | undefined = effectiveTeamDesignation;
         if (!finalTeamValue) {
             const rawTeamSource = item.teamId || item.team;
             if (rawTeamSource === 'home' || rawTeamSource === 'away') {
                 finalTeamValue = rawTeamSource;
             }
-            // If rawTeamSource is some other string, finalTeamValue remains undefined.
         }
 
         let currentTeamLogo: string | undefined;
@@ -211,30 +216,51 @@ const EventHistory: React.FC = () => {
         } else if (finalTeamValue === 'away' && awayTeamLogoUrl) {
             currentTeamLogo = awayTeamLogoUrl;
         } else {
-            // Fallback to item.teamLogo if team is not 'home'/'away' or specific logos aren't available
             currentTeamLogo = item.teamLogo || undefined;
         }
 
-        // The block for specificDescription and baseDescription is removed as it's unused.
-        // baseDescription = specificDescription; // Unused
-
         let newDescription: string;
-        const newPlayerProperty: string | undefined = undefined;
+        let resolvedPlayerName: string | undefined;
+        let resolvedPlayerNumber: string | number | undefined;
 
-        const playerNameOrGenericId = item.playerName || (item.playerId ? `Jogador ${item.playerId}` : undefined);
+        if (item.playerId) {
+            const currentPlayerIdString = String(item.playerId);
+            let playersList: Player[];
+            if (finalTeamValue === 'home') {
+                playersList = homePlayers;
+            } else if (finalTeamValue === 'away') {
+                playersList = awayPlayers;
+            } else {
+                playersList = [...homePlayers, ...awayPlayers];
+            }
+            const foundPlayer = playersList.find((p) => String(p.id) === currentPlayerIdString);
+            if (foundPlayer) {
+                resolvedPlayerName = foundPlayer.name;
+                resolvedPlayerNumber = foundPlayer.number;
+            } else {
+                // Fallback if player not found in local lists, but API might have provided something (though unlikely for updates)
+                resolvedPlayerName = item.playerName || `Jogador ${currentPlayerIdString}`;
+                resolvedPlayerNumber = item.playerNumber;
+            }
+        } else {
+            // For events not associated with a specific player (e.g., some timeout events)
+            resolvedPlayerName = item.playerName; // Use if API provides it directly
+            resolvedPlayerNumber = item.playerNumber; // Use if API provides it directly
+        }
+
+        const playerNameForDescription = resolvedPlayerName || (item.playerId ? `Jogador ${item.playerId}` : undefined);
 
         switch (type) {
             case 'score': {
-                // const scoreItem = item as ApiScoreEventData; // Unused
-                newDescription = playerNameOrGenericId || (sport === 'volleyball' ? 'Ponto' : 'Golo');
+                newDescription = playerNameForDescription || (sport === 'volleyball' ? 'Ponto' : 'Golo');
                 break;
             }
             case 'card': {
-                newDescription = playerNameOrGenericId || 'Cartão';
+                newDescription = playerNameForDescription || 'Cartão';
                 break;
             }
             case 'foul':
-                newDescription = playerNameOrGenericId || 'Falta';
+                newDescription = playerNameForDescription || 'Falta';
                 break;
             case 'timeout':
                 newDescription = 'Pausa Técnica';
@@ -251,12 +277,12 @@ const EventHistory: React.FC = () => {
             timestamp: gameTimeSeconds,
             type,
             description: newDescription,
-            team: finalTeamValue, // Use the normalized team value
-            player: newPlayerProperty,
+            team: finalTeamValue,
+            player: resolvedPlayerName,
             details: item,
-            icon: null,
+            icon: null, // Icon is set later in the fetchEvents logic
             teamLogo: currentTeamLogo,
-            playerNumber: item.playerNumber,
+            playerNumber: resolvedPlayerNumber,
             originalPlayerId: item.playerId,
             originalCardType: type === 'card' ? (item as ApiCardEventData).cardType : undefined,
             originalPointValue: type === 'score' ? (item as ApiScoreEventData).pointValue : undefined,
@@ -394,16 +420,16 @@ const EventHistory: React.FC = () => {
 
     const handleEditFormSubmit = async () => {
         if (!eventToEdit || !placardId || !sport) return;
+
+        // Ensure team is defined in editFormData before proceeding
+        if (!editFormData.team) {
+            setEditFormError('Erro interno: A equipa para o evento não está definida.');
+            return;
+        }
         setEditFormError(null);
 
-        const params: EventUpdateParams = {
-            placardId,
-            sport,
-            eventId: String(eventToEdit.id),
-            team: eventToEdit.team, // Use the original team from eventToEdit
-            playerId: editFormData.playerId,
-            // timestamp will be added if/when timestamp editing is implemented
-        };
+        // Base parameters for any event type, not used directly for cards here
+        // const params: EventUpdateParams = { ... };
 
         try {
             if (eventToEdit.type === 'score') {
@@ -411,23 +437,34 @@ const EventHistory: React.FC = () => {
                     setEditFormError('Valor do Ponto/Golo é obrigatório.');
                     return;
                 }
-                params.pointValue = editFormData.pointValue;
-                await apiManager.makeRequest('score', 'update', params, 'POST');
+                // Construct params for score update
+                const scoreUpdateParams: EventUpdateParams = {
+                    placardId,
+                    sport,
+                    eventId: String(eventToEdit.id),
+                    team: editFormData.team, // Use validated editFormData.team
+                    playerId: editFormData.playerId,
+                    pointValue: editFormData.pointValue,
+                    timestamp: eventToEdit.timestamp, // Include timestamp for score if backend supports/requires
+                };
+                await apiManager.makeRequest('score', 'update', scoreUpdateParams, 'POST');
                 setEditConfirmMessage('Golo/Ponto atualizado com sucesso!');
             } else if (eventToEdit.type === 'card') {
                 if (!editFormData.cardType) {
                     setEditFormError('Tipo de Cartão é obrigatório.');
                     return;
                 }
-                params.cardType = editFormData.cardType;
-                const cardUpdateParams = {
+
+                const cardUpdateParams: UpdateCardParams = {
                     placardId,
                     sport,
                     eventId: String(eventToEdit.id),
-                    team: editFormData.team,
+                    team: editFormData.team, // Use validated editFormData.team (no '!' needed)
                     playerId: String(editFormData.playerId),
                     cardType: editFormData.cardType,
+                    timestamp: eventToEdit.timestamp, // Ensure original timestamp is included
                 };
+                console.log('Payload enviado:', cardUpdateParams);
                 await apiManager.updateCard(cardUpdateParams);
                 setEditConfirmMessage('Cartão atualizado com sucesso!');
             }
@@ -436,7 +473,7 @@ const EventHistory: React.FC = () => {
             setShowEditConfirmModal(true);
             fetchEvents();
         } catch (err) {
-            // console.error('Update event error:', err); // Keep or remove based on debugging needs
+            // console.error('Update event error:', err); // Trailing space removed
             let msg = 'Falha ao atualizar o evento.';
             if (err instanceof Error) msg += ` Detalhes: ${err.message}`;
             setEditFormError(msg);
@@ -610,19 +647,16 @@ const EventHistory: React.FC = () => {
                                 <span className="event-description-text">
                                     {event.description}
                                 </span>
-                                {event.player && event.type !== 'timeout' && (
-                                    <span className="player-name-text">
-                                        {event.player}
-                                    </span>
-                                )}
                                 {event.type === 'substitution' && event.details && (
                                     <span className="substitution-details-text">
                                         {/* ... substitution details ... */}
-                                        {event.details.playerInName || event.details.playerInId ?
-                                            ` Entra: ${String(event.details.playerInName || event.details.playerInId)}` : ''}
+                                        {event.details.playerInName || event.details.playerInId
+                                            ? ` Entra: ${String(event.details.playerInName || event.details.playerInId)}`
+                                            : ''}
                                         {event.details.playerInNumber ? ` (${String(event.details.playerInNumber)})` : ''}
-                                        {event.details.playerOutName || event.details.playerOutId ?
-                                            `, Sai: ${String(event.details.playerOutName || event.details.playerOutId)}` : ''}
+                                        {event.details.playerOutName || event.details.playerOutId
+                                            ? `, Sai: ${String(event.details.playerOutName || event.details.playerOutId)}`
+                                            : ''}
                                         {event.details.playerOutNumber ? ` (${String(event.details.playerOutNumber)})` : ''}
                                     </span>
                                 )}
@@ -638,37 +672,14 @@ const EventHistory: React.FC = () => {
                             ) && (
                                 <div className="event-visuals-group">
                                     {/* Display PlayerJersey if playerNumber exists and not a timeout event */}
-                                    {event.playerNumber && event.type !== 'timeout' && (
+                                    {event.playerNumber !== undefined &&
+                                        event.playerNumber !== null &&
+                                        event.playerNumber !== '' &&
+                                        event.type !== 'timeout' && (
                                         <div className="player-jersey-history-item">
                                             <PlayerJersey
                                                 number={typeof event.playerNumber === 'string' ?
                                                     parseInt(event.playerNumber, 10) : event.playerNumber}
-                                                // Pass team to PlayerJersey if it uses it for color
-                                                // team={event.team === 'home' ? 'home' : 'away'}
-                                            />
-                                        </div>
-                                    )}
-
-                                    {/* Display PlayerJersey if playerId exists (from event.details) and not a timeout event */}
-                                    {/* This block is added based on your prompt. If event.playerNumber is already shown,
-                                        this might render a second jersey if conditions for both are met.
-                                        Consider if this should be an 'else if' or if event.details.playerId
-                                        should only be used if event.playerNumber is not available.
-                                        For now, implementing as per the distinct blocks provided.
-                                    */}
-                                    {event.details &&
-                                        event.details.playerId !== null &&
-                                        event.details.playerId !== undefined &&
-                                        event.type !== 'timeout' && (
-                                        <div className="player-jersey-history-item">
-                                            <PlayerJersey
-                                                number={
-                                                    typeof event.details.playerId === 'string'
-                                                        ? parseInt(event.details.playerId, 10)
-                                                        : (event.details.playerId as number)
-                                                }
-                                                // Pass team to PlayerJersey if it uses it for color
-                                                // team={event.team === 'home' ? 'home' : 'away'}
                                             />
                                         </div>
                                     )}
