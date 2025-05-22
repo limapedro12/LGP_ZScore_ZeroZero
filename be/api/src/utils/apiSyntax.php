@@ -149,8 +149,9 @@
             }
             $playerName = $player['player_name'];
             $playerPosition = $player['player_position'];
+            $positionAcronym = $player['player_position_sigla'];
             $playerNumber = $player['player_number'];
-            if (!DbUtils::insertPlayer($playerId, $playerName, $sport, $playerPosition, $playerNumber, $teamId)) {
+            if (!DbUtils::insertPlayer($playerId, $playerName, $sport, $playerPosition, $positionAcronym, $playerNumber, $teamId)) {
                 return false; // Insert failed
             }
         }
@@ -174,7 +175,7 @@
             if (DbUtils::selectPlacardPlayer($placardId, $playerId)){
                 continue; // Player already exists, skip to next
             }
-            if (!DbUtils::insertPlacardPlayer($placardId, $playerId, true)){
+            if (!DbUtils::insertPlacardPlayer($placardId, $playerId, false, true)){
                 echo json_encode(["error" => "Failed to insert home team starting player"]);
                 return false; // Insert failed
             }
@@ -185,7 +186,7 @@
             if (DbUtils::selectPlacardPlayer($placardId, $playerId)){
                 continue; // Player already exists, skip to next
             }
-            if (!DbUtils::insertPlacardPlayer($placardId, $playerId, false)){
+            if (!DbUtils::insertPlacardPlayer($placardId, $playerId, false, false)){
                 echo json_encode(["error" => "Failed to insert home team bench player"]);
                 return false; // Insert failed
             }

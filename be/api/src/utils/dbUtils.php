@@ -174,15 +174,15 @@
 
         }
 
-        public static function insertPlayer($playerId, $playerName, $sport, $playerPosition, $playerNumber, $teamId)
+        public static function insertPlayer($playerId, $playerName, $sport, $playerPosition, $positionAcronym, $playerNumber, $teamId)
         {
             $conn = DbUtils::connect();
             if ($conn === false) {
                 return false;
             }
 
-            $stmt = $conn->prepare("INSERT INTO AbstractPlayer (id, name, sport, position, number, teamId) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("issssi", $playerId, $playerName, $sport, $playerPosition, $playerNumber, $teamId);
+            $stmt = $conn->prepare("INSERT INTO AbstractPlayer (id, name, sport, position, position_acronym, number, teamId) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("isssssi", $playerId, $playerName, $sport, $playerPosition, $playerNumber, $teamId);
             if ($stmt->execute()) {
                 $stmt->close();
                 $conn->close();
@@ -214,15 +214,15 @@
 
         }
 
-        public static function insertPlacardPlayer($placardId, $playerId, $isCaptain, $isStarting)
+        public static function insertPlacardPlayer($placardId, $playerId, $isStarting)
         {
             $conn = DbUtils::connect();
             if ($conn === false) {
                 return false;
             }
 
-            $stmt = $conn->prepare("INSERT INTO PlacardPlayer (placardId, playerId, isCaptain, isStarting) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("iiii", $placardId, $playerId, $isCaptain, $isStarting);
+            $stmt = $conn->prepare("INSERT INTO PlacardPlayer (placardId, playerId, isStarting) VALUES (?, ?, ?)");
+            $stmt->bind_param("iii", $placardId, $playerId, $isStarting);
             if ($stmt->execute()) {
                 $stmt->close();
                 $conn->close();
@@ -261,7 +261,7 @@
                 return false;
             }
 
-            $stmt = $conn->prepare("SELECT PlacardPlayer.id as id, PlacardPlayer.playerId as playerId, PlacardPlayer.isStarting as isStarting, AbstractPlayer.name as name,AbstractPlayer.position as position,AbstractPlayer.number as number,AbstractPlayer.teamId as teamId FROM PlacardPlayer JOIN AbstractPlayer ON PlacardPlayer.playerId = AbstractPlayer.id WHERE PlacardPlayer.placardId = ? AND AbstractPlayer.teamId = ?");
+            $stmt = $conn->prepare("SELECT PlacardPlayer.id as id, PlacardPlayer.playerId as playerId, PlacardPlayer.isStarting as isStarting, AbstractPlayer.name as name, AbstractPlayer.position as position, AbstractPlayer.position_acronym as position_acronym, AbstractPlayer.number as number,AbstractPlayer.teamId as teamId FROM PlacardPlayer JOIN AbstractPlayer ON PlacardPlayer.playerId = AbstractPlayer.id WHERE PlacardPlayer.placardId = ? AND AbstractPlayer.teamId = ?");
             $stmt->bind_param("ii", $placardId, $teamId);
             $stmt->execute();
             $result = $stmt->get_result();
