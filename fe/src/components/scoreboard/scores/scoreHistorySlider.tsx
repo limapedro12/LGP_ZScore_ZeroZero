@@ -69,7 +69,6 @@ const ScoresSlider: React.FC<ScoresSliderProps> = ({ sport, team, placardId, typ
         const chronologicalEvents = positionedEvents;
 
         const trimmedEvents = chronologicalEvents.slice(0, MAX_EVENTS_TO_DISPLAY);
-        console.log('Trimmed Events:', trimmedEvents);
         setDisplayedScores(trimmedEvents);
 
     }, [allScoreEvents, team]);

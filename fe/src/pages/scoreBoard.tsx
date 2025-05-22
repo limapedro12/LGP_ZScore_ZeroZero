@@ -25,11 +25,25 @@ const ScoreBoard = () => {
     const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
     const [noShotClockSports, setNoShotClockSports] = useState<string[]>([]);
     const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
+    const [nonCardSports, setNonCardSports] = useState<string[]>([]);
     const [timeoutStatus, setTimeoutStatus] = useState('inactive');
     const [sliderItemsCount, setSliderItemsCount] = useState(4);
     const [sliderIndex, setSliderIndex] = useState(0);
     const [isMobile, setIsMobile] = useState(window.innerWidth < BREAKPOINTS.md);
     const [dataLoaded, setDataLoaded] = useState(false);
+    const [sliderDataLoaded, setSliderDataLoaded] = useState(false);
+    const [hasSliderData, setHasSliderData] = useState<{
+        scores: boolean;
+        players: boolean;
+        cards: boolean;
+    }>({
+        scores: false,
+        players: false,
+        cards: false,
+    });
+    const [shouldPollScoreHistory, setShouldPollScoreHistory] = useState(true);
+    const [shouldPollCardEvents, setShouldPollCardEvents] = useState(true);
+    const [shouldPollPlayers, setShouldPollPlayers] = useState(true);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < BREAKPOINTS.md);
@@ -81,6 +95,93 @@ const ScoreBoard = () => {
         }
     }, []);
 
+    const fetchNonCardSports = useCallback(async () => {
+        try {
+            const response = await apiManager.getNoCardSports();
+            if (response && Array.isArray(response.sports)) {
+                setNonCardSports(response.sports);
+            } else {
+                setNonCardSports([]);
+            }
+        } catch (error) {
+            console.error('Error fetching non-card sports:', error);
+            setNonCardSports([]);
+        }
+    }, []);
+
+    const fetchScoreHistory = useCallback(async () => {
+        if (!placardId || !sport) {
+            setScoreData(null);
+            setHasSliderData((prev) => ({ ...prev, scores: false }));
+            return false;
+        }
+        try {
+            const response = await apiManager.getScoreHistory(placardId, sport);
+            const hasScoreHistory = response.points.length > 0;
+            setHasSliderData((prev) => ({ ...prev, scores: hasScoreHistory }));
+
+            // Stop polling this endpoint if we found data
+            if (hasScoreHistory) {
+                setShouldPollScoreHistory(false);
+            }
+
+            return hasScoreHistory;
+        } catch (error) {
+            setScoreData(null);
+            setHasSliderData((prev) => ({ ...prev, scores: false }));
+            return false;
+        }
+    }, [placardId, sport]);
+
+    const fetchCardEvents = useCallback(async () => {
+        if (!placardId || !sport) {
+            setHasSliderData((prev) => ({ ...prev, cards: false }));
+            return false;
+        }
+        if (nonCardSports.includes(sport)) {
+            setHasSliderData((prev) => ({ ...prev, cards: false }));
+            setShouldPollCardEvents(false); // Stop polling if this sport doesn't have cards
+            return false;
+        }
+        try {
+            const response = await apiManager.getCards(placardId, sport);
+            const hasCards = response.cards.length > 0;
+            setHasSliderData((prev) => ({ ...prev, cards: hasCards }));
+
+            // Stop polling this endpoint if we found data
+            if (hasCards) {
+                setShouldPollCardEvents(false);
+            }
+
+            return hasCards;
+        } catch (error) {
+            setHasSliderData((prev) => ({ ...prev, cards: false }));
+            return false;
+        }
+    }, [placardId, sport, nonCardSports]);
+
+    const fetchPlayers = useCallback(async () => {
+        if (!placardId || !sport) {
+            setHasSliderData((prev) => ({ ...prev, players: false }));
+            return false;
+        }
+        try {
+            const response = await apiManager.getTeamPlayers();
+            const hasPlayers = response.length > 0;
+            setHasSliderData((prev) => ({ ...prev, players: hasPlayers }));
+
+            // Stop polling this endpoint if we found data
+            if (hasPlayers) {
+                setShouldPollPlayers(false);
+            }
+
+            return hasPlayers;
+        } catch (error) {
+            setHasSliderData((prev) => ({ ...prev, players: false }));
+            return false;
+        }
+    }, [placardId, sport]);
+
     const fetchScores = useCallback(async () => {
         if (!placardId || !sport) return;
         try {
@@ -103,6 +204,7 @@ const ScoreBoard = () => {
                 fetchNoPeriodSports(),
                 fetchNoShotClockSports(),
                 fetchNonTimerSports(),
+                fetchNonCardSports(),
             ]);
             setDataLoaded(true);
         };
@@ -110,7 +212,7 @@ const ScoreBoard = () => {
         fetchData();
         const intervalId = setInterval(fetchScores, 5000);
         return () => clearInterval(intervalId);
-    }, [fetchScores, fetchNoPeriodSports, fetchNoShotClockSports, fetchNonTimerSports]);
+    }, [fetchScores, fetchNoPeriodSports, fetchNoShotClockSports, fetchNonTimerSports, fetchNonCardSports]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -118,6 +220,39 @@ const ScoreBoard = () => {
         }, 10000);
         return () => clearInterval(interval);
     }, [sliderItemsCount]);
+
+    useEffect(() => {
+        const initialLoad = async () => {
+            setSliderDataLoaded(false);
+            await Promise.all([
+                fetchScoreHistory(),
+                fetchCardEvents(),
+                fetchPlayers(),
+            ]);
+            setSliderDataLoaded(true);
+        };
+
+        initialLoad();
+
+        const scoreHistoryInterval = shouldPollScoreHistory ?
+            setInterval(fetchScoreHistory, 5000) : null;
+
+        const cardEventsInterval = shouldPollCardEvents ?
+            setInterval(fetchCardEvents, 5000) : null;
+
+        const playersInterval = shouldPollPlayers ?
+            setInterval(fetchPlayers, 5000) : null;
+
+        // Cleanup function
+        return () => {
+            if (scoreHistoryInterval) clearInterval(scoreHistoryInterval);
+            if (cardEventsInterval) clearInterval(cardEventsInterval);
+            if (playersInterval) clearInterval(playersInterval);
+        };
+    }, [
+        fetchScoreHistory, fetchCardEvents, fetchPlayers,
+        shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers,
+    ]);
 
     const Center = useMemo(() => {
         if (!dataLoaded) return null;
@@ -185,6 +320,10 @@ const ScoreBoard = () => {
         return () => clearInterval(intervalId);
     }, [fetchTeams]);
 
+    if (!sliderDataLoaded) {
+        return null;
+    }
+
     return (
         <Container fluid className={containerClassName}>
             <Row className="scores-row-wrapper w-100">
@@ -203,6 +342,7 @@ const ScoreBoard = () => {
                             onItemsCountChange={handleSliderItemsCountChange}
                             teamColor={homeTeam?.color}
                             teamId={homeTeam?.id}
+                            sliderData={hasSliderData}
                         />
                     </Col>
 
@@ -216,6 +356,7 @@ const ScoreBoard = () => {
                             onItemsCountChange={handleSliderItemsCountChange}
                             teamColor={awayTeam?.color}
                             teamId={awayTeam?.id}
+                            sliderData={hasSliderData}
                         />
                     </Col>
                 </Row>
@@ -233,6 +374,8 @@ const ScoreBoard = () => {
                                 onItemsCountChange={handleSliderItemsCountChange}
                                 teamColor={homeTeam?.color}
                                 teamId={homeTeam?.id}
+                                sliderData={hasSliderData}
+
                             />
                         </Col>
                         <Col className="pe-0 h-100 overflow-hidden">
@@ -241,6 +384,8 @@ const ScoreBoard = () => {
                                 onItemsCountChange={handleSliderItemsCountChange}
                                 teamColor={awayTeam?.color}
                                 teamId={awayTeam?.id}
+                                sliderData={hasSliderData}
+
                             />
                         </Col>
                     </Row>

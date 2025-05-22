@@ -33,36 +33,28 @@
     max-height: 80px;
     object-fit: contain;
     
-    @include config.md { 
+    @include config.xl { 
         max-height: 100px;
     }
     
-    @include config.lg { 
+    @include config.xxl { 
         max-height: 120px;
     }
     
-    @include config.xl { 
-        max-height: 140px;
-    }
-    
-    @include config.xxl { 
-        max-height: 170px;
-    }
-    
     @include config.placard1 { 
-        max-height: 200px;
+        max-height: 160px;
     }
     
     @include config.placard2 { 
-        max-height: 240px;
+        max-height: 180px;
     }
     
     @include config.placard3 { 
-        max-height: 280px;
+        max-height: 230px;
     }
     
     @include config.placard4 { 
-        max-height: 320px;
+        max-height: 260px;
     }
 }
 

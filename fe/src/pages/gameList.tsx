@@ -19,7 +19,6 @@ const GameList = () => {
                 const response = await apiManager.getAvailPlacards();
                 if (response) {
                     const data = await response;
-                    console.log('Data fetched:', data);
                     const formattedGames = await Promise.all(data.map(async (game) => {
                         const homeTeam = await apiManager.getTeamInfo(game.firstTeamId);
                         const awayTeam = await apiManager.getTeamInfo(game.secondTeamId);

@@ -41,8 +41,7 @@ const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete, teamColor, 
                 return;
             }
 
-            const response = await apiManager.getTeamLineup(placardId, teamId);
-            console.log('SquadSlider data:', teamId);
+            const response = await apiManager.getTeamPlayers();
 
             if (Array.isArray(response)) {
                 setSquadPlayers(response);
