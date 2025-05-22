@@ -32,6 +32,8 @@ const GameList = () => {
                             date: new Date(game.startTime).toLocaleDateString(),
                             time: new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             sport: game.sport,
+                            liga: 'Liga Mock', // TODO remove this
+                            local: 'Pavilhão Siza Vieira', // TODO remove this
                         };
                     }));
                     setGames(formattedGames);
