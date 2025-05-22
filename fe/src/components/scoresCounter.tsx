@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import apiManager from '../api/apiManager';
+import apiManager, { ApiTeam } from '../api/apiManager';
 import '../styles/scoresCounter.scss';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -19,19 +19,12 @@ interface ScoresRowProps {
   };
 }
 
-const ScoresRow: React.FC<ScoresRowProps> = ({
-    homeTeam = {
-        abbreviation: 'SLB',
-        logo: '/teamLogos/slb.png',
-    },
-    awayTeam = {
-        abbreviation: 'SCP',
-        logo: '/teamLogos/scp.png',
-    },
-}) => {
+const ScoresRow: React.FC<ScoresRowProps> = () => {
     const [placardId, setPlacardId] = useState<string>('default');
     const [sport, setSport] = useState<string>('default');
     const [scores, setScores] = useState<{ home: number, away: number }>({ home: 0, away: 0 });
+    const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
+    const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
     const { placardId: urlPlacardId, sport: urlSport } = useParams<{ placardId: string, sport: string }>();
 
     useEffect(() => {
@@ -56,20 +49,38 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
         }
     }, [placardId, sport]);
 
+    const fetchTeams = useCallback(async () => {
+        if (placardId === 'default') {
+            return;
+        }
+        try {
+            const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
+            if (placardInfo) {
+                const home = await apiManager.getTeamInfo(placardInfo.firstTeamId);
+                const away = await apiManager.getTeamInfo(placardInfo.secondTeamId);
+                setHomeTeam(home);
+                setAwayTeam(away);
+            }
+        } catch (error) {
+            console.error('Error fetching teams:', error);
+        }
+    }, [placardId]);
+
     useEffect(() => {
         fetchScores();
+        fetchTeams();
         const intervalId = setInterval(fetchScores, 5000);
 
         return () => clearInterval(intervalId);
-    }, [fetchScores]);
+    }, [fetchScores, fetchTeams]);
 
     return (
         <Container fluid className="scores-row-container py-3">
             <Row className="align-items-center justify-content-between">
                 <Col xs={0} md={3} lg={2} className="text-center team-col d-none d-md-flex flex-column">
-                    <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo" />
+                    <img src={homeTeam?.logoURL || '/defaultLogo.png'} alt={homeTeam?.acronym || 'Home'} className="team-logo" />
                     <div className="team-abbr">
-                        {homeTeam.abbreviation}
+                        {homeTeam?.acronym || 'Home'}
                     </div>
                 </Col>
                 <Col xs={12} md={6} lg={8} className="score-center-col">
@@ -78,18 +89,18 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                             <div className="score-box mb-2">
                                 {scores.home}
                             </div>
-                            <img src={homeTeam.logo} alt={homeTeam.abbreviation} className="team-logo" />
+                            <img src={homeTeam?.logoURL || '/defaultLogo.png'} alt={homeTeam?.acronym || 'Home'} className="team-logo" />
                             <div className="team-abbr">
-                                {homeTeam.abbreviation}
+                                {homeTeam?.acronym || 'Home'}
                             </div>
                         </div>
                         <div className="d-flex flex-column align-items-center mx-4 flex-fill">
                             <div className="score-box mb-2">
                                 {scores.away}
                             </div>
-                            <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo" />
+                            <img src={awayTeam?.logoURL || '/defaultLogo.png'} alt={awayTeam?.acronym || 'Away'} className="team-logo" />
                             <div className="team-abbr">
-                                {awayTeam.abbreviation}
+                                {awayTeam?.acronym || 'Away'}
                             </div>
                         </div>
                     </div>
@@ -103,9 +114,9 @@ const ScoresRow: React.FC<ScoresRowProps> = ({
                     </div>
                 </Col>
                 <Col xs={0} md={3} lg={2} className="text-center team-col d-none d-md-flex flex-column">
-                    <img src={awayTeam.logo} alt={awayTeam.abbreviation} className="team-logo" />
+                    <img src={awayTeam?.logoURL || '/defaultLogo.png'} alt={awayTeam?.acronym || 'Away'} className="team-logo" />
                     <div className="team-abbr">
-                        {awayTeam.abbreviation}
+                        {awayTeam?.acronym || 'Away'}
                     </div>
                 </Col>
             </Row>

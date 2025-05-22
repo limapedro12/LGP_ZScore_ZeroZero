@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import CardEvent from './cardEvent';
 import { Sport, CardTypeForSport } from '../../../utils/cardUtils';
 import apiManager from '../../../api/apiManager';
-
+import BaseSlider from '../baseSlider';
+import '../../../styles/sliderComponents.scss';
+import CardEvent from './cardEvent';
+import { useMediaQuery } from 'react-responsive';
+import { BREAKPOINTS } from '../../../media-queries';
 
 export interface TransformedCardEventData {
   id: string | number;
@@ -19,7 +22,9 @@ interface CardSliderProps {
 
 const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
     const [displayedCards, setDisplayedCards] = useState<Array<TransformedCardEventData>>([]);
-    const MAX_EVENTS_TO_DISPLAY = 6;
+    const MAX_EVENTS_TO_DISPLAY = 5;
+    const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
+
 
     const fetchAndSetCards = useCallback(async () => {
         if (!placardId || !sport) {
@@ -27,20 +32,30 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
             return;
         }
         try {
-            const response = await apiManager.getCards(placardId, sport);
-            const sortedApiCards = response.cards.sort((a, b) => b.timestamp - a.timestamp);
+            const [cardResponse, playersResponse] = await Promise.all([
+                apiManager.getCards(placardId, sport),
+                apiManager.getTeamPlayers(),
+            ]);
+
+            const allPlayers = Array.isArray(playersResponse) ? playersResponse : [];
+
+            const sortedApiCards = cardResponse.cards.sort((a, b) => b.timestamp - a.timestamp);
             const teamFilteredCards = sortedApiCards.filter((apiCard) => apiCard.team === team);
 
-            const transformedEvents: TransformedCardEventData[] = teamFilteredCards.map((apiCard) => ({
-                id: apiCard.eventId,
-                playerName: `Player ${apiCard.playerId} Nome longo`,
-                playerNumber: 10,
-                cardType: apiCard.cardType,
-            }));
+
+            const transformedEvents: TransformedCardEventData[] = teamFilteredCards.map((apiCard) => {
+                const player = allPlayers.find((p) => p.player_id === apiCard.playerId);
+                return {
+                    id: apiCard.eventId,
+                    playerName: player ? player.player_name : `Player ${apiCard.playerId}`,
+                    playerNumber: player ? Number(player.player_number) : undefined,
+                    cardType: apiCard.cardType,
+                };
+            });
 
             setDisplayedCards(transformedEvents.slice(0, MAX_EVENTS_TO_DISPLAY));
         } catch (error) {
-            console.error('Error fetching card events:', error);
+            console.error('Error fetching card events or team players:', error);
             setDisplayedCards([]);
         }
     }, [placardId, sport, team]);
@@ -52,27 +67,23 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
         return () => clearInterval(intervalId);
     }, [fetchAndSetCards]);
 
-    if (displayedCards.length === 0) {
-        return null;
-    }
 
     return (
-        <div className={'d-flex flex-column w-100 h-100 gy-2 justify-content-around pb-2 overflow-y-auto'}>
-            {displayedCards.map((eventData) => (
-                <div
-                    key={eventData.id}
-                    className="w-100 d-flex justify-content-center align-items-center"
-                >
-                    <CardEvent
-                        sport={sport}
-                        cardType={eventData.cardType as CardTypeForSport<typeof sport>}
-                        playerName={eventData.playerName}
-                        playerNumber={undefined}
-                        team={team}
-                    />
-                </div>
-            ))}
-        </div>
+        <BaseSlider title="Cartões" className="card-slider">
+            <div className="player-scores-list w-100 d-flex flex-column gap-2">
+                {                    displayedCards.map((eventData) => (
+                    <div key={eventData.id} className="player-score-item">
+                        <CardEvent
+                            sport={sport}
+                            playerName={!small ? eventData.playerName : '' }
+                            playerNumber={eventData.playerNumber}
+                            cardType={eventData.cardType as CardTypeForSport<typeof sport>}
+                            team={team}
+                        />
+                    </div>
+                ))}
+            </div>
+        </BaseSlider>
     );
 };
 
