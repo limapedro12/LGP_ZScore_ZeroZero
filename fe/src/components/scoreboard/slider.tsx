@@ -19,9 +19,10 @@ interface SliderProps {
   sliderIndex?: number;
   onItemsCountChange?: (count: number) => void;
   teamColor?: string;
+  teamId?: string;
 }
 
-const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0, onItemsCountChange, teamColor }) => {
+const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0, onItemsCountChange, teamColor, teamId }) => {
     const [nonCardSports, setNonCardSports] = useState<string[]>([]);
     const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
 
@@ -49,7 +50,6 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
             const response = await apiManager.getSportScoreType(sport);
             const typeCode = response.typeOfScore?.toLowerCase();
 
-            // Use the mapping to get the display text
             setScoreType(typeCode && SCORE_TYPES[typeCode] ? SCORE_TYPES[typeCode] : SCORE_TYPES.default);
         } catch (error) {
             console.error('Error fetching score type:', error);
@@ -68,7 +68,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
         ...(!isNonCardSport ? [<CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />] : []),
         <ScoreHistorySlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="score-history-item" />,
         <PlayerScoreSlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="player-score-item" />,
-        <SquadSlider team={team} key="squad-slider-item" teamColor={teamColor} />,
+        <SquadSlider team={team} key="squad-slider-item" teamColor={teamColor} teamId={teamId} placardId={placardId} />,
     ];
 
     useEffect(() => {

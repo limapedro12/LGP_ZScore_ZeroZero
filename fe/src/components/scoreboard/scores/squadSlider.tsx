@@ -12,6 +12,8 @@ interface SquadSliderProps {
   team: 'home' | 'away';
   onComplete?: () => void;
   teamColor?: string;
+  teamId?: string;
+  placardId?: string;
 }
 
 interface Player {
@@ -23,7 +25,7 @@ interface Player {
   INTEAM: string;
 }
 
-const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete, teamColor }) => {
+const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete, teamColor, teamId, placardId }) => {
     const [squadPlayers, setSquadPlayers] = useState<Player[]>([]);
     const [currentPageIndex, setCurrentPageIndex] = useState(0);
     const [hasCompletedCycle, setHasCompletedCycle] = useState(false);
@@ -33,7 +35,14 @@ const SquadSlider: React.FC<SquadSliderProps> = ({ team, onComplete, teamColor }
 
     const fetchSquadPlayers = useCallback(async () => {
         try {
-            const response = await apiManager.getTeamPlayers();
+
+            if (!placardId || !teamId) {
+                setSquadPlayers([]);
+                return;
+            }
+
+            const response = await apiManager.getTeamLineup(placardId, teamId);
+            console.log('SquadSlider data:', teamId);
 
             if (Array.isArray(response)) {
                 setSquadPlayers(response);

@@ -31,7 +31,6 @@ const ScoreBoard = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < BREAKPOINTS.md);
     const [dataLoaded, setDataLoaded] = useState(false);
 
-    // Media query handler
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < BREAKPOINTS.md);
         window.addEventListener('resize', handleResize);
@@ -203,6 +202,7 @@ const ScoreBoard = () => {
                             placardId={placardId} sliderIndex={sliderIndex}
                             onItemsCountChange={handleSliderItemsCountChange}
                             teamColor={homeTeam?.color}
+                            teamId={homeTeam?.id}
                         />
                     </Col>
 
@@ -215,6 +215,7 @@ const ScoreBoard = () => {
                             sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
                             onItemsCountChange={handleSliderItemsCountChange}
                             teamColor={awayTeam?.color}
+                            teamId={awayTeam?.id}
                         />
                     </Col>
                 </Row>
@@ -230,12 +231,16 @@ const ScoreBoard = () => {
                             <Slider
                                 sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex}
                                 onItemsCountChange={handleSliderItemsCountChange}
+                                teamColor={homeTeam?.color}
+                                teamId={homeTeam?.id}
                             />
                         </Col>
                         <Col className="pe-0 h-100 overflow-hidden">
                             <Slider
                                 sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
                                 onItemsCountChange={handleSliderItemsCountChange}
+                                teamColor={awayTeam?.color}
+                                teamId={awayTeam?.id}
                             />
                         </Col>
                     </Row>
