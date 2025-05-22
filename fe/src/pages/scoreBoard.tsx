@@ -34,8 +34,6 @@ const ScoreBoard = () => {
     const [dataLoaded, setDataLoaded] = useState(false);
     const [sliderDataLoaded, setSliderDataLoaded] = useState(false);
 
-    const [sliderItemsCount, setSliderItemsCount] = useState(4);
-    const [sliderIndex, setSliderIndex] = useState(0);
     const [hasSliderData, setHasSliderData] = useState({
         scores: false,
         players: false,
@@ -124,17 +122,41 @@ const ScoreBoard = () => {
             setShouldPollCardEvents(false);
         }
 
-        if (placardId && sport && shouldPollPlayers) {
+        if (placardId && shouldPollPlayers && homeTeam?.id && awayTeam?.id) {
             try {
-                const response = await apiManager.getTeamPlayers();
-                const hasPlayers = response.length > 0;
-                setHasSliderData((prev) => ({ ...prev, players: hasPlayers }));
-                if (hasPlayers) setShouldPollPlayers(false);
+                const [homeLineup, awayLineup] = await Promise.all([
+                    apiManager.getTeamLineup(placardId, homeTeam.id),
+                    apiManager.getTeamLineup(placardId, awayTeam.id),
+                ]);
+
+                let homeLineupArray: ApiPlayer[] = [];
+                if (Array.isArray(homeLineup)) {
+                    homeLineupArray = homeLineup;
+                } else if (homeLineup) {
+                    homeLineupArray = [homeLineup];
+                }
+
+                let awayLineupArray: ApiPlayer[] = [];
+                if (Array.isArray(awayLineup)) {
+                    awayLineupArray = awayLineup;
+                } else if (awayLineup) {
+                    awayLineupArray = [awayLineup];
+                }
+
+                setHomeTeamLineup(homeLineupArray);
+                setAwayTeamLineup(awayLineupArray);
+
+                if (homeLineupArray.length > 0 || awayLineupArray.length > 0) {
+                    setHasSliderData((prev) => ({ ...prev, players: true }));
+                    setShouldPollPlayers(false);
+                } else {
+                    setHasSliderData((prev) => ({ ...prev, players: false }));
+                }
             } catch {
                 setHasSliderData((prev) => ({ ...prev, players: false }));
             }
         }
-    }, [placardId, sport, nonCardSports, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers]);
+    }, [placardId, sport, nonCardSports, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers, homeTeam?.id, awayTeam?.id]);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -157,33 +179,6 @@ const ScoreBoard = () => {
             clearInterval(teamsInterval);
         };
     }, [fetchScores, fetchSportConfigurations, fetchTeams]);
-
-    const fetchTeamLineups = useCallback(async () => {
-        if (!placardId || !homeTeam?.id || !awayTeam?.id) return;
-
-        try {
-            const [homeLineup, awayLineup] = await Promise.all([
-                apiManager.getTeamLineup(placardId, homeTeam.id),
-                apiManager.getTeamLineup(placardId, awayTeam.id),
-            ]);
-
-            setHomeTeamLineup(Array.isArray(homeLineup) ? homeLineup : []);
-            setAwayTeamLineup(Array.isArray(awayLineup) ? awayLineup : []);
-        } catch (error) {
-            console.error('Error fetching team lineups:', error);
-        }
-    }, [placardId, homeTeam?.id, awayTeam?.id]);
-
-    useEffect(() => {
-        if (homeTeam?.id && awayTeam?.id) {
-            fetchTeamLineups();
-
-            // Refresh lineups every 30 seconds
-            const lineupsInterval = setInterval(fetchTeamLineups, 30000);
-            return () => clearInterval(lineupsInterval);
-        }
-        return undefined;
-    }, [homeTeam?.id, awayTeam?.id, fetchTeamLineups]);
 
     useEffect(() => {
         const loadSliderData = async () => {
@@ -212,13 +207,6 @@ const ScoreBoard = () => {
             intervals.forEach((interval) => window.clearInterval(interval));
         };
     }, [fetchSliderData, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers]);
-
-    useEffect(() => {
-        const interval = window.setInterval(() => {
-            setSliderIndex((prev) => (prev + 1) % sliderItemsCount);
-        }, 10000);
-        return () => window.clearInterval(interval);
-    }, [sliderItemsCount]);
 
     const Center = useMemo(() => {
         if (!dataLoaded) return null;
@@ -271,13 +259,10 @@ const ScoreBoard = () => {
             </Row>
 
             {!isMobile ? (
-                // Desktop Layout
                 <Row className="slider-content-row w-100 justify-content-center flex-grow-1 overflow-hidden">
                     <Col xs={12} md={4} lg={4} className="ps-0 h-100 overflow-hidden">
                         <Slider
                             sport={sport} team="home" placardId={placardId}
-                            sliderIndex={sliderIndex}
-                            onItemsCountChange={setSliderItemsCount}
                             teamColor={homeTeam?.color}
                             sliderData={hasSliderData}
                             teamLineup={homeTeamLineup}
@@ -292,8 +277,6 @@ const ScoreBoard = () => {
                     <Col xs={12} md={4} lg={4} className="pe-0 h-100 overflow-hidden">
                         <Slider
                             sport={sport} team="away" placardId={placardId}
-                            sliderIndex={sliderIndex}
-                            onItemsCountChange={setSliderItemsCount}
                             teamColor={awayTeam?.color}
                             sliderData={hasSliderData}
                             teamLineup={awayTeamLineup}
@@ -313,8 +296,6 @@ const ScoreBoard = () => {
                         <Col className="ps-0 h-100 overflow-hidden">
                             <Slider
                                 sport={sport} team="home" placardId={placardId}
-                                sliderIndex={sliderIndex}
-                                onItemsCountChange={setSliderItemsCount}
                                 teamColor={homeTeam?.color}
                                 sliderData={hasSliderData}
                                 teamLineup={homeTeamLineup}
@@ -323,8 +304,6 @@ const ScoreBoard = () => {
                         <Col className="pe-0 h-100 overflow-hidden">
                             <Slider
                                 sport={sport} team="away" placardId={placardId}
-                                sliderIndex={sliderIndex}
-                                onItemsCountChange={setSliderItemsCount}
                                 teamColor={awayTeam?.color}
                                 sliderData={hasSliderData}
                                 teamLineup={awayTeamLineup}

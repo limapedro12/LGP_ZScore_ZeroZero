@@ -22,16 +22,14 @@ interface SliderProps {
   sport: Sport;
   placardId: string;
   team: 'home' | 'away';
-  sliderIndex?: number;
-  onItemsCountChange?: (count: number) => void;
   teamColor?: string;
   sliderData: SliderData;
   teamLineup?: ApiPlayer[];
 }
 
-const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0,
-    onItemsCountChange, teamColor, sliderData, teamLineup }) => {
+const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, sliderData, teamLineup }) => {
     const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     const fetchScoreType = useCallback(async () => {
         if (!sport) {
@@ -53,8 +51,13 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
         fetchScoreType();
     }, [fetchScoreType]);
 
-
     const sliderItems: React.ReactNode[] = [
+        ...(sliderData.players ?
+            [
+                <SquadSlider
+                    team={team} key="squad-slider-item" teamColor={teamColor} players={teamLineup}
+                />] : []),
+
         ...(sliderData.cards ? [<CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />] : []),
 
         ...(sliderData.scores ?
@@ -62,19 +65,27 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
 
         ...((sliderData.scores && sliderData.players) ?
             [<PlayerScoreSlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="player-score-item" />] : []),
-
-        ...(sliderData.players ?
-            [
-                <SquadSlider
-                    team={team} key="squad-slider-item" teamColor={teamColor} players={teamLineup}
-                />] : []),
     ];
 
+    console.log(sliderData.cards);
+
     useEffect(() => {
-        if (onItemsCountChange) {
-            onItemsCountChange(sliderItems.length);
+        if (currentIndex >= sliderItems.length && sliderItems.length > 0) {
+            setCurrentIndex(0);
         }
-    }, [sliderItems.length, onItemsCountChange]);
+    }, [sliderItems.length, currentIndex]);
+
+    useEffect(() => {
+        if (sliderItems.length <= 1) {
+            return () => {};
+        }
+
+        const interval = window.setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % sliderItems.length);
+        }, 10000);
+
+        return () => window.clearInterval(interval);
+    }, [sliderItems.length]);
 
     if (sliderItems.length === 0) {
         return null;
@@ -82,7 +93,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
 
     return (
         <div className="w-100 h-100 d-flex justify-content-center align-items-center">
-            {sliderItems[sliderIndex]}
+            {sliderItems[currentIndex]}
         </div>
     );
 };
