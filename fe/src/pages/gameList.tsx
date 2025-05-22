@@ -19,11 +19,12 @@ const GameList = () => {
                 const response = await apiManager.getAvailPlacards();
                 if (response) {
                     const data = await response;
+                    console.log('Data fetched:', data);
                     const formattedGames = await Promise.all(data.map(async (game) => {
                         const homeTeam = await apiManager.getTeamInfo(game.firstTeamId);
                         const awayTeam = await apiManager.getTeamInfo(game.secondTeamId);
                         return {
-                            id: game.id,
+                            placardId: game.id,
                             home: homeTeam?.name || 'Unknown', // Ensure `home` is defined
                             homeLogo: homeTeam?.logoURL || '', // Ensure `homeLogo` is defined
                             away: awayTeam?.name || 'Unknown', // Ensure `away` is defined
@@ -40,26 +41,6 @@ const GameList = () => {
                 }
             } catch (error) {
                 console.error('Error fetching games:', error);
-                const games = [ // TODO remove this later
-                    { date: '22/03/2025', time: '16:00', home: 'Vitória SC', away: 'Sporting CP',
-                        sport: 'futsal', placardId: '1', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock',
-                        homeLogo: 'teamLogos/slb.png', awayLogo: 'teamLogos/scp.png' },
-                    { date: '10/04/2025', time: '14:00', home: 'Leixões', away: 'Sporting CP',
-                        sport: 'futsal', placardId: '2', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock',
-                        homeLogo: 'teamLogos/slb.png', awayLogo: 'teamLogos/scp.png' },
-                    { date: '22/03/2025', time: '18:00', home: 'Vitória SC', away: 'Benfica',
-                        sport: 'volleyball', placardId: '3', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock',
-                        homeLogo: 'teamLogos/slb.png', awayLogo: 'teamLogos/scp.png' },
-                    { date: '07/04/2025', time: '20:00', home: 'Vitória SC', away: 'Leixões',
-                        sport: 'volleyball', placardId: '4', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock',
-                        homeLogo: 'teamLogos/slb.png', awayLogo: 'teamLogos/scp.png' },
-                    { date: '16/04/2025', time: '20:00', home: 'Vitória SC', away: 'Clube K',
-                        sport: 'basketball', placardId: '5', local: 'Pavilhão Siza Vieira', liga: 'Liga Mock',
-                        homeLogo: 'teamLogos/slb.png', awayLogo: 'teamLogos/scp.png' },
-                ];
-
-                setGames(games);
-                setFilteredGames(games);
             }
         };
 

@@ -86,18 +86,22 @@ const SelectView: React.FC = () => {
                             {game.date}
                         </span>
                     </div>
+                    {game.local &&
                     <div className="detail-row">
                         <span>📍</span>
                         <span>
                             {game.local}
                         </span>
                     </div>
+                    }
+                    {game.liga &&
                     <div className="detail-row">
                         <span>🏆</span>
                         <span>
                             {game.liga}
                         </span>
                     </div>
+                    }
                 </div>
 
                 <div className="actions">
