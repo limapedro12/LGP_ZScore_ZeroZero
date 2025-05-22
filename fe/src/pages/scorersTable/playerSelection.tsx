@@ -3,6 +3,7 @@ import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import PlayerJersey from '../../components/playerJersey';
+import { ToastContainer } from 'react-toastify';
 import '../../styles/playerSelection.scss';
 import apiManager, { ApiPlayer } from '../../api/apiManager';
 
@@ -211,6 +212,7 @@ const PlayerSelectionPage: React.FC = () => {
 
     return (
         <Container fluid className="player-selection-container p-0">
+            <ToastContainer />
             <Row className="header-row gx-0 pt-3 pb-3 px-3 align-items-center">
                 <Col xs="auto">
                     <Button variant="link" onClick={handleGoBack} className="p-0 me-2 back-button">
