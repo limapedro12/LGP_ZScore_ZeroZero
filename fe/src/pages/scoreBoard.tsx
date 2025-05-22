@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import apiManager, { ApiTeam, ScoreResponse } from '../api/apiManager';
 import { useParams } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
@@ -13,6 +13,7 @@ import Slider from '../components/scoreboard/slider';
 import ShotClock from '../components/scoreboard/shotClock';
 import '../styles/scoreBoard.scss';
 import { Sport } from '../utils/cardUtils';
+import { BREAKPOINTS } from '../media-queries';
 
 const ScoreBoard = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
@@ -23,9 +24,19 @@ const ScoreBoard = () => {
     const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
     const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
     const [noShotClockSports, setNoShotClockSports] = useState<string[]>([]);
+    const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
     const [timeoutStatus, setTimeoutStatus] = useState('inactive');
     const [sliderItemsCount, setSliderItemsCount] = useState(4);
     const [sliderIndex, setSliderIndex] = useState(0);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < BREAKPOINTS.md);
+    const [dataLoaded, setDataLoaded] = useState(false);
+
+    // Media query handler
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < BREAKPOINTS.md);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const handleSliderItemsCountChange = useCallback((count: number) => {
         setSliderItemsCount(count);
@@ -57,6 +68,20 @@ const ScoreBoard = () => {
         }
     }, []);
 
+    const fetchNonTimerSports = useCallback(async () => {
+        try {
+            const response = await apiManager.getNonTimerSports();
+            if (response && Array.isArray(response.sports)) {
+                setNonTimerSports(response.sports);
+            } else {
+                setNonTimerSports([]);
+            }
+        } catch (error) {
+            console.error('Error fetching non-timer sports:', error);
+            setNonTimerSports([]);
+        }
+    }, []);
+
     const fetchScores = useCallback(async () => {
         if (!placardId || !sport) return;
         try {
@@ -72,12 +97,21 @@ const ScoreBoard = () => {
     };
 
     useEffect(() => {
-        fetchScores();
-        fetchNoPeriodSports();
-        fetchNoShotClockSports();
+        const fetchData = async () => {
+            setDataLoaded(false);
+            await Promise.all([
+                fetchScores(),
+                fetchNoPeriodSports(),
+                fetchNoShotClockSports(),
+                fetchNonTimerSports(),
+            ]);
+            setDataLoaded(true);
+        };
+
+        fetchData();
         const intervalId = setInterval(fetchScores, 5000);
         return () => clearInterval(intervalId);
-    }, [fetchScores, fetchNoPeriodSports, fetchNoShotClockSports]);
+    }, [fetchScores, fetchNoPeriodSports, fetchNoShotClockSports, fetchNonTimerSports]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -86,43 +120,45 @@ const ScoreBoard = () => {
         return () => clearInterval(interval);
     }, [sliderItemsCount]);
 
-    const Center = (
-        <>
-            {sport && !noShotClockSports.includes(sport) && (noShotClockSports.length > 0) && (
-                <div className="shot-clock-wrapper w-100 d-flex justify-content-center">
-                    <ShotClock />
-                </div>
-            )}
-            {sport && noPeriodBoxSports.includes(sport) && (
-                <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                    <TimeoutTimer onStatusChange={handleTimeoutStatusChange} />
-                </div>
-            )}
-            {sport && !noPeriodBoxSports.includes(sport) && (
-                <>
-                    <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                        <TimeoutTimer onStatusChange={handleTimeoutStatusChange} substitute={true} />
-                    </div>
-                    <SetBox
-                        scoreData={scoreData}
-                        timeoutActive={timeoutStatus !== 'inactive'}
-                    />
-                </>
-            )}
-            <div className="timer-wrapper w-100 d-flex justify-content-center">
-                <Timer />
-            </div>
-            <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
-                <TimeoutCounter />
-            </div>
-            {/* <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
-                <TimeoutCounter />
-            </div> */}
-        </>
-    );
+    const Center = useMemo(() => {
+        if (!dataLoaded) return null;
 
-    const containerClassName =
-        'scoreboard-container d-flex flex-column min-vh-100 p-0';
+        return (
+            <>
+                {sport && !noShotClockSports.includes(sport) && (
+                    <div className="shot-clock-wrapper w-100 d-flex justify-content-center">
+                        <ShotClock />
+                    </div>
+                )}
+                {sport && noPeriodBoxSports.includes(sport) && (
+                    <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
+                        <TimeoutTimer onStatusChange={handleTimeoutStatusChange} />
+                    </div>
+                )}
+                {sport && !noPeriodBoxSports.includes(sport) && (
+                    <>
+                        <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
+                            <TimeoutTimer onStatusChange={handleTimeoutStatusChange} substitute={true} />
+                        </div>
+                        <SetBox
+                            scoreData={scoreData}
+                            timeoutActive={timeoutStatus !== 'inactive'}
+                        />
+                    </>
+                )}
+                {sport && !nonTimerSports.includes(sport) && (
+                    <div className="timer-wrapper w-100 d-flex justify-content-center">
+                        <Timer />
+                    </div>
+                )}
+                <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
+                    <TimeoutCounter />
+                </div>
+            </>
+        );
+    }, [sport, noShotClockSports, noPeriodBoxSports, nonTimerSports, timeoutStatus, scoreData, dataLoaded]);
+
+    const containerClassName = 'scoreboard-container d-flex flex-column min-vh-100 p-0';
 
     const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
     const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
@@ -142,71 +178,69 @@ const ScoreBoard = () => {
         } catch (error) {
             console.error('Error fetching teams:', error);
         }
-    }, [placardId]);
+    }, [placardId, sport]);
 
     useEffect(() => {
         fetchTeams();
         const intervalId = setInterval(fetchTeams, 5000);
-
         return () => clearInterval(intervalId);
     }, [fetchTeams]);
 
     return (
-        <Container
-            fluid
-            className={containerClassName}
-        >
+        <Container fluid className={containerClassName}>
             <Row className="scores-row-wrapper w-100">
                 <Col xs={12} className="p-0">
                     <ScoresRow scoreData={scoreData} homeTeam={homeTeam} awayTeam={awayTeam} />
                 </Col>
             </Row>
 
-            <Row className="slider-content-row w-100 justify-content-center flex-grow-1 d-none d-md-flex overflow-hidden">
-                <Col xs={12} md={4} lg={4} className="ps-0 h-100 overflow-hidden">
-                    <Slider
-                        sport={sport} team="home"
-                        placardId={placardId} sliderIndex={sliderIndex}
-                        onItemsCountChange={handleSliderItemsCountChange}
-                        teamColor={homeTeam?.color}
-                    />
-                </Col>
-
-                <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center h-100">
-                    {Center}
-                </Col>
-
-                <Col xs={12} md={4} lg={4} className="pe-0 h-100 overflow-hidden">
-                    <Slider
-                        sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
-                        onItemsCountChange={handleSliderItemsCountChange}
-                        teamColor={awayTeam?.color}
-                    />
-                </Col>
-            </Row>
-
-            <Row className="w-100 justify-content-center flex-grow-1 d-flex d-md-none overflow-auto">
-                <Row className="w-100 m-0">
-                    <Col xs={12} className="d-flex flex-column align-items-center justify-content-center">
-                        {Center}
-                    </Col>
-                </Row>
-                <Row className="w-100 px-0 pt-2 m-0">
-                    <Col className="ps-0 h-100 overflow-hidden">
+            {!isMobile ? (
+                // Desktop Layout
+                <Row className="slider-content-row w-100 justify-content-center flex-grow-1 overflow-hidden">
+                    <Col xs={12} md={4} lg={4} className="ps-0 h-100 overflow-hidden">
                         <Slider
-                            sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex}
+                            sport={sport} team="home"
+                            placardId={placardId} sliderIndex={sliderIndex}
                             onItemsCountChange={handleSliderItemsCountChange}
+                            teamColor={homeTeam?.color}
                         />
                     </Col>
 
-                    <Col className="pe-0 h-100 overflow-hidden">
+                    <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center h-100">
+                        {Center}
+                    </Col>
+
+                    <Col xs={12} md={4} lg={4} className="pe-0 h-100 overflow-hidden">
                         <Slider
                             sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
                             onItemsCountChange={handleSliderItemsCountChange}
+                            teamColor={awayTeam?.color}
                         />
                     </Col>
                 </Row>
-            </Row>
+            ) : (
+                <Row className="w-100 justify-content-center flex-grow-1 overflow-auto">
+                    <Row className="w-100 m-0">
+                        <Col xs={12} className="d-flex flex-column align-items-center justify-content-center">
+                            {Center}
+                        </Col>
+                    </Row>
+                    <Row className="w-100 px-0 pt-2 m-0">
+                        <Col className="ps-0 h-100 overflow-hidden">
+                            <Slider
+                                sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex}
+                                onItemsCountChange={handleSliderItemsCountChange}
+                            />
+                        </Col>
+                        <Col className="pe-0 h-100 overflow-hidden">
+                            <Slider
+                                sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
+                                onItemsCountChange={handleSliderItemsCountChange}
+                            />
+                        </Col>
+                    </Row>
+                </Row>
+            )}
         </Container>
     );
 };

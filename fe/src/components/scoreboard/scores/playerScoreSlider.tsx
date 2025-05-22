@@ -54,7 +54,6 @@ const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, plac
             for (const event of teamScores) {
                 const playerId = event.playerId;
 
-                // Fetch player info if not cached
                 if (!playerInfoCache.has(playerId)) {
                     const info = await fetchPlayerInfo(playerId);
                     playerInfoCache.set(playerId, {
