@@ -160,7 +160,7 @@ try {
                 }
             }
 
-            $gameTimePosition = RequestUtils::getGameTimePosition($placardId);
+            $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
 
             $pointData = [

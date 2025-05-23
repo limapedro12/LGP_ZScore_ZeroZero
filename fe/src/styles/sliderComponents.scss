@@ -59,8 +59,13 @@
   padding: 0.25rem 0;
 }
 
-.player-name{
+.player-name {
   font-size: 1.2rem;
+  max-width: 100%; // Ensure it doesn't exceed parent width
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block; // Important for text-overflow to work
 }
 
 .player-jersey-container {

@@ -9,6 +9,7 @@ import TimeoutTimer from '../components/scoreboard/timeoutTimer';
 import TimeoutCounter from '../components/scoreboard/timeoutCounter';
 import ScoresRow from '../components/scoreboard/scoresCounter';
 import SetBox from '../components/scoreboard/setBox';
+import FoulsCounter from '../components/foulsCounter';
 import Slider from '../components/scoreboard/slider';
 import ShotClock from '../components/scoreboard/shotClock';
 import '../styles/scoreBoard.scss';
@@ -271,6 +272,9 @@ const ScoreBoard = () => {
 
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
+            </div>
+            <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
+                <FoulsCounter />
             </div>
         </>
     ), [sport, noShotClockSports, noPeriodBoxSports, nonTimerSports, timeoutStatus, scoreData]);

@@ -34,7 +34,7 @@ type ActionType =
     | 'typeOfScore'
     | 'sportConfig';
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock' | 'info';
+type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock' | 'info'| 'foul';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -212,7 +212,6 @@ export type Sport = 'futsal' | 'volleyball' | 'basketball';
 interface SubstitutionResponse{
     message?: string;
     substitutionId?: string;
-    ingamePlayers?: Map<string, boolean>;
     substitutions?: Array<{
         substitutionId: string,
         team: string,
@@ -256,6 +255,41 @@ export interface ApiPlayer {
     position_acronym: string;
 }
 
+interface CreatedFoulDetails {
+    eventId: string;
+    placardId: string;
+    sport: string;
+    playerId: string;
+    team: string;
+    timestamp: number;
+    period: number;
+    accumulatedFoulsThisPeriod: number;
+    penalty: boolean;
+    penaltyFouls?: number;
+    penaltyThreshold?: number;
+    penaltyTypeConfigured?: string | null;
+}
+
+interface CreateFoulResponse {
+    status: 'success';
+    message: string;
+    foul: CreatedFoulDetails;
+}
+
+interface GameFoulStatusResponse {
+    status: 'success';
+    message: string;
+    data: {
+        placardId: string;
+        sport: string;
+        currentGamePeriod: number;
+        currentPeriodFouls: {
+            home: number;
+            away: number;
+        };
+        foulsPenaltyThreshold: number | null;
+    };
+}
 
 /**
  * API Manager that handles all API requests
@@ -536,6 +570,19 @@ class ApiManager {
 
     getSportConfig = (sport: string) =>
         this.makeRequest<SportsResponse>('sports', 'sportConfig', { sport }, 'GET');
+    createFoul = (placardId: string, sport: string, playerId: string, team: string) =>
+        this.makeRequest<CreateFoulResponse>('foul', 'create', { placardId, sport, playerId, team });
+
+    getSimpleGameFoulStatus = (placardId: string, sport: string): Promise<GameFoulStatusResponse> => {
+        const params: RequestParams = { placardId, sport };
+        return this.makeRequest<GameFoulStatusResponse>(
+            'foul',
+            'gameStatus',
+            params,
+            'GET'
+        );
+    };
+
 }
 
 const apiManager = new ApiManager();

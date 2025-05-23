@@ -129,7 +129,7 @@ try {
                 }
                 $eventId = $redis->incr($eventCounterKey);
                 $substitutionEventKey = $keys['substitution_event'] . $eventId;
-                $timestamp = RequestUtils::getGameTimePosition($placardId);
+                $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
                 $ingamePlayers[$playerIn] = true;
                 $ingamePlayers[$playerOut] = false;
