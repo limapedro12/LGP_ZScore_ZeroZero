@@ -12,29 +12,12 @@ const Timer: React.FC = () => {
     const [period, setPeriod] = useState(0);
     const [placardId, setplacardId] = useState<string>('default');
     const [sport, setsport] = useState<string>('default');
-    const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
-
     const { placardId: urlplacardId, sport: urlsport } = useParams<{ placardId: string, sport: string }>();
-
-    const fetchNonTimerSports = React.useCallback(async () => {
-        try {
-            const response = await apiManager.getNonTimerSports();
-            if (response && Array.isArray(response.sports)) {
-                setNonTimerSports(response.sports);
-            } else {
-                setNonTimerSports([]);
-            }
-        } catch (error) {
-            console.error('Error fetching non-timer sports:', error);
-            setNonTimerSports([]);
-        }
-    }, []);
 
     useEffect(() => {
         if (urlplacardId) setplacardId(urlplacardId);
         if (urlsport) setsport(urlsport);
-        fetchNonTimerSports();
-    }, [urlplacardId, urlsport, fetchNonTimerSports]);
+    }, [urlplacardId, urlsport]);
 
     const fetchTimerStatus = React.useCallback(async () => {
         if (!placardId || !sport || placardId === 'default' || sport === 'default') {
@@ -53,36 +36,32 @@ const Timer: React.FC = () => {
     }, [placardId, sport]);
 
     useEffect(() => {
-        if (placardId && sport && placardId !== 'default' && (sport !== 'default' && !nonTimerSports?.includes(sport))) {
+        if (placardId && sport && placardId !== 'default' && (sport !== 'default')) {
             fetchTimerStatus();
             const intervalId = setInterval(fetchTimerStatus, 1000);
             return () => clearInterval(intervalId);
         }
         return undefined;
-    }, [placardId, fetchTimerStatus, sport, nonTimerSports]);
+    }, [placardId, fetchTimerStatus, sport]);
 
-    if (!nonTimerSports?.includes(sport)) {
-        return (
-            <Container className="timer d-flex flex-column align-items-center justify-content-center mt-5 mb-5">
-                <Row className="w-100">
-                    <Col xs={12} className="text-center">
-                        <div className="period display-4 fw-bold">
-                            {sportsFormat(sport, period)}
-                        </div>
-                    </Col>
-                </Row>
-                <Row className="w-100">
-                    <Col xs={12} className="text-center">
-                        <div className="time display-1 fw-bold">
-                            {formatTime(elapsedTime)}
-                        </div>
-                    </Col>
-                </Row>
-            </Container>
-        );
-    } else {
-        return null;
-    }
+    return (
+        <Container className="timer d-flex flex-column align-items-center justify-content-center mt-5 mb-5">
+            <Row className="w-100">
+                <Col xs={12} className="text-center">
+                    <div className="period display-4 fw-bold">
+                        {sportsFormat(sport, period)}
+                    </div>
+                </Col>
+            </Row>
+            <Row className="w-100">
+                <Col xs={12} className="text-center">
+                    <div className="time display-1 fw-bold">
+                        {formatTime(elapsedTime)}
+                    </div>
+                </Col>
+            </Row>
+        </Container>
+    );
 };
 
 export default Timer;

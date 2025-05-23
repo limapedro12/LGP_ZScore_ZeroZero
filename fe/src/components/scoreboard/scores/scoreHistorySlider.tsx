@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sport } from '../../../utils/cardUtils';
-import apiManager, { ScoreEvent } from '../../../api/apiManager';
+import apiManager, { ScoreEvent, Sport } from '../../../api/apiManager';
 import ScoreEventPoints from './scoreEventPoints';
 import BaseSlider from '../baseSlider';
 import '../../../styles/sliderComponents.scss';
@@ -69,7 +68,6 @@ const ScoresSlider: React.FC<ScoresSliderProps> = ({ sport, team, placardId, typ
         const chronologicalEvents = positionedEvents;
 
         const trimmedEvents = chronologicalEvents.slice(0, MAX_EVENTS_TO_DISPLAY);
-        console.log('Trimmed Events:', trimmedEvents);
         setDisplayedScores(trimmedEvents);
 
     }, [allScoreEvents, team]);

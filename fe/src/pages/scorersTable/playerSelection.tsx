@@ -6,15 +6,7 @@ import PlayerJersey from '../../components/playerJersey';
 import { ToastContainer } from 'react-toastify';
 import '../../styles/playerSelection.scss';
 import apiManager, { ApiPlayer } from '../../api/apiManager';
-
-interface Player {
-  playerId: string;
-  playerName: string;
-  playerNumber: string;
-  playerPosition: string;
-//   player_position_sigla: string;
-//   INTEAM: string;
-}
+import { correctSportParameter } from '../../utils/navigationUtils';
 
 interface LocationState {
   eventCategory: string;
@@ -28,15 +20,12 @@ const PlayerSelectionPage: React.FC = () => {
     const location = useLocation();
     const { eventCategory, pointValue } = location.state as LocationState || { eventCategory: '', pointValue: undefined };
 
-    const [players, setPlayers] = useState<Player[]>([]);
+    const [players, setPlayers] = useState<ApiPlayer[]>([]);
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [jerseyColor, setJerseyColor] = useState(teamTag === 'home' ? '#E83030' : '#008057');
 
-    let jerseyColor = '#008057';
-    if (teamTag === 'home') {
-        jerseyColor = '#E83030';
-    }
 
     const fetchPlayers = useCallback(async () => {
         setIsLoading(true);
@@ -48,6 +37,11 @@ const PlayerSelectionPage: React.FC = () => {
         }
         try {
             const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
+
+            if (placardInfo.sport) {
+                correctSportParameter(sport, placardInfo.sport, navigate);
+            }
+
             let targetTeamId: string | undefined;
 
             if (teamTag === 'home') {
@@ -55,6 +49,9 @@ const PlayerSelectionPage: React.FC = () => {
             } else if (teamTag === 'away') {
                 targetTeamId = placardInfo.secondTeamId;
             }
+
+            const teamInfo = await apiManager.getTeamInfo(targetTeamId as string);
+            setJerseyColor(teamInfo.color);
 
             if (!targetTeamId) {
                 console.error('Could not determine target team ID from placard info and team tag');
@@ -66,13 +63,8 @@ const PlayerSelectionPage: React.FC = () => {
             const lineupData = await apiManager.getTeamLineup(placardId, targetTeamId);
 
             if (Array.isArray(lineupData)) {
-                const mappedPlayers: Player[] = lineupData.map((apiPlayer: ApiPlayer) => ({
-                    playerId: apiPlayer.playerId,
-                    playerName: apiPlayer.name,
-                    playerNumber: String(apiPlayer.number ?? ''),
-                    playerPosition: apiPlayer.position,
-                }));
-                setPlayers(mappedPlayers);
+                // Use the API data directly without mapping
+                setPlayers(lineupData);
             } else {
                 console.error('Invalid response format from getTeamLineup API:', lineupData);
                 setPlayers([]);
@@ -83,7 +75,7 @@ const PlayerSelectionPage: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [placardId, teamTag, sport]);
+    }, [placardId, teamTag, sport, navigate]);
 
     useEffect(() => {
         fetchPlayers();
@@ -163,8 +155,8 @@ const PlayerSelectionPage: React.FC = () => {
     };
 
     const filteredPlayers = players.filter((player) => {
-        const nameMatches = player.playerName.toLowerCase().includes(searchTerm.toLowerCase());
-        const numberMatches = player.playerNumber.includes(searchTerm);
+        const nameMatches = player.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const numberMatches = player.number ? String(player.number).includes(searchTerm) : false;
         return nameMatches || numberMatches;
     });
 
@@ -192,16 +184,16 @@ const PlayerSelectionPage: React.FC = () => {
                     >
                         <div className="jersey-container">
                             <PlayerJersey
-                                number={Number(player.playerNumber)}
+                                number={Number(player.number)}
                                 color={jerseyColor}
                             />
                         </div>
                         <div className="player-details">
                             <div className="player-name">
-                                {player.playerName}
+                                {player.name}
                             </div>
                             <div className="player-position">
-                                {player.playerPosition}
+                                {player.position}
                             </div>
                         </div>
                     </div>

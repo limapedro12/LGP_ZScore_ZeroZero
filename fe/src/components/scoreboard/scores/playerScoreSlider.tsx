@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sport } from '../../../utils/cardUtils';
-import apiManager from '../../../api/apiManager';
+import apiManager, { Sport } from '../../../api/apiManager';
 import PlayerScoreEvent from './playerScoreEvent';
 import BaseSlider from '../baseSlider';
 import '../../../styles/sliderComponents.scss';
@@ -12,6 +11,7 @@ interface PlayerScoreSliderProps {
   team: 'home' | 'away';
   placardId: string;
   typeOfScore?: string;
+  teamColor?: string;
 }
 
 interface PlayerScore {
@@ -21,7 +21,8 @@ interface PlayerScore {
   totalScore: number;
 }
 
-const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, placardId, typeOfScore }) => {
+const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({
+    sport, team, placardId, typeOfScore, teamColor }) => {
     const [playerScores, setPlayerScores] = useState<PlayerScore[]>([]);
     const MAX_PLAYERS_TO_DISPLAY = 5;
     const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
@@ -54,12 +55,11 @@ const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, plac
             for (const event of teamScores) {
                 const playerId = event.playerId;
 
-                // Fetch player info if not cached
                 if (!playerInfoCache.has(playerId)) {
                     const info = await fetchPlayerInfo(playerId);
                     playerInfoCache.set(playerId, {
-                        name: info?.player_name || `Player ${playerId}`,
-                        number: info?.player_number ? Number(info.player_number) : undefined,
+                        name: info?.name || `Player ${playerId}`,
+                        number: info?.number ? Number(info.number) : undefined,
                     });
                 }
 
@@ -107,6 +107,7 @@ const PlayerScoreSlider: React.FC<PlayerScoreSliderProps> = ({ sport, team, plac
                             playerNumber={player.playerNumber}
                             scoreCount={player.totalScore}
                             team={team}
+                            teamColor={teamColor}
                         />
                     </div>
                 ))}

@@ -30,7 +30,6 @@ const ShotClock: React.FC<ShotClockProps> = ({ onStatusChange }) => {
         try {
             const response = await apiManager.getShotClockStatus(placardId, sport);
             const data = response;
-            // console.log('ShotClock data:', data);
             if (data.remaining_time !== undefined) {
                 setElapsedTime(data.remaining_time);
                 setStatus(data.status || 'default');

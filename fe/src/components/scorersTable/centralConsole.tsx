@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Sport, getSportEvents, TeamTag } from '../../utils/scorersTableUtils';
+import { getSportEvents, TeamTag } from '../../utils/scorersTableUtils';
+import { Sport } from '../../api/apiManager';
 import EventInput from './eventInput';
 import { Container, Row } from 'react-bootstrap';
 

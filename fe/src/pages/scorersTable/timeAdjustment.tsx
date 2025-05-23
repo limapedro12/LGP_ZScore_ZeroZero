@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronUp, ChevronDown } from 'react-bootstrap-icons';
 import apiManager from '../../api/apiManager';
 import '../../styles/timeAdjustment.scss';
+import { correctSportParameter } from '../../utils/navigationUtils';
 
 const pad = (n: number) => n.toString().padStart(2, '0');
 
@@ -30,20 +31,40 @@ const TimeAdjustment: React.FC = () => {
     const maxSeconds = 59;
 
     useEffect(() => {
-        const checkNoShotClock = async () => {
-            if (!sport) {
-                return;
-            }
+        const fetchPlacardInfo = async () => {
+            if (!sport || !placardId) return;
+
             try {
-                const response = await apiManager.getNonTimerSports();
-                if (Array.isArray(response?.sports) && response.sports.includes(sport)) {
-                    navigate(`/scorersTable/${sport}/${placardId}`);
+                const info = await apiManager.getPlacardInfo(placardId, sport);
+                if (info) {
+                    correctSportParameter(sport, info.sport, navigate);
+
+                    const response = await apiManager.getNonTimerSports();
+                    if (Array.isArray(response?.sports) && response.sports.includes(info.sport)) {
+                        navigate(`/scorersTable/${info.sport}/${placardId}`);
+                        return;
+                    }
+
+                    const timerResponse = await apiManager.getTimerStatus(placardId, info.sport);
+                    const totalSeconds = timerResponse.remaining_time;
+                    setMinutes(Math.floor(totalSeconds / 60));
+                    setSeconds(totalSeconds % 60);
+                    setPeriod(timerResponse.period || 1);
+
+                    const configResponse = await apiManager.getSportConfig(info.sport);
+                    if (configResponse && configResponse.config) {
+                        setSportConfig({
+                            periods: configResponse.config.periods || 5,
+                            periodDuration: configResponse.config.periodDuration || 600,
+                        });
+                    }
                 }
             } catch (error) {
-                console.error('Error checking no-shotclock sports:', error);
+                console.error('Error fetching placard info:', error);
             }
         };
-        checkNoShotClock();
+
+        fetchPlacardInfo();
     }, [sport, placardId, navigate]);
 
     useEffect(() => {

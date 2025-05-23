@@ -58,6 +58,14 @@
         return $lineup;
     }
 
+    function getPlayerInfo($playerId){
+        $player = DbUtils::selectPlayer($playerId);
+        if ($player === false || is_null($player)) {
+            return ["error" => "Player not found"];
+        }
+        return $player;
+    }
+
     header('Content-Type: application/json');
     $jsonBody = null;
     $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -107,7 +115,14 @@
             }
             $response = getAllowColab($placardId);
             break;
-        
+        case 'getPlayerInfo':
+            $playerId = $params['playerId'] ?? null;
+            if ($playerId === null) {
+                echo json_encode(["error" => "Missing playerId"]);
+                exit;
+            }
+            $response = getPlayerInfo($playerId);
+            break;
         default:
             echo json_encode(["error" => "Invalid action"]);
             exit;

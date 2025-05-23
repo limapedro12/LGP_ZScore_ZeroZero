@@ -1,20 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Sport, CardTypeForSport, getAvailableCardsForSport, SportCard } from '../../utils/cardUtils';
 import CardButton from '../../components/scorersTable/cards/cardButton';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import '../../styles/arrow.scss';
+import { correctSportParameter } from '../../utils/navigationUtils';
+import apiManager from '../../api/apiManager';
+
 
 const SelectCardPage = () => {
     const { sport: sportParam, placardId, teamTag } = useParams<{
         sport: string, placardId: string, teamTag: string}>();
     const navigate = useNavigate();
 
-    const sport = sportParam as Sport;
-
+    const [sport, setSport] = useState<Sport>(sportParam as Sport);
     const [availableCards, setAvailableCards] = useState<SportCard<Sport>[]>([]);
     const [selectedCardType, setSelectedCardType] = useState<CardTypeForSport<Sport> | null>(null);
+
+    const fetchPlacardInfo = useCallback(async () => {
+        if (!placardId || placardId === 'default') return;
+
+        try {
+            const info = await apiManager.getPlacardInfo(placardId, sport);
+            if (info) {
+                setSport(info.sport as Sport);
+                correctSportParameter(sportParam, info.sport, navigate);
+            }
+        } catch (error) {
+            console.error('Error fetching placard info:', error);
+        }
+    }, [placardId, sport, sportParam, navigate]);
+
+    useEffect(() => {
+        fetchPlacardInfo();
+    }, [fetchPlacardInfo]);
 
     useEffect(() => {
         if (sport) {

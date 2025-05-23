@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import apiManager, { ApiTeam, ScoreResponse } from '../api/apiManager';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import apiManager, { ApiTeam, ScoreResponse, ApiPlayer, SliderData, Sport, ApiGame } from '../api/apiManager';
+import { useParams, useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -12,96 +12,249 @@ import SetBox from '../components/scoreboard/setBox';
 import Slider from '../components/scoreboard/slider';
 import ShotClock from '../components/scoreboard/shotClock';
 import '../styles/scoreBoard.scss';
-import { Sport } from '../utils/cardUtils';
+import { BREAKPOINTS } from '../media-queries';
+import { correctSportParameter } from '../utils/navigationUtils';
 
 const ScoreBoard = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
-
-    const sport = sportParam as Sport || 'futsal';
     const placardId = placardIdParam || '1';
+    const navigate = useNavigate();
+    const [sport, setSport] = useState<Sport>(sportParam as Sport || '');
+    const [placardInfo, setPlacardInfo] = useState<ApiGame | null>(null);
 
     const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
+    const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
+    const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
+    const [timeoutStatus, setTimeoutStatus] = useState('inactive');
+
     const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
     const [noShotClockSports, setNoShotClockSports] = useState<string[]>([]);
-    const [timeoutStatus, setTimeoutStatus] = useState('inactive');
-    const [sliderItemsCount, setSliderItemsCount] = useState(4);
-    const [sliderIndex, setSliderIndex] = useState(0);
+    const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
+    const [nonCardSports, setNonCardSports] = useState<string[]>([]);
 
-    const handleSliderItemsCountChange = useCallback((count: number) => {
-        setSliderItemsCount(count);
-    }, []);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < BREAKPOINTS.md);
 
-    const fetchNoPeriodSports = useCallback(async () => {
-        try {
-            const response = await apiManager.getNoPeriodSports();
-            if (response && Array.isArray(response.sports)) {
-                setNoPeriodBoxSports(response.sports);
-            } else {
-                setNoPeriodBoxSports([]);
-            }
-        } catch (error) {
-            setNoPeriodBoxSports([]);
-        }
-    }, []);
+    const [shouldPollScoreHistory, setShouldPollScoreHistory] = useState(true);
+    const [shouldPollCardEvents, setShouldPollCardEvents] = useState(true);
+    const [shouldPollPlayers, setShouldPollPlayers] = useState(true);
 
-    const fetchNoShotClockSports = useCallback(async () => {
-        try {
-            const response = await apiManager.getNoShotClockSports();
-            if (response && Array.isArray(response.sports)) {
-                setNoShotClockSports(response.sports);
-            } else {
-                setNoShotClockSports([]);
-            }
-        } catch (error) {
-            setNoShotClockSports([]);
-        }
+    const [sliderData, setSliderData] = useState<SliderData>({
+        data: {
+            home: { lineup: [] },
+            away: { lineup: [] },
+        },
+        hasData: {
+            scores: false,
+            cards: false,
+            players: false,
+        },
+    });
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < BREAKPOINTS.md);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     const fetchScores = useCallback(async () => {
-        if (!placardId || !sport) return;
+        const currentSport = placardInfo?.sport || sport;
+        if (!placardId || !currentSport) return;
+
         try {
-            const response = await apiManager.getScores(placardId, sport);
+            const response = await apiManager.getScores(placardId, currentSport);
             setScoreData(response);
         } catch (error) {
             setScoreData(null);
         }
-    }, [placardId, sport]);
+    }, [placardId, sport, placardInfo]);
 
-    const handleTimeoutStatusChange = (status: string) => {
-        setTimeoutStatus(status);
-    };
+    const fetchTeams = useCallback(async () => {
+        if (placardId === 'default') return;
+        try {
+            const info = await apiManager.getPlacardInfo(placardId, sport);
+            if (info) {
+                setPlacardInfo(info);
+                setSport(info.sport);
+
+                correctSportParameter(sportParam, info.sport, navigate);
+
+                const home = await apiManager.getTeamInfo(info.firstTeamId);
+                const away = await apiManager.getTeamInfo(info.secondTeamId);
+                setHomeTeam(home);
+                setAwayTeam(away);
+            }
+        } catch (error) {
+            console.error('Error fetching teams:', error);
+        }
+    }, [placardId, sport, sportParam, navigate]);
+
+    const fetchSportConfigurations = useCallback(async () => {
+        try {
+            const [noPeriodResponse, noShotClockResponse, nonTimerResponse, noCardResponse] =
+                await Promise.all([
+                    apiManager.getNoPeriodSports(),
+                    apiManager.getNoShotClockSports(),
+                    apiManager.getNonTimerSports(),
+                    apiManager.getNoCardSports(),
+                ]);
+
+            setNoPeriodBoxSports(noPeriodResponse?.sports || []);
+            setNoShotClockSports(noShotClockResponse?.sports || []);
+            setNonTimerSports(nonTimerResponse?.sports || []);
+            setNonCardSports(noCardResponse?.sports || []);
+        } catch (error) {
+            console.error('Error fetching sport configurations:', error);
+        }
+    }, []);
+
+    const fetchSliderData = useCallback(async () => {
+        if (placardId && sport && shouldPollScoreHistory) {
+            try {
+                const response = await apiManager.getScoreHistory(placardId, sport);
+                const hasScores = response.points.length > 0;
+
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, scores: hasScores },
+                }));
+
+                if (hasScores) setShouldPollScoreHistory(false);
+            } catch {
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, scores: false },
+                }));
+            }
+        }
+
+        if (placardId && sport && shouldPollCardEvents && !nonCardSports.includes(sport) && nonCardSports.length > 0) {
+            try {
+                const response = await apiManager.getCards(placardId, sport);
+                const hasCards = response.cards.length > 0;
+
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, cards: hasCards },
+                }));
+
+                if (hasCards) setShouldPollCardEvents(false);
+            } catch {
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, cards: false },
+                }));
+            }
+        } else if (nonCardSports.includes(sport)) {
+            setShouldPollCardEvents(false);
+        }
+
+        if (placardId && shouldPollPlayers && homeTeam?.id && awayTeam?.id) {
+            try {
+                const [homeLineup, awayLineup] = await Promise.all([
+                    apiManager.getTeamLineup(placardId, homeTeam.id),
+                    apiManager.getTeamLineup(placardId, awayTeam.id),
+                ]);
+
+                let homeLineupArray: ApiPlayer[] = [];
+                if (Array.isArray(homeLineup)) {
+                    homeLineupArray = homeLineup;
+                } else if (homeLineup) {
+                    homeLineupArray = [homeLineup];
+                }
+
+                let awayLineupArray: ApiPlayer[] = [];
+                if (Array.isArray(awayLineup)) {
+                    awayLineupArray = awayLineup;
+                } else if (awayLineup) {
+                    awayLineupArray = [awayLineup];
+                }
+
+                const hasPlayers = homeLineupArray.length > 0 || awayLineupArray.length > 0;
+
+                setSliderData((prev) => ({
+                    ...prev,
+                    data: {
+                        ...prev.data,
+                        home: { ...prev.data.home, lineup: homeLineupArray },
+                        away: { ...prev.data.away, lineup: awayLineupArray },
+                    },
+                    hasData: { ...prev.hasData, players: hasPlayers },
+                }));
+
+                if (hasPlayers) setShouldPollPlayers(false);
+            } catch {
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, players: false },
+                }));
+            }
+        }
+    }, [placardId, sport, nonCardSports, shouldPollScoreHistory, shouldPollCardEvents,
+        shouldPollPlayers, homeTeam?.id, awayTeam?.id]);
 
     useEffect(() => {
-        fetchScores();
-        fetchNoPeriodSports();
-        fetchNoShotClockSports();
-        const intervalId = setInterval(fetchScores, 5000);
-        return () => clearInterval(intervalId);
-    }, [fetchScores, fetchNoPeriodSports, fetchNoShotClockSports]);
+        const loadInitialData = async () => {
+            await Promise.all([
+                fetchTeams(),
+                fetchSportConfigurations(),
+            ]);
+
+            fetchScores();
+        };
+
+        loadInitialData();
+
+        const scoresInterval = setInterval(fetchScores, 5000);
+        const teamsInterval = setInterval(fetchTeams, 5000);
+
+        return () => {
+            clearInterval(scoresInterval);
+            clearInterval(teamsInterval);
+        };
+    }, [fetchScores, fetchSportConfigurations, fetchTeams]);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setSliderIndex((prev) => (prev + 1) % sliderItemsCount);
-        }, 10000);
-        return () => clearInterval(interval);
-    }, [sliderItemsCount]);
+        const loadSliderData = async () => {
+            await fetchSliderData();
+        };
 
-    const Center = (
+        loadSliderData();
+
+        const intervals: number[] = [];
+
+        if (shouldPollScoreHistory) {
+            intervals.push(window.setInterval(fetchSliderData, 5000));
+        }
+
+        if (shouldPollCardEvents) {
+            intervals.push(window.setInterval(fetchSliderData, 5000));
+        }
+
+        if (shouldPollPlayers) {
+            intervals.push(window.setInterval(fetchSliderData, 5000));
+        }
+
+        return () => {
+            intervals.forEach((interval) => window.clearInterval(interval));
+        };
+    }, [fetchSliderData, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers]);
+
+    const Center = useMemo(() => (
         <>
-            {sport && !noShotClockSports.includes(sport) && (noShotClockSports.length > 0) && (
+            {sport && !noShotClockSports.includes(sport) && noShotClockSports.length > 0 && (
                 <div className="shot-clock-wrapper w-100 d-flex justify-content-center">
                     <ShotClock />
                 </div>
             )}
-            {sport && noPeriodBoxSports.includes(sport) && (
+
+            {sport && noPeriodBoxSports.includes(sport) ? (
                 <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                    <TimeoutTimer onStatusChange={handleTimeoutStatusChange} />
+                    <TimeoutTimer onStatusChange={setTimeoutStatus} />
                 </div>
-            )}
-            {sport && !noPeriodBoxSports.includes(sport) && (
+            ) : (
                 <>
                     <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                        <TimeoutTimer onStatusChange={handleTimeoutStatusChange} substitute={true} />
+                        <TimeoutTimer onStatusChange={setTimeoutStatus} substitute={true} />
                     </div>
                     <SetBox
                         scoreData={scoreData}
@@ -109,104 +262,80 @@ const ScoreBoard = () => {
                     />
                 </>
             )}
-            <div className="timer-wrapper w-100 d-flex justify-content-center">
-                <Timer />
-            </div>
+
+            {sport && !nonTimerSports.includes(sport) && (
+                <div className="timer-wrapper w-100 d-flex justify-content-center">
+                    <Timer />
+                </div>
+            )}
+
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
             </div>
-            {/* <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
-                <TimeoutCounter />
-            </div> */}
         </>
-    );
-
-    const containerClassName =
-        'scoreboard-container d-flex flex-column min-vh-100 p-0';
-
-    const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
-    const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
-
-    const fetchTeams = useCallback(async () => {
-        if (placardId === 'default') {
-            return;
-        }
-        try {
-            const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
-            if (placardInfo) {
-                const home = await apiManager.getTeamInfo(placardInfo.firstTeamId);
-                const away = await apiManager.getTeamInfo(placardInfo.secondTeamId);
-                setHomeTeam(home);
-                setAwayTeam(away);
-            }
-        } catch (error) {
-            console.error('Error fetching teams:', error);
-        }
-    }, [placardId]);
-
-    useEffect(() => {
-        fetchTeams();
-        const intervalId = setInterval(fetchTeams, 5000);
-
-        return () => clearInterval(intervalId);
-    }, [fetchTeams]);
+    ), [sport, noShotClockSports, noPeriodBoxSports, nonTimerSports, timeoutStatus, scoreData]);
 
     return (
-        <Container
-            fluid
-            className={containerClassName}
-        >
+        <Container fluid className="scoreboard-container d-flex flex-column min-vh-100 p-0">
             <Row className="scores-row-wrapper w-100">
                 <Col xs={12} className="p-0">
                     <ScoresRow scoreData={scoreData} homeTeam={homeTeam} awayTeam={awayTeam} />
                 </Col>
             </Row>
 
-            <Row className="slider-content-row w-100 justify-content-center flex-grow-1 d-none d-md-flex overflow-hidden">
-                <Col xs={12} md={4} lg={4} className="ps-0 h-100 overflow-hidden">
-                    <Slider
-                        sport={sport} team="home"
-                        placardId={placardId} sliderIndex={sliderIndex}
-                        onItemsCountChange={handleSliderItemsCountChange}
-                        teamColor={homeTeam?.color}
-                    />
-                </Col>
+            {!isMobile ? (
+                <Row className="slider-content-row w-100 justify-content-center flex-grow-1 overflow-hidden">
+                    <Col xs={12} md={4} lg={4} className="ps-0 h-100 overflow-hidden">
+                        <Slider
+                            sport={sport} team="home" placardId={placardId}
+                            teamColor={homeTeam?.color}
+                            sliderData={sliderData}
 
-                <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center h-100">
-                    {Center}
-                </Col>
+                        />
+                    </Col>
 
-                <Col xs={12} md={4} lg={4} className="pe-0 h-100 overflow-hidden">
-                    <Slider
-                        sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
-                        onItemsCountChange={handleSliderItemsCountChange}
-                        teamColor={awayTeam?.color}
-                    />
-                </Col>
-            </Row>
-
-            <Row className="w-100 justify-content-center flex-grow-1 d-flex d-md-none overflow-auto">
-                <Row className="w-100 m-0">
-                    <Col xs={12} className="d-flex flex-column align-items-center justify-content-center">
+                    <Col xs={12} md={4} lg={4} className="d-flex flex-column align-items-center justify-content-center h-100">
                         {Center}
                     </Col>
-                </Row>
-                <Row className="w-100 px-0 pt-2 m-0">
-                    <Col className="ps-0 h-100 overflow-hidden">
-                        <Slider
-                            sport={sport} team="home" placardId={placardId} sliderIndex={sliderIndex}
-                            onItemsCountChange={handleSliderItemsCountChange}
-                        />
-                    </Col>
 
-                    <Col className="pe-0 h-100 overflow-hidden">
+                    <Col xs={12} md={4} lg={4} className="pe-0 h-100 overflow-hidden">
                         <Slider
-                            sport={sport} team="away" placardId={placardId} sliderIndex={sliderIndex}
-                            onItemsCountChange={handleSliderItemsCountChange}
+                            sport={sport} team="away" placardId={placardId}
+                            teamColor={awayTeam?.color}
+                            sliderData={sliderData}
+
+
                         />
                     </Col>
                 </Row>
-            </Row>
+            ) : (
+                // Mobile Layout
+                <Row className="w-100 justify-content-center flex-grow-1 overflow-auto">
+                    <Row className="w-100 m-0">
+                        <Col xs={12} className="d-flex flex-column align-items-center justify-content-center">
+                            {Center}
+                        </Col>
+                    </Row>
+                    <Row className="w-100 px-0 pt-2 m-0">
+                        <Col className="ps-0 h-100 overflow-hidden">
+                            <Slider
+                                sport={sport} team="home" placardId={placardId}
+                                teamColor={homeTeam?.color}
+                                sliderData={sliderData}
+
+                            />
+                        </Col>
+                        <Col className="pe-0 h-100 overflow-hidden">
+                            <Slider
+                                sport={sport} team="away" placardId={placardId}
+                                teamColor={awayTeam?.color}
+                                sliderData={sliderData}
+
+                            />
+                        </Col>
+                    </Row>
+                </Row>
+            )}
         </Container>
     );
 };

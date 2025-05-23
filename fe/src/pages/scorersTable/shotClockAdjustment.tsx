@@ -3,6 +3,7 @@ import { Container, Row, Col, Button } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronUp, ChevronDown } from 'react-bootstrap-icons';
 import apiManager from '../../api/apiManager';
+import { correctSportParameter } from '../../utils/navigationUtils';
 import '../../styles/timeAdjustment.scss';
 
 const pad = (n: number) => n.toString().padStart(2, '0');
@@ -16,48 +17,45 @@ const ShotClockAdjustment: React.FC = () => {
     const { sport, placardId } = useParams<{ sport: string; placardId: string }>();
     const navigate = useNavigate();
 
+
     const [seconds, setSeconds] = useState<number>(24);
     const [team, setTeam] = useState<'home' | 'away'>('home');
     const [maxSeconds, setMaxSeconds] = useState<number>(24);
 
-
     useEffect(() => {
-        const checkNoShotClock = async () => {
-            if (!sport) {
-                return;
-            }
-            try {
-                const response = await apiManager.getNoShotClockSports();
-                if (Array.isArray(response?.sports) && response.sports.includes(sport)) {
-                    navigate(`/scorersTable/${sport}/${placardId}`);
+        const fetchPlacardInfo = async () => {
+            if (placardId && sport) {
+                try {
+                    const info = await apiManager.getPlacardInfo(placardId, sport);
+                    if (info) {
+                        correctSportParameter(sport, info.sport, navigate);
+
+                        const response = await apiManager.getNoShotClockSports();
+                        if (Array.isArray(response?.sports) && response.sports.includes(info.sport)) {
+                            navigate(`/scorersTable/${info.sport}/${placardId}`);
+                            return;
+                        }
+
+                        const configResponse = await apiManager.getSportConfig(info.sport);
+                        if (configResponse?.config?.shotClock) {
+                            setMaxSeconds(configResponse.config.shotClock);
+                            setSeconds(configResponse.config.shotClock);
+                        }
+
+                        const status = await apiManager.getShotClockStatus(placardId, info.sport);
+                        if (status) {
+                            setSeconds(status.remaining_time || configResponse?.config?.shotClock || 24);
+                            if (status.team === 'home' || status.team === 'away') setTeam(status.team);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching placard info:', error);
                 }
-            } catch (error) {
-                console.error('Error checking no-shotclock sports:', error);
             }
         };
-        checkNoShotClock();
-    }, [sport, placardId, navigate]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!sport || !placardId) return;
-            try {
-                const configResponse = await apiManager.getSportConfig(sport);
-                if (configResponse?.config?.shotClock) {
-                    setMaxSeconds(configResponse.config.shotClock);
-                    setSeconds(configResponse.config.shotClock);
-                }
-                const status = await apiManager.getShotClockStatus(placardId, sport);
-                if (status) {
-                    setSeconds(status.remaining_time || configResponse?.config?.shotClock || 24);
-                    if (status.team === 'home' || status.team === 'away') setTeam(status.team);
-                }
-            } catch (error) {
-                console.error('Error fetching shot clock data:', error);
-            }
-        };
-        fetchData();
-    }, [sport, placardId]);
+        fetchPlacardInfo();
+    }, [placardId, sport, navigate]);
 
     const handleGoBack = () => {
         navigate(`/scorersTable/${sport}/${placardId}`);

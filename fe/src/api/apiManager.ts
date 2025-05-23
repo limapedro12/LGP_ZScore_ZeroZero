@@ -27,6 +27,7 @@ type ActionType =
     | 'getPlacardInfo'
     | 'getAllowColab'
     | 'getTeamLineup'
+    | 'getPlayerInfo'
     | 'noCards'
     | 'noPeriodBox'
     | 'noShotClock'
@@ -80,7 +81,7 @@ interface RequestParams {
 }
 
 interface ApiParams {
-    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive' | 'getTeamPlayers' | 'getPlayerInfo';
+    action: 'login' | 'getMatchesColab' | 'getMatchLiveInfo' | 'getTeamLive';
     username?: string;
     password?: string;
     placardId?: string;
@@ -149,7 +150,7 @@ interface ShotClockResponse {
 }
 
 
-interface CardsResponse {
+export interface CardsResponse {
     cards: Array<{
         eventId: number;
         placardId: string;
@@ -181,6 +182,25 @@ interface SportsResponse {
     };
 }
 
+export interface SliderData {
+  data: {
+    home: {
+      lineup: ApiPlayer[];
+    };
+    away: {
+      lineup: ApiPlayer[];
+    };
+  };
+  hasData: {
+    scores: boolean;
+    players: boolean;
+    cards: boolean;
+  };
+}
+
+export type Sport = 'futsal' | 'volleyball' | 'basketball';
+
+
 /**
  * Interface for the response from the substitution API
  * @property {string} [message] - Optional message from the API
@@ -208,7 +228,7 @@ export interface ApiGame {
     firstTeamId: string;
     secondTeamId: string;
     isFinished: boolean;
-    sport: string;
+    sport: Sport;
     startTime: string;
 }
 
@@ -233,6 +253,7 @@ export interface ApiPlayer {
     number: string;
     position: string;
     teamId: string;
+    position_acronym: string;
 }
 
 
@@ -427,12 +448,6 @@ class ApiManager {
     login = (username: string, password: string) =>
         this.ApiRequest({ action: 'login', username: username, password: password });
 
-    getTeamPlayers = () =>
-        this.ApiRequest({ action: 'getTeamPlayers' }, 'GET');
-
-    getPlayerInfo = (id: string) =>
-        this.ApiRequest({ action: 'getPlayerInfo', id: id }, 'GET');
-
     getScores = (placardId: string, sport: string) =>
         this.makeRequest<ScoreResponse>('score', 'gameStatus', { placardId, sport }, 'GET');
 
@@ -477,6 +492,9 @@ class ApiManager {
         this.makeRequest<ApiColab>('info', 'getAllowColab', { placardId });
     getTeamLineup = (placardId: string, teamId: string) =>
         this.makeRequest<ApiPlayer>('info', 'getTeamLineup', { placardId, teamId });
+
+    getPlayerInfo = (playerId: string) =>
+        this.makeRequest<ApiPlayer>('info', 'getPlayerInfo', { playerId });
 
     updateCard = (params: UpdateCardParams) => {
         const filteredParams: RequestParams = {
