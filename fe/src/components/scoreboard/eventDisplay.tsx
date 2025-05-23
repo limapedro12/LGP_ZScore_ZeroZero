@@ -55,7 +55,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
     }
 
     const nameElement = hasPlayerName ? (
-        <div className={`w-75 d-flex align-items-center ${justifyClass} text-white ms-2`}>
+        <div className={`w-75 d-flex align-items-center ${justifyClass} text-white ms-2 overflow-hidden`}>
             <span className="player-name fw-bold text-truncate">
                 {playerName}
             </span>

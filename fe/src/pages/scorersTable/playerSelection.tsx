@@ -144,6 +144,14 @@ const PlayerSelectionPage: React.FC = () => {
                     );
                     break;
                 }
+                case 'foul':
+                    await apiManager.createFoul(
+                        placardId,
+                        sport,
+                        selectedPlayerId,
+                        teamTag as 'home' | 'away'
+                    );
+                    break;
                 default:
                     console.error(`Unsupported event category: ${eventCategory}`);
             }

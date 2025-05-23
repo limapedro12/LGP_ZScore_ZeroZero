@@ -8,6 +8,7 @@ const ENDPOINTS = {
     SPORTS: () => '/utils/sports',
     INFO: () => '/api/info',
     SHOTCLOCK: () => '/timer/shotclock',
+    FOUL: () => '/events/foul',
 };
 
 export default ENDPOINTS;

@@ -11,6 +11,7 @@ class GameConfig {
             'cards' => ['yellow', 'red'],
             'points' => 1,
             'typeOfScore' => 'g',
+            'foulsPenaltyThreshold' => 5,
         ],
         'basketball' => [
             'periods' => 4,
@@ -21,6 +22,7 @@ class GameConfig {
             'points' => [1, 2, 3],
             'shotClock' => 24,
             'typeOfScore' => 'p',
+            'foulsPenaltyThreshold' => 5,
         ],
         'volleyball' => [
             'periods' => 5,

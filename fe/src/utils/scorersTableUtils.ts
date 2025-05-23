@@ -73,7 +73,15 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Falta',
             eventCategory: 'foul',
-            onEventAction: (teamTag) => console.log(`Futsal Falta - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'foul' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for futsal foul event');
+                }
+            },
         },
         {
             eventName: 'Cartão',
@@ -157,7 +165,15 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Falta',
             eventCategory: 'foul',
-            onEventAction: (teamTag) => console.log(`Basketball Falta - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'foul' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for futsal foul event');
+                }
+            },
         },
         {
             eventName: 'Tempo',
