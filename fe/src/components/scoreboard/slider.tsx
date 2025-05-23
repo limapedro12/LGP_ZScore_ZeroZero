@@ -3,8 +3,9 @@ import CardSlider from './cards/cardSlider';
 import ScoreHistorySlider from './scores/scoreHistorySlider';
 import PlayerScoreSlider from './scores/playerScoreSlider';
 import SquadSlider from './scores/squadSlider';
-import { Sport } from '../../utils/cardUtils';
-import apiManager, { SliderData } from '../../api/apiManager';
+import apiManager, { SliderData, Sport as ApiSports } from '../../api/apiManager';
+import { Sport as CardSports } from '../../utils/cardUtils';
+
 
 const SCORE_TYPES: Record<string, string> = {
     'p': 'Pontos',
@@ -13,7 +14,7 @@ const SCORE_TYPES: Record<string, string> = {
 };
 
 interface SliderProps {
-  sport: Sport;
+  sport: ApiSports;
   placardId: string;
   team: 'home' | 'away';
   teamColor?: string;
@@ -26,6 +27,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, slid
 
 
     const teamLineup = team === 'home' ? sliderData.data.home.lineup : sliderData.data.away.lineup;
+
 
     const fetchScoreType = useCallback(async () => {
         if (!sport) {
@@ -56,7 +58,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, slid
 
         ...(sliderData.hasData.cards ? [
             <CardSlider
-                sport={sport}
+                sport={sport as CardSports}
                 team={team} placardId={placardId} players={teamLineup} teamColor={teamColor} key="card-slider-item"
             />] : []),
 

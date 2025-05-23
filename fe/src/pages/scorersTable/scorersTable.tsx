@@ -4,7 +4,6 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sport } from '../../utils/scorersTableUtils';
 import TeamLogo from '../../components/scorersTable/teamLogo';
 import CentralConsole from '../../components/scorersTable/centralConsole';
 import '../../styles/scorersTable.scss';
@@ -13,7 +12,7 @@ import clockResumed from '../../../public/icons/clock_resumed.png';
 import clockEdit from '../../../public/icons/edit-clock-icon.png';
 import shotClockEdit from '../../../public/icons/shot-clock-edit-icon.png';
 import shotClockIcon from '../../../public/icons/start-stop-shot-clock-icon.png';
-import apiManager from '../../api/apiManager';
+import apiManager, { Sport, ApiGame } from '../../api/apiManager';
 import { ToastContainer } from 'react-toastify';
 
 
@@ -24,14 +23,18 @@ interface TeamData {
 
 const ScorersTable = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
+    const placardId = placardIdParam || '1';
+    const [placardInfo, setPlacardInfo] = useState<ApiGame | null>(null);
+    const [sport, setSport] = useState<Sport>(sportParam as Sport || '');
     const navigate = useNavigate();
     const [timerRunning, setTimerRunning] = useState(false);
-    const sport = (sportParam as Sport) || 'volleyball';
     const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
     const [shotClockRunning, setShotClockRunning] = useState(false);
     const [shotClockTeam, setShotClockTeam] = useState<'home' | 'away'>('home');
     const [noShotClockSports, setNoShotClockSports] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
+    const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
 
 
     // Team data - in a real app, this would be fetched from an API
@@ -40,6 +43,28 @@ const ScorersTable = () => {
         home: { name: 'Benfica', logoSrc: '/teamLogos/slb.png' },
         away: { name: 'Sporting', logoSrc: '/teamLogos/scp.png' },
     });
+
+    const fetchTeams = useCallback(async () => {
+        if (placardId === 'default') return;
+        try {
+            const info = await apiManager.getPlacardInfo(placardId, sport);
+            if (info) {
+                setPlacardInfo(info);
+                setSport(info.sport);
+
+                if (sportParam !== info.sport) {
+                    navigate(`/scoreboard/${info.sport}/${placardId}`, { replace: true });
+                }
+
+                const home = await apiManager.getTeamInfo(info.firstTeamId);
+                const away = await apiManager.getTeamInfo(info.secondTeamId);
+                setHomeTeam(home);
+                setAwayTeam(away);
+            }
+        } catch (error) {
+            console.error('Error fetching teams:', error);
+        }
+    }, [placardId, sport, sportParam, navigate]);
 
     const fetchNonTimerSports = useCallback(async () => {
         try {

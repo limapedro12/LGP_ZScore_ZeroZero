@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sport } from '../../../utils/cardUtils';
-import apiManager from '../../../api/apiManager';
+import apiManager, { Sport } from '../../../api/apiManager';
 import PlayerScoreEvent from './playerScoreEvent';
 import BaseSlider from '../baseSlider';
 import '../../../styles/sliderComponents.scss';

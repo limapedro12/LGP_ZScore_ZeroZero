@@ -198,6 +198,9 @@ export interface SliderData {
   };
 }
 
+export type Sport = 'futsal' | 'volleyball' | 'basketball';
+
+
 /**
  * Interface for the response from the substitution API
  * @property {string} [message] - Optional message from the API
@@ -225,7 +228,7 @@ export interface ApiGame {
     firstTeamId: string;
     secondTeamId: string;
     isFinished: boolean;
-    sport: string;
+    sport: Sport;
     startTime: string;
 }
 

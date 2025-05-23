@@ -1,5 +1,5 @@
 import { CardTypeForSport, Sport as cardUtilsSportType } from './cardUtils';
-import apiManager from '../api/apiManager';
+import apiManager, { Sport } from '../api/apiManager';
 
 export type EventCategory =   'basketballScore'
                             | 'volleyballScore'
@@ -10,7 +10,6 @@ export type EventCategory =   'basketballScore'
                             | 'card'
                             | 'substitution';
 
-export type Sport = 'futsal' | 'volleyball' | 'basketball';
 
 export type TeamTag = 'home' | 'away';
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import apiManager, { ApiTeam, ScoreResponse, ApiPlayer, SliderData } from '../api/apiManager';
-import { useParams } from 'react-router-dom';
+import apiManager, { ApiTeam, ScoreResponse, ApiPlayer, SliderData, Sport, ApiGame } from '../api/apiManager';
+import { useParams, useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -12,13 +12,14 @@ import SetBox from '../components/scoreboard/setBox';
 import Slider from '../components/scoreboard/slider';
 import ShotClock from '../components/scoreboard/shotClock';
 import '../styles/scoreBoard.scss';
-import { Sport } from '../utils/cardUtils';
 import { BREAKPOINTS } from '../media-queries';
 
 const ScoreBoard = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
-    const sport = sportParam as Sport || 'futsal';
     const placardId = placardIdParam || '1';
+    const navigate = useNavigate();
+    const [sport, setSport] = useState<Sport>(sportParam as Sport || '');
+    const [placardInfo, setPlacardInfo] = useState<ApiGame | null>(null);
 
     const [scoreData, setScoreData] = useState<ScoreResponse | null>(null);
     const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
@@ -55,29 +56,41 @@ const ScoreBoard = () => {
     }, []);
 
     const fetchScores = useCallback(async () => {
-        if (!placardId || !sport) return;
+        const currentSport = placardInfo?.sport || sport;
+        if (!placardId || !currentSport) return;
+
         try {
-            const response = await apiManager.getScores(placardId, sport);
+            const response = await apiManager.getScores(placardId, currentSport);
             setScoreData(response);
         } catch (error) {
             setScoreData(null);
         }
-    }, [placardId, sport]);
+    }, [placardId, sport, placardInfo]);
 
     const fetchTeams = useCallback(async () => {
         if (placardId === 'default') return;
         try {
-            const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
-            if (placardInfo) {
-                const home = await apiManager.getTeamInfo(placardInfo.firstTeamId);
-                const away = await apiManager.getTeamInfo(placardInfo.secondTeamId);
+            const info = await apiManager.getPlacardInfo(placardId, sport);
+            if (info) {
+                setPlacardInfo(info);
+                setSport(info.sport);
+
+                // Only replace the sport parameter while keeping the same URL structure
+                if (sportParam !== info.sport) {
+                    const currentPath = window.location.pathname;
+                    const newPath = currentPath.replace(`/${sportParam}/`, `/${info.sport}/`);
+                    navigate(newPath, { replace: true });
+                }
+
+                const home = await apiManager.getTeamInfo(info.firstTeamId);
+                const away = await apiManager.getTeamInfo(info.secondTeamId);
                 setHomeTeam(home);
                 setAwayTeam(away);
             }
         } catch (error) {
             console.error('Error fetching teams:', error);
         }
-    }, [placardId, sport]);
+    }, [placardId, sport, sportParam, navigate]);
 
     const fetchSportConfigurations = useCallback(async () => {
         try {
@@ -186,10 +199,11 @@ const ScoreBoard = () => {
     useEffect(() => {
         const loadInitialData = async () => {
             await Promise.all([
-                fetchScores(),
-                fetchSportConfigurations(),
                 fetchTeams(),
+                fetchSportConfigurations(),
             ]);
+
+            fetchScores();
         };
 
         loadInitialData();
