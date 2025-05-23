@@ -168,11 +168,11 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
             eventCategory: 'foul',
             onEventAction: (teamTag, navigate, sport, placardId) => {
                 if (navigate && sport && placardId) {
-                    navigate(`/scorersTable/${sport}/${placardId}/pointValueSelection/${teamTag}`, {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
                         state: { eventCategory: 'foul' },
                     });
                 } else {
-                    console.warn('Navigation details missing for basketball foul event');
+                    console.warn('Navigation details missing for futsal foul event');
                 }
             },
         },
