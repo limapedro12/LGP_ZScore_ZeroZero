@@ -17,7 +17,7 @@ if (is_null($action)) {
     exit;
 }
 
-$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive', 'getTeamPlayers', 'getPlayerInfo', 'getAllowColab'];
+$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive', 'getTeamPlayers', 'getPlayerInfo', 'getAllowColab', 'getTeamLineup'];
 if (!in_array($action, $allowedActions)) {
     echo json_encode(["error" => "Invalid action"]);
     exit;

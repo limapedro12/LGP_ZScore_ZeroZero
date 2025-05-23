@@ -24,6 +24,7 @@ interface SliderProps {
 const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0, onItemsCountChange, teamColor }) => {
     const [nonCardSports, setNonCardSports] = useState<string[]>([]);
     const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
+    const [loading, setLoading] = useState(true);
 
     const fetchNonCardSports = useCallback(async () => {
         try {
@@ -36,6 +37,8 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
         } catch (error) {
             console.error('Error fetching non-card sports:', error);
             setNonCardSports([]);
+        } finally {
+            setLoading(false);
         }
     }, []);
 
@@ -49,7 +52,6 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
             const response = await apiManager.getSportScoreType(sport);
             const typeCode = response.typeOfScore?.toLowerCase();
 
-            // Use the mapping to get the display text
             setScoreType(typeCode && SCORE_TYPES[typeCode] ? SCORE_TYPES[typeCode] : SCORE_TYPES.default);
         } catch (error) {
             console.error('Error fetching score type:', error);
@@ -58,6 +60,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
     }, [sport]);
 
     useEffect(() => {
+        setLoading(true);
         fetchNonCardSports();
         fetchScoreType();
     }, [fetchNonCardSports, fetchScoreType]);
@@ -76,6 +79,10 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, sliderIndex = 0
             onItemsCountChange(sliderItems.length);
         }
     }, [sliderItems.length, onItemsCountChange]);
+
+    if (loading) {
+        return <div className="loading-spinner">Loading...</div>;
+    }
 
     if (sliderItems.length === 0) {
         return null;
