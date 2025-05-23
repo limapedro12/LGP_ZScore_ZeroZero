@@ -30,12 +30,6 @@ if ((is_null($username) || is_null($password)) && $action === 'login') {
     exit;
 }
 
-$cookie = $_GET['cookie'] ?? $jsonBody['cookie'] ?? null;
-if (is_null($cookie) && $action !== 'login' && $action !== 'getTeamPlayers' && $action !== 'getPlayerInfo') {
-    echo json_encode(["error" => "Missing cookie"]);
-    exit;
-}
-
 $matchId = $_GET['matchId'] ?? $jsonBody['matchId'] ?? null;
 if (is_null($matchId) && ($action === 'getMatchLiveInfo' || $action === 'getTeamLive' || $action === 'getAllowGame')) {
     echo json_encode(["error" => "Missing matchId"]);

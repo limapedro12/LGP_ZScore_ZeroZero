@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS AbstractPlayer (
     id INT PRIMARY KEY AUTO_INCREMENT, 
     name VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
+    position_acronym VARCHAR(255) NOT NULL,
     number INT NOT NULL,
     teamId INT NOT NULL,
     sport VARCHAR(255) NOT NULL,
