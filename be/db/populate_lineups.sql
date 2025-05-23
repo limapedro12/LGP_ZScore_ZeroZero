@@ -14,6 +14,7 @@ BEGIN
     -- Variables for player lists
     DECLARE v_player_names JSON;
     DECLARE v_player_positions JSON;
+    DECLARE v_player_position_acronyms JSON;
     DECLARE v_roster_size INT;
     DECLARE v_num_starters INT;
 
@@ -48,6 +49,11 @@ BEGIN
                     'Libero', 'Libero', 'Opposite Hitter', 'Outside Hitter', 'Middle Blocker', 'Setter',
                     'Outside Hitter', 'Opposite Hitter'
                 );
+                SET v_player_position_acronyms = JSON_ARRAY(
+                    'S', 'OH', 'OH', 'OP', 'MB', 'MB',
+                    'L', 'L', 'OP', 'OH', 'MB', 'S',
+                    'OH', 'OP'
+                );
 
             ELSEIF v_sport = 'futsal' THEN
                 SET v_roster_size = 14;
@@ -61,6 +67,11 @@ BEGIN
                     'Goalkeeper', 'Fixo', 'Pivot', 'Ala', 'Ala',
                     'Ala', 'Ala', 'Fixo', 'Pivot', 'Universal',
                     'Universal', 'Goalkeeper', 'Universal', 'Universal'
+                );
+                SET v_player_position_acronyms = JSON_ARRAY(
+                    'GK', 'F', 'P', 'A', 'A',
+                    'A', 'A', 'F', 'P', 'U',
+                    'U', 'GK', 'U', 'U'
                 );
 
             ELSEIF v_sport = 'basketball' THEN
@@ -76,6 +87,11 @@ BEGIN
                     'Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center',
                     'Guard', 'Forward'
                 );
+                SET v_player_position_acronyms = JSON_ARRAY(
+                    'PG', 'SG', 'SF', 'PF', 'C',
+                    'PG', 'SG', 'SF', 'PF', 'C',
+                    'G', 'F'
+                );
             ELSE
                 -- Unknown sport, skip or handle as error
                 ITERATE placard_loop;
@@ -86,8 +102,15 @@ BEGIN
             IF NOT EXISTS (SELECT 1 FROM AbstractPlayer WHERE teamId = v_firstTeamId AND sport = v_sport) THEN
                 -- Insert players into AbstractPlayer for the first team
                 FOR i IN 0..(v_roster_size - 1) DO
-                    INSERT INTO AbstractPlayer (name, position, number, teamId, sport)
-                    VALUES (CONCAT(JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), ' (T', v_firstTeamId, ')'), JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))), i + 1, v_firstTeamId, v_sport);
+                    INSERT INTO AbstractPlayer (name, position, position_acronym, number, teamId, sport)
+                    VALUES (
+                        CONCAT(JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), ' (T', v_firstTeamId, ')'), 
+                        JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))), 
+                        JSON_UNQUOTE(JSON_EXTRACT(v_player_position_acronyms, CONCAT('$[', i, ']'))),
+                        i + 1, 
+                        v_firstTeamId, 
+                        v_sport
+                    );
                 END FOR;
             END IF;
 
@@ -123,8 +146,15 @@ BEGIN
             IF NOT EXISTS (SELECT 1 FROM AbstractPlayer WHERE teamId = v_secondTeamId AND sport = v_sport) THEN
                 -- Insert players into AbstractPlayer for the second team
                 FOR i IN 0..(v_roster_size - 1) DO
-                    INSERT INTO AbstractPlayer (name, position, number, teamId, sport)
-                    VALUES (CONCAT(JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), ' (T', v_secondTeamId, ')'), JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))), i + 1, v_secondTeamId, v_sport);
+                    INSERT INTO AbstractPlayer (name, position, position_acronym, number, teamId, sport)
+                    VALUES (
+                        CONCAT(JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), ' (T', v_secondTeamId, ')'), 
+                        JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))),
+                        JSON_UNQUOTE(JSON_EXTRACT(v_player_position_acronyms, CONCAT('$[', i, ']'))),
+                        i + 1, 
+                        v_secondTeamId, 
+                        v_sport
+                    );
                 END FOR;
             END IF;
 

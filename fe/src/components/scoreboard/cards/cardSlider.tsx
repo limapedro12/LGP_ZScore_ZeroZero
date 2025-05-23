@@ -18,9 +18,11 @@ interface CardSliderProps {
   sport: Sport;
   team: 'home' | 'away';
   placardId: string;
+  teamColor?: string;
+  players?: ApiPlayer[];
 }
 
-const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
+const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId, teamColor, players }) => {
     const [displayedCards, setDisplayedCards] = useState<Array<TransformedCardEventData>>([]);
     const MAX_EVENTS_TO_DISPLAY = 5;
     const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
@@ -46,15 +48,11 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
                 return;
             }
 
-            const [cardResponse, playersResponse] = await Promise.all([
+            const [cardResponse] = await Promise.all([
                 apiManager.getCards(placardId, sport),
-                apiManager.getTeamLineup(placardId, teamIdForLineup),
             ]);
 
-            console.log('Card response:', cardResponse);
-            console.log('Players response:', playersResponse);
-
-            const allPlayers: ApiPlayer[] = Array.isArray(playersResponse) ? playersResponse : [];
+            const allPlayers: ApiPlayer[] = Array.isArray(players) ? players : [];
 
             const sortedApiCards = cardResponse.cards.sort((a, b) => b.timestamp - a.timestamp);
             const teamFilteredCards = sortedApiCards.filter((apiCard) => apiCard.team === team);
@@ -74,7 +72,7 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
             console.error('Error fetching card events or team lineup:', error);
             setDisplayedCards([]);
         }
-    }, [placardId, sport, team]);
+    }, [placardId, sport, team, players]);
 
     useEffect(() => {
         fetchAndSetCards();
@@ -94,6 +92,7 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
                             playerNumber={eventData.playerNumber}
                             cardType={eventData.cardType as CardTypeForSport<typeof sport>}
                             team={team}
+                            teamColor={teamColor}
                         />
                     </div>
                 ))}

@@ -73,7 +73,7 @@ const SquadSlider: React.FC<SquadSliderProps> = ({
                                 playerNumber={Number(player.number)}
                                 team={team}
                                 rightElement={
-                                    !small ? <PositionSigla sigla={''} team={team} /> : undefined
+                                    !small ? <PositionSigla sigla={player.position_acronym} team={team} /> : undefined
                                 }
                                 teamColor={teamColor}
                             />

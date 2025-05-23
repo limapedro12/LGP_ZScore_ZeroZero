@@ -9,6 +9,7 @@ interface CardEventProps<S extends Sport> {
   playerNumber?: number;
   cardType: CardTypeForSport<S>;
   team: 'home' | 'away';
+  teamColor?: string;
 }
 
 const CardEvent = <S extends Sport>({
@@ -17,6 +18,7 @@ const CardEvent = <S extends Sport>({
     playerNumber,
     cardType,
     team,
+    teamColor,
 }: CardEventProps<S>) => {
 
     const renderCardIcon = (cardType: CardTypeForSport<S>) => {
@@ -57,6 +59,7 @@ const CardEvent = <S extends Sport>({
             playerNumber={playerNumber}
             team={team}
             rightElement={renderCardIcon(cardType)}
+            teamColor={teamColor}
         />
     );
 };

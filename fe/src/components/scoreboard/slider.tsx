@@ -4,7 +4,7 @@ import ScoreHistorySlider from './scores/scoreHistorySlider';
 import PlayerScoreSlider from './scores/playerScoreSlider';
 import SquadSlider from './scores/squadSlider';
 import { Sport } from '../../utils/cardUtils';
-import apiManager, { ApiPlayer } from '../../api/apiManager';
+import apiManager, { SliderData } from '../../api/apiManager';
 
 const SCORE_TYPES: Record<string, string> = {
     'p': 'Pontos',
@@ -12,24 +12,20 @@ const SCORE_TYPES: Record<string, string> = {
     'default': 'Pontos',
 };
 
-interface SliderData {
-  scores: boolean;
-  players: boolean;
-  cards: boolean;
-}
-
 interface SliderProps {
   sport: Sport;
   placardId: string;
   team: 'home' | 'away';
   teamColor?: string;
   sliderData: SliderData;
-  teamLineup?: ApiPlayer[];
 }
 
-const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, sliderData, teamLineup }) => {
+const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, sliderData }) => {
     const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
     const [currentIndex, setCurrentIndex] = useState(0);
+
+
+    const teamLineup = team === 'home' ? sliderData.data.home.lineup : sliderData.data.away.lineup;
 
     const fetchScoreType = useCallback(async () => {
         if (!sport) {
@@ -52,22 +48,29 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, slid
     }, [fetchScoreType]);
 
     const sliderItems: React.ReactNode[] = [
-        ...(sliderData.players ?
+        ...(sliderData.hasData.players ?
             [
                 <SquadSlider
                     team={team} key="squad-slider-item" teamColor={teamColor} players={teamLineup}
                 />] : []),
 
-        ...(sliderData.cards ? [<CardSlider sport={sport} team={team} placardId={placardId} key="card-slider-item" />] : []),
+        ...(sliderData.hasData.cards ? [
+            <CardSlider
+                sport={sport}
+                team={team} placardId={placardId} players={teamLineup} teamColor={teamColor} key="card-slider-item"
+            />] : []),
 
-        ...(sliderData.scores ?
+        ...(sliderData.hasData.scores ?
             [<ScoreHistorySlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="score-history-item" />] : []),
 
-        ...((sliderData.scores && sliderData.players) ?
-            [<PlayerScoreSlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="player-score-item" />] : []),
+        ...((sliderData.hasData.scores && sliderData.hasData.players) ?
+            [
+                <PlayerScoreSlider
+                    sport={sport} team={team} placardId={placardId}
+                    teamColor={teamColor} typeOfScore={scoreType} key="player-score-item"
+                />] : []),
     ];
 
-    console.log(sliderData.cards);
 
     useEffect(() => {
         if (currentIndex >= sliderItems.length && sliderItems.length > 0) {

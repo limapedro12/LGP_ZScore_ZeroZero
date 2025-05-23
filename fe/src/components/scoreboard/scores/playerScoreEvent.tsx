@@ -8,6 +8,8 @@ interface PlayerScoreEventProps {
   playerNumber?: number;
   scoreCount: number;
   team: 'home' | 'away';
+  teamColor?: string;
+
 }
 
 const PlayerScoreEvent: React.FC<PlayerScoreEventProps> = ({
@@ -15,12 +17,14 @@ const PlayerScoreEvent: React.FC<PlayerScoreEventProps> = ({
     playerNumber,
     scoreCount,
     team,
+    teamColor,
 }) => (
     <EventDisplay
         playerName={playerName}
         playerNumber={playerNumber}
         team={team}
         rightElement={<ScorePoint value={scoreCount} team={team} />}
+        teamColor={teamColor}
     />
 );
 

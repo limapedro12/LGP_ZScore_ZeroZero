@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import apiManager, { ApiTeam, ScoreResponse, ApiPlayer } from '../api/apiManager';
+import apiManager, { ApiTeam, ScoreResponse, ApiPlayer, SliderData } from '../api/apiManager';
 import { useParams } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -31,21 +31,22 @@ const ScoreBoard = () => {
     const [nonCardSports, setNonCardSports] = useState<string[]>([]);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth < BREAKPOINTS.md);
-    const [dataLoaded, setDataLoaded] = useState(false);
-    const [sliderDataLoaded, setSliderDataLoaded] = useState(false);
-
-    const [hasSliderData, setHasSliderData] = useState({
-        scores: false,
-        players: false,
-        cards: false,
-    });
 
     const [shouldPollScoreHistory, setShouldPollScoreHistory] = useState(true);
     const [shouldPollCardEvents, setShouldPollCardEvents] = useState(true);
     const [shouldPollPlayers, setShouldPollPlayers] = useState(true);
 
-    const [homeTeamLineup, setHomeTeamLineup] = useState<ApiPlayer[]>([]);
-    const [awayTeamLineup, setAwayTeamLineup] = useState<ApiPlayer[]>([]);
+    const [sliderData, setSliderData] = useState<SliderData>({
+        data: {
+            home: { lineup: [] },
+            away: { lineup: [] },
+        },
+        hasData: {
+            scores: false,
+            cards: false,
+            players: false,
+        },
+    });
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < BREAKPOINTS.md);
@@ -102,21 +103,37 @@ const ScoreBoard = () => {
             try {
                 const response = await apiManager.getScoreHistory(placardId, sport);
                 const hasScores = response.points.length > 0;
-                setHasSliderData((prev) => ({ ...prev, scores: hasScores }));
+
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, scores: hasScores },
+                }));
+
                 if (hasScores) setShouldPollScoreHistory(false);
             } catch {
-                setHasSliderData((prev) => ({ ...prev, scores: false }));
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, scores: false },
+                }));
             }
         }
 
-        if (placardId && sport && shouldPollCardEvents && !nonCardSports.includes(sport)) {
+        if (placardId && sport && shouldPollCardEvents && !nonCardSports.includes(sport) && nonCardSports.length > 0) {
             try {
                 const response = await apiManager.getCards(placardId, sport);
                 const hasCards = response.cards.length > 0;
-                setHasSliderData((prev) => ({ ...prev, cards: hasCards }));
+
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, cards: hasCards },
+                }));
+
                 if (hasCards) setShouldPollCardEvents(false);
             } catch {
-                setHasSliderData((prev) => ({ ...prev, cards: false }));
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, cards: false },
+                }));
             }
         } else if (nonCardSports.includes(sport)) {
             setShouldPollCardEvents(false);
@@ -143,30 +160,36 @@ const ScoreBoard = () => {
                     awayLineupArray = [awayLineup];
                 }
 
-                setHomeTeamLineup(homeLineupArray);
-                setAwayTeamLineup(awayLineupArray);
+                const hasPlayers = homeLineupArray.length > 0 || awayLineupArray.length > 0;
 
-                if (homeLineupArray.length > 0 || awayLineupArray.length > 0) {
-                    setHasSliderData((prev) => ({ ...prev, players: true }));
-                    setShouldPollPlayers(false);
-                } else {
-                    setHasSliderData((prev) => ({ ...prev, players: false }));
-                }
+                setSliderData((prev) => ({
+                    ...prev,
+                    data: {
+                        ...prev.data,
+                        home: { ...prev.data.home, lineup: homeLineupArray },
+                        away: { ...prev.data.away, lineup: awayLineupArray },
+                    },
+                    hasData: { ...prev.hasData, players: hasPlayers },
+                }));
+
+                if (hasPlayers) setShouldPollPlayers(false);
             } catch {
-                setHasSliderData((prev) => ({ ...prev, players: false }));
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, players: false },
+                }));
             }
         }
-    }, [placardId, sport, nonCardSports, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers, homeTeam?.id, awayTeam?.id]);
+    }, [placardId, sport, nonCardSports, shouldPollScoreHistory, shouldPollCardEvents,
+        shouldPollPlayers, homeTeam?.id, awayTeam?.id]);
 
     useEffect(() => {
         const loadInitialData = async () => {
-            setDataLoaded(false);
             await Promise.all([
                 fetchScores(),
                 fetchSportConfigurations(),
                 fetchTeams(),
             ]);
-            setDataLoaded(true);
         };
 
         loadInitialData();
@@ -182,9 +205,7 @@ const ScoreBoard = () => {
 
     useEffect(() => {
         const loadSliderData = async () => {
-            setSliderDataLoaded(false);
             await fetchSliderData();
-            setSliderDataLoaded(true);
         };
 
         loadSliderData();
@@ -208,47 +229,41 @@ const ScoreBoard = () => {
         };
     }, [fetchSliderData, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers]);
 
-    const Center = useMemo(() => {
-        if (!dataLoaded) return null;
-
-        return (
-            <>
-                {sport && !noShotClockSports.includes(sport) && (
-                    <div className="shot-clock-wrapper w-100 d-flex justify-content-center">
-                        <ShotClock />
-                    </div>
-                )}
-
-                {sport && noPeriodBoxSports.includes(sport) ? (
-                    <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                        <TimeoutTimer onStatusChange={setTimeoutStatus} />
-                    </div>
-                ) : (
-                    <>
-                        <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
-                            <TimeoutTimer onStatusChange={setTimeoutStatus} substitute={true} />
-                        </div>
-                        <SetBox
-                            scoreData={scoreData}
-                            timeoutActive={timeoutStatus !== 'inactive'}
-                        />
-                    </>
-                )}
-
-                {sport && !nonTimerSports.includes(sport) && (
-                    <div className="timer-wrapper w-100 d-flex justify-content-center">
-                        <Timer />
-                    </div>
-                )}
-
-                <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
-                    <TimeoutCounter />
+    const Center = useMemo(() => (
+        <>
+            {sport && !noShotClockSports.includes(sport) && noShotClockSports.length > 0 && (
+                <div className="shot-clock-wrapper w-100 d-flex justify-content-center">
+                    <ShotClock />
                 </div>
-            </>
-        );
-    }, [sport, noShotClockSports, noPeriodBoxSports, nonTimerSports, timeoutStatus, scoreData, dataLoaded]);
+            )}
 
-    if (!sliderDataLoaded) return null;
+            {sport && noPeriodBoxSports.includes(sport) ? (
+                <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
+                    <TimeoutTimer onStatusChange={setTimeoutStatus} />
+                </div>
+            ) : (
+                <>
+                    <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
+                        <TimeoutTimer onStatusChange={setTimeoutStatus} substitute={true} />
+                    </div>
+                    <SetBox
+                        scoreData={scoreData}
+                        timeoutActive={timeoutStatus !== 'inactive'}
+                    />
+                </>
+            )}
+
+            {sport && !nonTimerSports.includes(sport) && (
+                <div className="timer-wrapper w-100 d-flex justify-content-center">
+                    <Timer />
+                </div>
+            )}
+
+            <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
+                <TimeoutCounter />
+            </div>
+        </>
+    ), [sport, noShotClockSports, noPeriodBoxSports, nonTimerSports, timeoutStatus, scoreData]);
 
     return (
         <Container fluid className="scoreboard-container d-flex flex-column min-vh-100 p-0">
@@ -264,8 +279,7 @@ const ScoreBoard = () => {
                         <Slider
                             sport={sport} team="home" placardId={placardId}
                             teamColor={homeTeam?.color}
-                            sliderData={hasSliderData}
-                            teamLineup={homeTeamLineup}
+                            sliderData={sliderData}
 
                         />
                     </Col>
@@ -278,8 +292,8 @@ const ScoreBoard = () => {
                         <Slider
                             sport={sport} team="away" placardId={placardId}
                             teamColor={awayTeam?.color}
-                            sliderData={hasSliderData}
-                            teamLineup={awayTeamLineup}
+                            sliderData={sliderData}
+
 
                         />
                     </Col>
@@ -297,16 +311,16 @@ const ScoreBoard = () => {
                             <Slider
                                 sport={sport} team="home" placardId={placardId}
                                 teamColor={homeTeam?.color}
-                                sliderData={hasSliderData}
-                                teamLineup={homeTeamLineup}
+                                sliderData={sliderData}
+
                             />
                         </Col>
                         <Col className="pe-0 h-100 overflow-hidden">
                             <Slider
                                 sport={sport} team="away" placardId={placardId}
                                 teamColor={awayTeam?.color}
-                                sliderData={hasSliderData}
-                                teamLineup={awayTeamLineup}
+                                sliderData={sliderData}
+
                             />
                         </Col>
                     </Row>
