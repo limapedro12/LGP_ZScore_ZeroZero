@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Container, Row, Col, Button, Image } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import '../../styles/pointValueSelection.scss';
 import basketball from '../../../public/icons/basketball.png';
+import { correctSportParameter } from '../../utils/navigationUtils';
+import apiManager from '../../api/apiManager';
+
 
 const PointValueSelection: React.FC = () => {
     const { sport, placardId, teamTag } = useParams<{ sport: string, placardId: string, teamTag: string }>();
@@ -11,6 +14,22 @@ const PointValueSelection: React.FC = () => {
     const location = useLocation();
     const { eventCategory } = location.state || { eventCategory: '' };
 
+    useEffect(() => {
+        const fetchPlacardInfo = async () => {
+            if (placardId && sport) {
+                try {
+                    const info = await apiManager.getPlacardInfo(placardId, sport);
+                    if (info) {
+                        correctSportParameter(sport, info.sport, navigate);
+                    }
+                } catch (error) {
+                    console.error('Error fetching placard info:', error);
+                }
+            }
+        };
+
+        fetchPlacardInfo();
+    }, [placardId, sport, navigate]);
     const handleGoBack = () => {
         navigate(`/scorersTable/${sport}/${placardId}`);
     };

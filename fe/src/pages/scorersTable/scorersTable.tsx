@@ -12,19 +12,13 @@ import clockResumed from '../../../public/icons/clock_resumed.png';
 import clockEdit from '../../../public/icons/edit-clock-icon.png';
 import shotClockEdit from '../../../public/icons/shot-clock-edit-icon.png';
 import shotClockIcon from '../../../public/icons/start-stop-shot-clock-icon.png';
-import apiManager, { Sport, ApiGame } from '../../api/apiManager';
+import apiManager, { Sport, ApiTeam } from '../../api/apiManager';
 import { ToastContainer } from 'react-toastify';
-
-
-interface TeamData {
-    name: string;
-    logoSrc: string;
-}
+import { correctSportParameter } from '../../utils/navigationUtils';
 
 const ScorersTable = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
     const placardId = placardIdParam || '1';
-    const [placardInfo, setPlacardInfo] = useState<ApiGame | null>(null);
     const [sport, setSport] = useState<Sport>(sportParam as Sport || '');
     const navigate = useNavigate();
     const [timerRunning, setTimerRunning] = useState(false);
@@ -37,24 +31,15 @@ const ScorersTable = () => {
     const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
 
 
-    // Team data - in a real app, this would be fetched from an API
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [teams, setTeams] = useState<{ home: TeamData, away: TeamData }>({
-        home: { name: 'Benfica', logoSrc: '/teamLogos/slb.png' },
-        away: { name: 'Sporting', logoSrc: '/teamLogos/scp.png' },
-    });
-
     const fetchTeams = useCallback(async () => {
         if (placardId === 'default') return;
         try {
             const info = await apiManager.getPlacardInfo(placardId, sport);
             if (info) {
-                setPlacardInfo(info);
                 setSport(info.sport);
 
-                if (sportParam !== info.sport) {
-                    navigate(`/scoreboard/${info.sport}/${placardId}`, { replace: true });
-                }
+
+                correctSportParameter(sportParam, info.sport, navigate);
 
                 const home = await apiManager.getTeamInfo(info.firstTeamId);
                 const away = await apiManager.getTeamInfo(info.secondTeamId);
@@ -63,6 +48,8 @@ const ScorersTable = () => {
             }
         } catch (error) {
             console.error('Error fetching teams:', error);
+        } finally {
+            setLoading(false);
         }
     }, [placardId, sport, sportParam, navigate]);
 
@@ -81,6 +68,7 @@ const ScorersTable = () => {
             setLoading(true);
             try {
                 await Promise.all([
+                    fetchTeams(),
                     fetchNonTimerSports(),
                     (async () => {
                         const response = await apiManager.getNoShotClockSports();
@@ -90,10 +78,9 @@ const ScorersTable = () => {
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
-            setLoading(false);
         };
         fetchAll();
-    }, [placardIdParam, fetchNonTimerSports]);
+    }, [placardIdParam, fetchNonTimerSports, fetchTeams]);
 
 
     const isNonTimerSport = nonTimerSports.includes(sport);
@@ -362,13 +349,27 @@ const ScorersTable = () => {
                         {/* Teams and Central Console */}
                         <Row className="w-100 align-items-center my-auto">
                             <Col md={3} className="p-0 d-flex flex-column align-items-center justify-content-center">
-                                <TeamLogo logoSrc={teams.home.logoSrc} teamName={teams.home.name} />
+                                {homeTeam && (
+                                    <TeamLogo
+                                        logoSrc={homeTeam.logoURL}
+                                        teamName={homeTeam.name}
+                                    />
+                                )}
+                                {' '}
+
                             </Col>
                             <Col md={6} className="p-0 d-flex flex-column align-items-center justify-content-center">
                                 <CentralConsole sport={sport} />
                             </Col>
                             <Col md={3} className="p-0 d-flex flex-column align-items-center justify-content-center">
-                                <TeamLogo logoSrc={teams.away.logoSrc} teamName={teams.away.name} />
+                                {awayTeam && (
+                                    <TeamLogo
+                                        logoSrc={awayTeam.logoURL}
+                                        teamName={awayTeam.name}
+                                    />
+                                )}
+                                {' '}
+
                             </Col>
                         </Row>
 
@@ -383,10 +384,25 @@ const ScorersTable = () => {
                         {/* Teams */}
                         <Row className="w-100 justify-content-around align-items-center mt-3">
                             <Col className="p-0 d-flex flex-column align-items-center justify-content-center">
-                                <TeamLogo logoSrc={teams.home.logoSrc} teamName={teams.home.name} />
+                                {homeTeam && (
+                                    <TeamLogo
+                                        logoSrc={homeTeam.logoURL}
+                                        teamName={homeTeam.name}
+                                    />
+                                )}
+                                {' '}
+                                {' '}
+
                             </Col>
                             <Col className="p-0 d-flex flex-column align-items-center justify-content-center">
-                                <TeamLogo logoSrc={teams.away.logoSrc} teamName={teams.away.name} />
+                                {awayTeam && (
+                                    <TeamLogo
+                                        logoSrc={awayTeam.logoURL}
+                                        teamName={awayTeam.name}
+                                    />
+                                )}
+                                {' '}
+
                             </Col>
                         </Row>
 

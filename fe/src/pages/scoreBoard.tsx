@@ -13,6 +13,7 @@ import Slider from '../components/scoreboard/slider';
 import ShotClock from '../components/scoreboard/shotClock';
 import '../styles/scoreBoard.scss';
 import { BREAKPOINTS } from '../media-queries';
+import { correctSportParameter } from '../utils/navigationUtils';
 
 const ScoreBoard = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
@@ -75,12 +76,7 @@ const ScoreBoard = () => {
                 setPlacardInfo(info);
                 setSport(info.sport);
 
-                // Only replace the sport parameter while keeping the same URL structure
-                if (sportParam !== info.sport) {
-                    const currentPath = window.location.pathname;
-                    const newPath = currentPath.replace(`/${sportParam}/`, `/${info.sport}/`);
-                    navigate(newPath, { replace: true });
-                }
+                correctSportParameter(sportParam, info.sport, navigate);
 
                 const home = await apiManager.getTeamInfo(info.firstTeamId);
                 const away = await apiManager.getTeamInfo(info.secondTeamId);
