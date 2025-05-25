@@ -115,8 +115,8 @@ interface CardsResponse {
 }
 
 interface EventsResponse {
-    events: Array<Record<string, any>>;
-  }
+    events: Array<Record<string, string>>; // !!!!!!!!!!!!!
+}
 interface SportsResponse {
     sports?: string[];
 }
@@ -133,7 +133,7 @@ export interface BaseApiEvent {
     playerName?: string;     // Nome do jogador
     teamLogo?: string;       // URL do logo da equipa
     playerNumber?: string | number; // Número do jogador
-    [key: string]: any;      // Permite outras propriedades não explicitamente definidas
+    [key: string]: string;      // !!!!!!!!!!!!!!!!
 }
 
 export interface ApiScoreEventData extends BaseApiEvent {
@@ -324,7 +324,7 @@ class ApiManager {
         this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
 
     getEventDetails = (placardId: string, sport: string, eventId: number) =>
-        this.makeRequest<Record<string, any>>('events', 'get', { placardId, sport, eventId }, 'GET');
+        this.makeRequest<Record<string, string>>('events', 'get', { placardId, sport, eventId }, 'GET'); // !!!!!!!!!!!!
 }
 
 const apiManager = new ApiManager();
