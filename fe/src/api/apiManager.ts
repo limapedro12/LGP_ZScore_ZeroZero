@@ -140,6 +140,7 @@ interface CardsResponse {
     }>;
 }
 
+
 interface SportsResponse {
     sports?: string[];
 }
@@ -199,6 +200,17 @@ interface GameFoulStatusResponse {
         };
         foulsPenaltyThreshold: number | null;
     };
+}
+
+interface FoulsResponse {
+    fouls: Array<{
+        eventId: string | number;
+        placardId: string;
+        playerId: string;
+        team: 'home' | 'away';
+        timestamp: number;
+        period?: number;
+    }>;
 }
 
 /**
@@ -433,6 +445,16 @@ class ApiManager {
         return this.makeRequest<GameFoulStatusResponse>(
             'foul',
             'gameStatus',
+            params,
+            'GET'
+        );
+    };
+
+    getFouls = (placardId: string, sport: string): Promise<FoulsResponse> => {
+        const params: RequestParams = { placardId, sport };
+        return this.makeRequest<FoulsResponse>(
+            'foul',
+            'get',
             params,
             'GET'
         );

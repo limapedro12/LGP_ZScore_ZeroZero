@@ -3,6 +3,7 @@ import CardSlider from './cards/cardSlider';
 import ScoreHistorySlider from './scores/scoreHistorySlider';
 import PlayerScoreSlider from './scores/playerScoreSlider';
 import SquadSlider from './scores/squadSlider';
+import FoulSlider from './fouls/foulSlider';
 import { Sport } from '../../utils/cardUtils';
 
 interface SliderProps {
@@ -27,6 +28,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team }) => {
         <ScoreHistorySlider sport={sport} team={team} placardId={placardId} key="score-history-item" />,
         <PlayerScoreSlider sport={sport} team={team} placardId={placardId} key="player-score-item" />,
         <SquadSlider team={team} onComplete={handleSquadComplete} key="squad-slider-item" />,
+        <FoulSlider sport={sport} team={team} placardId={placardId} key="foul-slider-item" />,
     ];
 
     useEffect(() => {
