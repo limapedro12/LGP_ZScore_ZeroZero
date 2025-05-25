@@ -132,8 +132,8 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
             <div className="sports">
                 {Object.entries({
                     Futsal: 'futsal',
-                    Voleibol: 'voleibol',
-                    Basquetebol: ['basquetebol', 'basketball'],
+                    Voleibol: 'volleyball',
+                    Basquetebol: 'basketball',
                 }).map(([label, sport]) => {
                     const isActive = Array.isArray(sport)
                         ? sport.includes(selectedSport || '')
