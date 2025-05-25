@@ -70,14 +70,29 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         onFilter(filteredGames);
     };
 
-    const handleSportChange = (sport: string | null) => {
-        setSelectedSport(sport);
+    const handleSportChange = (sport: string | string[] | null) => {
+        const selected = Array.isArray(sport) ? sport[0] : sport;
+        setSelectedSport(selected);
+
         const filteredGames = games.filter((game) => {
-            const matchesSport = sport ? game.sport === sport : true;
-            const matchesDate = selectedDate ? game.date.startsWith(selectedDate.toISOString().split('T')[0]) : true;
-            const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
+            const matchesSport = (() => {
+                if (Array.isArray(sport)) {
+                    return sport.includes(game.sport);
+                }
+                if (sport) {
+                    return game.sport === sport;
+                }
+                return true;
+            })();
+            const matchesDate = selectedDate
+                ? game.date.startsWith(selectedDate.toISOString().split('T')[0])
+                : true;
+            const matchesTeams = selectedTeams.every(
+                (team) => game.home === team || game.away === team
+            );
             return matchesSport && matchesDate && matchesTeams;
         });
+
         onFilter(filteredGames);
     };
 
@@ -115,15 +130,27 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
             </div>
             <label>Desporto</label>
             <div className="sports">
-                {Object.entries({ 'Futsal': 'futsal', 'Voleibol': 'voleibol', 'Basquetebol': 'basquetebol' }).map(([label, sport]) => (
-                    <button
-                        key={sport}
-                        onClick={() => handleSportChange(selectedSport === sport ? null : sport)}
-                        className={selectedSport === sport ? 'active' : ''}
-                    >
-                        {label}
-                    </button>
-                ))}
+                {Object.entries({
+                    Futsal: 'futsal',
+                    Voleibol: 'voleibol',
+                    Basquetebol: ['basquetebol', 'basketball'],
+                }).map(([label, sport]) => {
+                    const isActive = Array.isArray(sport)
+                        ? sport.includes(selectedSport || '')
+                        : selectedSport === sport;
+
+                    return (
+                        <button
+                            key={label}
+                            onClick={() =>
+                                handleSportChange(isActive ? null : sport)
+                            }
+                            className={isActive ? 'active' : ''}
+                        >
+                            {label}
+                        </button>
+                    );
+                })}
             </div>
         </div>
     );
