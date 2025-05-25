@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Image } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import '../../styles/pointValueSelection.scss';
-import basketball from '../../../public/icons/basketball.png';
+import basketball from '../../../public/icons/basquetebol.png';
 import { correctSportParameter } from '../../utils/navigationUtils';
 import apiManager from '../../api/apiManager';
 

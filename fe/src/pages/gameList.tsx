@@ -13,6 +13,7 @@ import { formatDate } from '../utils/dateUtils';
 const GameList = () => {
     const [games, setGames] = useState<Game[]>([]);
     const [filteredGames, setFilteredGames] = useState<Game[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchGames = async () => {
@@ -43,6 +44,8 @@ const GameList = () => {
                 }
             } catch (error) {
                 console.error('Error fetching games:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -84,7 +87,11 @@ const GameList = () => {
                 </Col>
 
                 <Col xs={{ span: 10, offset: 2 }}>
-                    <ShowGames games={filteredGames} />
+                    {loading ? (
+                        <h1 className="text-white text-center">A Carregar...</h1>
+                    ) : (
+                        <ShowGames games={filteredGames} />
+                    )}
                 </Col>
             </Row>
 
@@ -100,7 +107,11 @@ const GameList = () => {
                     {jogosTitle}
                 </Col>
                 <Col xs={12}>
-                    <ShowGames games={filteredGames} />
+                    {loading ? (
+                        <h1 className="text-white text-center">A Carregar...</h1>
+                    ) : (
+                        <ShowGames games={filteredGames} />
+                    )}
                 </Col>
             </Row>
         </Container>
