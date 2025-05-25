@@ -115,7 +115,7 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
             </div>
             <label>Desporto</label>
             <div className="sports">
-                {Object.entries({ 'Futsal': 'futsal', 'Voleibol': 'voleyball', 'Basket': 'basketball' }).map(([label, sport]) => (
+                {Object.entries({ 'Futsal': 'futsal', 'Voleibol': 'voleibol', 'Basquetebol': 'basquetebol' }).map(([label, sport]) => (
                     <button
                         key={sport}
                         onClick={() => handleSportChange(selectedSport === sport ? null : sport)}

@@ -50,7 +50,7 @@ const SelectView: React.FC = () => {
                 <div className="header">
                     <div className="team">
                         <img
-                            src="/teamLogos/slb.png" // TODO : Replace with dynamic logo
+                            src={game.homeLogo}
                             alt={`${game.home} logo`}
                         />
                         <span className="team-name">
@@ -70,7 +70,7 @@ const SelectView: React.FC = () => {
                     </div>
                     <div className="team">
                         <img
-                            src="/teamLogos/scp.png" // TODO : Replace with dynamic logo
+                            src={game.awayLogo}
                             alt={`${game.away} logo`}
                         />
                         <span className="team-name">
