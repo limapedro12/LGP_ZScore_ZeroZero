@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sport, CardTypeForSport, getCardIconPath } from '../../../utils/cardUtils';
-import apiManager from '../../../api/apiManager';
+import { Sport, CardTypeForSport } from '../../../utils/cardUtils';
+import apiManager, { ApiGame, ApiPlayer } from '../../../api/apiManager';
 import BaseSlider from '../baseSlider';
-import EventDisplay from '../eventDisplay';
 import '../../../styles/sliderComponents.scss';
+import CardEvent from './cardEvent';
+import { useMediaQuery } from 'react-responsive';
+import { BREAKPOINTS } from '../../../media-queries';
 
 export interface TransformedCardEventData {
   id: string | number;
@@ -16,11 +18,14 @@ interface CardSliderProps {
   sport: Sport;
   team: 'home' | 'away';
   placardId: string;
+  teamColor?: string;
+  players?: ApiPlayer[];
 }
 
-const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
+const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId, teamColor, players }) => {
     const [displayedCards, setDisplayedCards] = useState<Array<TransformedCardEventData>>([]);
     const MAX_EVENTS_TO_DISPLAY = 5;
+    const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
 
     const fetchAndSetCards = useCallback(async () => {
         if (!placardId || !sport) {
@@ -28,23 +33,46 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
             return;
         }
         try {
-            const response = await apiManager.getCards(placardId, sport);
-            const sortedApiCards = response.cards.sort((a, b) => b.timestamp - a.timestamp);
+            const placardInfo: ApiGame = await apiManager.getPlacardInfo(placardId, sport);
+            if (!placardInfo) {
+                console.error('Failed to fetch placard info');
+                setDisplayedCards([]);
+                return;
+            }
+
+            const teamIdForLineup = team === 'home' ? placardInfo.firstTeamId : placardInfo.secondTeamId;
+
+            if (!teamIdForLineup) {
+                console.error(`Could not determine team ID for ${team} team from placard ${placardId}.`);
+                setDisplayedCards([]);
+                return;
+            }
+
+            const [cardResponse] = await Promise.all([
+                apiManager.getCards(placardId, sport),
+            ]);
+
+            const allPlayers: ApiPlayer[] = Array.isArray(players) ? players : [];
+
+            const sortedApiCards = cardResponse.cards.sort((a, b) => b.timestamp - a.timestamp);
             const teamFilteredCards = sortedApiCards.filter((apiCard) => apiCard.team === team);
 
-            const transformedEvents: TransformedCardEventData[] = teamFilteredCards.map((apiCard) => ({
-                id: apiCard.eventId,
-                playerName: `Player ${apiCard.playerId}`,
-                playerNumber: Number(apiCard.playerId) || undefined,
-                cardType: apiCard.cardType,
-            }));
+            const transformedEvents: TransformedCardEventData[] = teamFilteredCards.map((apiCard) => {
+                const player = allPlayers.find((p) => parseInt(p.playerId, 10) === parseInt(apiCard.playerId, 10));
+                return {
+                    id: apiCard.eventId,
+                    playerName: player ? player.name : `Player ${apiCard.playerId}`,
+                    playerNumber: player && player.number ? Number(player.number) : undefined,
+                    cardType: apiCard.cardType,
+                };
+            });
 
             setDisplayedCards(transformedEvents.slice(0, MAX_EVENTS_TO_DISPLAY));
         } catch (error) {
-            console.error('Error fetching card events:', error);
+            console.error('Error fetching card events or team lineup:', error);
             setDisplayedCards([]);
         }
-    }, [placardId, sport, team]);
+    }, [placardId, sport, team, players]);
 
     useEffect(() => {
         fetchAndSetCards();
@@ -53,48 +81,18 @@ const CardSlider: React.FC<CardSliderProps> = ({ sport, team, placardId }) => {
         return () => clearInterval(intervalId);
     }, [fetchAndSetCards]);
 
-    const renderCardIcon = (cardType: string) => {
-        const cardIconSrc = getCardIconPath(sport, cardType as CardTypeForSport<typeof sport>);
-
-        return cardIconSrc ? (
-            <div className="d-flex justify-content-center align-items-center h-100">
-                <div
-                    className="card-icon-wrapper"
-                    style={{
-                        height: '2.5rem',
-                        width: '1.75rem',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <img
-                        src={cardIconSrc}
-                        alt={`${cardType} card`}
-                        className="img-fluid"
-                        style={{
-                            height: '100%',
-                            width: 'auto',
-                            objectFit: 'contain',
-                        }}
-                    />
-                </div>
-            </div>
-        ) : (
-            <span className="badge bg-secondary p-2">?</span>
-        );
-    };
-
     return (
         <BaseSlider title="Cartões" className="card-slider">
             <div className="player-scores-list w-100 d-flex flex-column gap-2">
                 {                    displayedCards.map((eventData) => (
                     <div key={eventData.id} className="player-score-item">
-                        <EventDisplay
-                            playerName={eventData.playerName}
+                        <CardEvent
+                            sport={sport}
+                            playerName={!small ? eventData.playerName : '' }
                             playerNumber={eventData.playerNumber}
+                            cardType={eventData.cardType as CardTypeForSport<typeof sport>}
                             team={team}
-                            rightElement={renderCardIcon(eventData.cardType)}
+                            teamColor={teamColor}
                         />
                     </div>
                 ))}

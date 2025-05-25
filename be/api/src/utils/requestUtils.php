@@ -67,6 +67,13 @@ class RequestUtils {
                     'status' => $prefix . 'timeout_status',
                     'team' => $prefix . 'timeout_team',
                 ];
+            case 'shotclock':
+                return [
+                    'start_time' => $prefix . 'shotclock:start_time',
+                    'remaining_time' => $prefix . 'shotclock:remaining_time',
+                    'status' => $prefix . 'shotclock:status',
+                    'active_team' => $prefix . 'shotclock:active_team'
+                ];
             case 'cards':
                 return [
                     'game_cards' => $prefix . 'cards',

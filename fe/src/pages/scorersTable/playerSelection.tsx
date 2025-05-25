@@ -2,18 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
-import apiManager from '../../api/apiManager';
 import PlayerJersey from '../../components/playerJersey';
+import { ToastContainer } from 'react-toastify';
 import '../../styles/playerSelection.scss';
-
-interface Player {
-  player_id: string;
-  player_name: string;
-  player_number: string;
-  player_position: string;
-  player_position_sigla: string;
-  INTEAM: string;
-}
+import apiManager, { ApiPlayer } from '../../api/apiManager';
+import { correctSportParameter } from '../../utils/navigationUtils';
 
 interface LocationState {
   eventCategory: string;
@@ -27,40 +20,69 @@ const PlayerSelectionPage: React.FC = () => {
     const location = useLocation();
     const { eventCategory, pointValue } = location.state as LocationState || { eventCategory: '', pointValue: undefined };
 
-    const [players, setPlayers] = useState<Player[]>([]);
+    const [players, setPlayers] = useState<ApiPlayer[]>([]);
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [jerseyColor, setJerseyColor] = useState(teamTag === 'home' ? '#E83030' : '#008057');
 
-    let jerseyColor = '#008057';
-    if (teamTag === 'home') {
-        jerseyColor = '#E83030';
-    }
 
     const fetchPlayers = useCallback(async () => {
         setIsLoading(true);
+        if (!placardId || !teamTag || !sport) {
+            console.error('Missing placardId, teamTag, or sport for fetching lineup');
+            setPlayers([]);
+            setIsLoading(false);
+            return;
+        }
         try {
-            const response = await apiManager.getTeamPlayers();
-            if (Array.isArray(response)) {
-                setPlayers(response);
+            const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
+
+            if (placardInfo.sport) {
+                correctSportParameter(sport, placardInfo.sport, navigate);
+            }
+
+            let targetTeamId: string | undefined;
+
+            if (teamTag === 'home') {
+                targetTeamId = placardInfo.firstTeamId;
+            } else if (teamTag === 'away') {
+                targetTeamId = placardInfo.secondTeamId;
+            }
+
+            const teamInfo = await apiManager.getTeamInfo(targetTeamId as string);
+            setJerseyColor(teamInfo.color);
+
+            if (!targetTeamId) {
+                console.error('Could not determine target team ID from placard info and team tag');
+                setPlayers([]);
+                setIsLoading(false);
+                return;
+            }
+
+            const lineupData = await apiManager.getTeamLineup(placardId, targetTeamId);
+
+            if (Array.isArray(lineupData)) {
+                // Use the API data directly without mapping
+                setPlayers(lineupData);
             } else {
-                console.error('Invalid response format from API:', response);
+                console.error('Invalid response format from getTeamLineup API:', lineupData);
                 setPlayers([]);
             }
         } catch (error) {
-            console.error('Error fetching players:', error);
+            console.error('Error fetching players for lineup:', error);
             setPlayers([]);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [placardId, teamTag, sport, navigate]);
 
     useEffect(() => {
         fetchPlayers();
     }, [fetchPlayers]);
 
     const handleGoBack = () => {
-        navigate(`/scorersTable/${sport}/${placardId}`);
+        navigate(-1);
     };
 
     const handlePlayerSelect = (playerId: string) => {
@@ -141,8 +163,8 @@ const PlayerSelectionPage: React.FC = () => {
     };
 
     const filteredPlayers = players.filter((player) => {
-        const nameMatches = player.player_name.toLowerCase().includes(searchTerm.toLowerCase());
-        const numberMatches = player.player_number.includes(searchTerm);
+        const nameMatches = player.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const numberMatches = player.number ? String(player.number).includes(searchTerm) : false;
         return nameMatches || numberMatches;
     });
 
@@ -164,22 +186,22 @@ const PlayerSelectionPage: React.FC = () => {
             <div className="players-grid">
                 {filteredPlayers.map((player) => (
                     <div
-                        key={player.player_id}
-                        className={getPlayerCardClass(player.player_id)}
-                        onClick={() => handlePlayerSelect(player.player_id)}
+                        key={player.playerId}
+                        className={getPlayerCardClass(player.playerId)}
+                        onClick={() => handlePlayerSelect(player.playerId)}
                     >
                         <div className="jersey-container">
                             <PlayerJersey
-                                number={Number(player.player_number)}
+                                number={Number(player.number)}
                                 color={jerseyColor}
                             />
                         </div>
                         <div className="player-details">
                             <div className="player-name">
-                                {player.player_name}
+                                {player.name}
                             </div>
                             <div className="player-position">
-                                {player.player_position}
+                                {player.position}
                             </div>
                         </div>
                     </div>
@@ -190,6 +212,7 @@ const PlayerSelectionPage: React.FC = () => {
 
     return (
         <Container fluid className="player-selection-container p-0">
+            <ToastContainer />
             <Row className="header-row gx-0 pt-3 pb-3 px-3 align-items-center">
                 <Col xs="auto">
                     <Button variant="link" onClick={handleGoBack} className="p-0 me-2 back-button">

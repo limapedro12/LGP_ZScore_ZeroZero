@@ -361,6 +361,34 @@ try {
             $redis->set($remainingTimeKey, $timeoutDuration);
             $redis->set($statusKey, 'running');
             $redis->set($activeTeamKey, $team);
+
+            $shotClockKeys = RequestUtils::getRedisKeys($placardId, 'shotclock');
+            $pipeline = $redis->pipeline();
+            $pipeline->get($shotClockKeys['status']);
+            $pipeline->get($shotClockKeys['start_time']);
+            $pipeline->get($shotClockKeys['remaining_time']);
+            $pipeline->get($shotClockKeys['active_team']);
+            $shotClockResults = $pipeline->exec();
+            
+            $shotClockStatus = $shotClockResults[0] ?: 'inactive';
+            $shotClockStartTime = (int)($shotClockResults[1] ?: 0);
+            $shotClockStoredRemaining = (int)($shotClockResults[2] ?: 0);
+            $shotClockActiveTeam = $shotClockResults[3] ?: null;
+            
+            if ($shotClockStatus === 'running') {
+                $shotClockElapsedTime = $currentTime - $shotClockStartTime;
+                $shotClockRemainingTime = max(0, $shotClockStoredRemaining - $shotClockElapsedTime);
+                
+                $redis->multi();
+                $redis->set($shotClockKeys['status'], 'paused');
+                $redis->set($shotClockKeys['remaining_time'], $shotClockRemainingTime);
+                $redis->exec();
+            }
+
+            $redis->set($startTimeKey, $currentTime);
+            $redis->set($remainingTimeKey, $timeoutDuration);
+            $redis->set($statusKey, 'running');
+            $redis->set($activeTeamKey, $team);
             
             $result = createTimeoutEvent($timeoutUpdate['homeTimeouts'], $timeoutUpdate['awayTimeouts'], $team, 1);
             

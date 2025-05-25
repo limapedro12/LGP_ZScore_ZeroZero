@@ -1,6 +1,7 @@
 import React from 'react';
-import PlayerJersey from '../../playerJersey';
+import EventDisplay from '../eventDisplay';
 import { Sport, CardTypeForSport, getCardIconPath } from '../../../utils/cardUtils';
+import '../../../styles/sliderComponents.scss';
 
 interface CardEventProps<S extends Sport> {
   sport: S;
@@ -8,6 +9,7 @@ interface CardEventProps<S extends Sport> {
   playerNumber?: number;
   cardType: CardTypeForSport<S>;
   team: 'home' | 'away';
+  teamColor?: string;
 }
 
 const CardEvent = <S extends Sport>({
@@ -16,80 +18,49 @@ const CardEvent = <S extends Sport>({
     playerNumber,
     cardType,
     team,
+    teamColor,
 }: CardEventProps<S>) => {
-    const cardIconSrc = getCardIconPath(sport, cardType);
 
-    const jerseyElement = (
-        <>
-            <div className="w-50 d-flex d-lg-none align-items-center justify-content-center">
-                <PlayerJersey number={playerNumber} />
-            </div>
-            <div className="w-25 d-none d-lg-flex align-items-center justify-content-center">
-                <PlayerJersey number={playerNumber} />
-            </div>
-        </>
-    );
+    const renderCardIcon = (cardType: CardTypeForSport<S>) => {
+        const cardIconSrc = getCardIconPath(sport, cardType);
 
-    const nameElementAlignClass = team === 'home' ? 'justify-content-start' : 'justify-content-end';
-    const nameElement = (
-        <div className={`w-50 w-lg-25 d-flex align-items-center text-center text-white ${nameElementAlignClass}`}>
-            <span className="fw-bold small text-truncate">
-                {playerName}
-            </span>
-        </div>
-    );
-
-    const cardIconElement = (
-        <>
-            <div
-                className={`w-25 d-flex d-lg-none align-items-center ${
-                    team === 'home' ? 'justify-content-start ps-2' : 'justify-content-end pe-2'
-                }`}
-            >
-                {cardIconSrc ? (
+        return cardIconSrc ? (
+            <div className="d-flex justify-content-center align-items-center h-100">
+                <div
+                    className="card-icon-wrapper"
+                    style={{
+                        height: '3.5rem',
+                        width: '2.5rem',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
                     <img
                         src={cardIconSrc}
                         alt={`${cardType} card for ${sport}`}
-                        className="img-fluid rounded w-75"
+                        className="img-fluid"
+                        style={{
+                            height: '100%',
+                            width: 'auto',
+                            objectFit: 'contain',
+                        }}
                     />
-                ) : (
-                    <span className="badge bg-secondary p-2">?</span>
-                )}
+                </div>
             </div>
-            <div
-                className={`w-25 d-none d-lg-flex align-items-center ${
-                    team === 'home' ? 'justify-content-start ps-2' : 'justify-content-end pe-2'}`}
-            >
-                {cardIconSrc ? (
-                    <img
-                        src={cardIconSrc}
-                        alt={`${cardType} card for ${sport}`}
-                        className="img-fluid rounded w-50"
-                    />
-                ) : (
-                    <span className="badge bg-secondary p-2">?</span>
-                )}
-            </div>
-        </>
-
-    );
+        ) : (
+            <span className="badge bg-secondary p-2">?</span>
+        );
+    };
 
     return (
-        <div className={`d-flex align-items-center w-100 ${team === 'home' ? 'justify-content-start' : 'justify-content-end'}`}>
-            {team === 'home' ? (
-                <>
-                    {jerseyElement}
-                    {nameElement}
-                    {cardIconElement}
-                </>
-            ) : (
-                <>
-                    {cardIconElement}
-                    {nameElement}
-                    {jerseyElement}
-                </>
-            )}
-        </div>
+        <EventDisplay
+            playerName={playerName}
+            playerNumber={playerNumber}
+            team={team}
+            rightElement={renderCardIcon(cardType)}
+            teamColor={teamColor}
+        />
     );
 };
 

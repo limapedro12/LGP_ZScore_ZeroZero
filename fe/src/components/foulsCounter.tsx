@@ -1,10 +1,8 @@
-// src/components/FoulsCounter.tsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMediaQuery } from 'react-responsive';
 import apiManager from '../api/apiManager';
-import BoxCounter from './boxCounter';
+import BoxCounter from './scoreboard/boxCounter';
 import '../styles/timeoutCounter.scss';
 import { BREAKPOINTS } from '../media-queries/index';
 
@@ -69,7 +67,7 @@ const FoulsCounter: React.FC = () => {
     const maxCountForDisplay = foulsThreshold === undefined ? 0 : foulsThreshold;
 
     return (
-        <div className="foul-counter w-100 d-flex justify-content-center">
+        <div className="foul-counter w-100 d-flex justify-content-center mt-3">
             <BoxCounter
                 label="Faltas"
                 homeCount={teamFouls.home}

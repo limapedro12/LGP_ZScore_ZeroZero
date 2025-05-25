@@ -1,5 +1,5 @@
 import { CardTypeForSport, Sport as cardUtilsSportType } from './cardUtils';
-import apiManager from '../api/apiManager';
+import apiManager, { Sport } from '../api/apiManager';
 
 export type EventCategory =   'basketballScore'
                             | 'volleyballScore'
@@ -10,7 +10,6 @@ export type EventCategory =   'basketballScore'
                             | 'card'
                             | 'substitution';
 
-export type Sport = 'futsal' | 'volleyball' | 'basketball';
 
 export type TeamTag = 'home' | 'away';
 
@@ -168,11 +167,11 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
             eventCategory: 'foul',
             onEventAction: (teamTag, navigate, sport, placardId) => {
                 if (navigate && sport && placardId) {
-                    navigate(`/scorersTable/${sport}/${placardId}/pointValueSelection/${teamTag}`, {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
                         state: { eventCategory: 'foul' },
                     });
                 } else {
-                    console.warn('Navigation details missing for basketball foul event');
+                    console.warn('Navigation details missing for futsal foul event');
                 }
             },
         },
@@ -190,7 +189,13 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Posse',
             eventCategory: 'possession',
-            onEventAction: (teamTag) => console.log(`Basketball Posse - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startShotClock(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
         },
     ],
 };

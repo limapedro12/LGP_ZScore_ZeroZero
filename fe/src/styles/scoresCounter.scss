@@ -26,43 +26,35 @@
     justify-content: flex-start;
 }
 
-.team-logo {
+.team-logo-scoreboard {
     width: auto;
     max-width: 100%;
     height: auto;
     max-height: 80px;
     object-fit: contain;
     
-    @include config.md { 
+    @include config.xl { 
         max-height: 100px;
     }
     
-    @include config.lg { 
+    @include config.xxl { 
         max-height: 120px;
     }
     
-    @include config.xl { 
-        max-height: 140px;
-    }
-    
-    @include config.xxl { 
-        max-height: 170px;
-    }
-    
     @include config.placard1 { 
-        max-height: 200px;
+        max-height: 160px;
     }
     
     @include config.placard2 { 
-        max-height: 240px;
+        max-height: 180px;
     }
     
     @include config.placard3 { 
-        max-height: 280px;
+        max-height: 230px;
     }
     
     @include config.placard4 { 
-        max-height: 320px;
+        max-height: 260px;
     }
 }
 
@@ -211,7 +203,7 @@
     }
 
     .score-center-col {
-        flex-direction: column !important;
+        flex-direction: column;
         gap: 0.5rem;
     }
 
@@ -221,19 +213,20 @@
     }
 
     .score-box {
-        font-size: 2rem !important;
-        min-width: 68px !important;
-        min-height: 68px !important;
+        font-size: 2rem ;
+        min-width: 68px ;
+        min-height: 68px;
     }
 
-    .team-logo {
-        width: auto !important;
-        max-width: 70px !important;
-        height: auto !important;
-        max-height: 70px !important;
+    .team-logo-scoreboard {
+        width: auto ;
+        max-width: 70px ;
+        height: auto ;
+        max-height: 70px ;
+        margin-top: 0.75rem ;
     }
 
     .team-abbr {
-        font-size: 1.2rem !important;
+        font-size: 1.2rem ;
     }
 }

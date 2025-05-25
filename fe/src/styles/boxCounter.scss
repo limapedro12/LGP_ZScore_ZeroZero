@@ -55,15 +55,18 @@
     color: config.$text-color;
     display: flex;
     align-items: center;
+    justify-content: center;
     margin: 0 1rem;
+    width: 6rem; 
+    text-align: center;
 
-    @include config.placard1 { font-size: 2.5rem; height: 2.5rem; }
-    @include config.placard2 { font-size: 3rem; height: 3rem; }
-    @include config.placard3 { font-size: 4rem; height: 4rem; }
-    @include config.placard4 { font-size: 5rem; height: 5rem; }
+    @include config.placard1 { font-size: 2.5rem; height: 2.5rem; width: 7.5rem; }
+    @include config.placard2 { font-size: 3rem; height: 3rem; width: 9rem; }
+    @include config.placard3 { font-size: 4rem; height: 4rem; width: 12rem; }
+    @include config.placard4 { font-size: 5rem; height: 5rem; width: 15rem; }
 }
 
-@include config.below-xl {
+@include config.below-xxl {
 
     .box-counter-container {
         flex-direction: row;
@@ -79,6 +82,7 @@
 
     .box-counter-label {
         margin: 0 0.5rem;
+        width: 5rem; 
     }
 
 }

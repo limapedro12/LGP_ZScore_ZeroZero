@@ -1,8 +1,7 @@
 // src/components/FoulSlider.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Sport } from '../../../utils/cardUtils';
-import apiManager from '../../../api/apiManager';
+import apiManager, { Sport } from '../../../api/apiManager';
 import BaseSlider from '../baseSlider';
 import EventDisplay from '../eventDisplay';
 import '../../../styles/sliderComponents.scss';
