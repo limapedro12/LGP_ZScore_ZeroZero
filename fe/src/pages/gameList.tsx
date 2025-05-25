@@ -8,6 +8,7 @@ import Filters from '../components/gameList/Filters';
 import ShowGames from '../components/gameList/ShowGames';
 import { Game } from '../types/types';
 import apiManager from '../api/apiManager';
+import { formatDate } from '../utils/dateUtils';
 
 const GameList = () => {
     const [games, setGames] = useState<Game[]>([]);
@@ -24,11 +25,11 @@ const GameList = () => {
                         const awayTeam = await apiManager.getTeamInfo(game.secondTeamId);
                         return {
                             placardId: game.id,
-                            home: homeTeam?.name || 'Unknown', // Ensure `home` is defined
-                            homeLogo: homeTeam?.logoURL || '', // Ensure `homeLogo` is defined
-                            away: awayTeam?.name || 'Unknown', // Ensure `away` is defined
-                            awayLogo: awayTeam?.logoURL || '', // Ensure `awayLogo` is defined
-                            date: new Date(game.startTime).toLocaleDateString(),
+                            home: homeTeam?.name || 'Unknown',
+                            homeLogo: homeTeam?.logoURL || '',
+                            away: awayTeam?.name || 'Unknown',
+                            awayLogo: awayTeam?.logoURL || '',
+                            date: formatDate(new Date(game.startTime)),
                             time: new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             sport: game.sport,
                             liga: 'Liga Mock', // TODO remove this

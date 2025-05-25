@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Game } from '../../types/types';
+import { formatDate } from '../../utils/dateUtils';
 
 type FiltersProps = {
     games: Game[];
@@ -56,10 +57,7 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
 
         let localFormattedDate: string | null = null;
         if (date) {
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
-            const year = date.getFullYear();
-            localFormattedDate = `${day}/${month}/${year}`;
+            localFormattedDate = formatDate(date);
         }
 
         const filteredGames = games.filter((game) => {
