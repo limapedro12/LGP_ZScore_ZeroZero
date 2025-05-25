@@ -11,25 +11,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$apiurl = GETENV('API_URL');
-if (empty($apiurl)) {
-    echo json_encode(["error" => "API URL not set"]);
-    exit;
-}
-
-$appkey = GETENV('APP_KEY');
-if (empty($appkey)) {
-    echo json_encode(["error" => "API Key not set"]);
-    exit;
-}
-
 $action = $_GET['action'] ?? $jsonBody['action'] ?? null;
 if (is_null($action)) {
     echo json_encode(["error" => "Missing action"]);
     exit;
 }
 
-$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive'];
+$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive', 'getAllowColab'];
 if (!in_array($action, $allowedActions)) {
     echo json_encode(["error" => "Invalid action"]);
     exit;
@@ -41,13 +29,9 @@ if ((is_null($username) || is_null($password)) && $action === 'login') {
     echo json_encode(["error" => "Missing username or password"]);
     exit;
 }
-$cookie = $_GET['cookie'] ?? $jsonBody['cookie'] ?? null;
-if (is_null($cookie) && $action !== 'login') {
-    echo json_encode(["error" => "Missing cookie"]);
-    exit;
-}
+
 $matchId = $_GET['matchId'] ?? $jsonBody['matchId'] ?? null;
-if (is_null($matchId) && ($action === 'getMatchLiveInfo' || $action === 'getTeamLive')) {
+if (is_null($matchId) && ($action === 'getMatchLiveInfo' || $action === 'getTeamLive' || $action === 'getAllowGame')) {
     echo json_encode(["error" => "Missing matchId"]);
     exit;
 }
@@ -60,16 +44,19 @@ if (is_null($teamId) && $action === 'getTeamLive') {
 
 switch ($action) {
     case 'login':
-        $response = login($apiurl, $appkey, $username, $password);
+        $response = login($username, $password);
         break;
     case 'getMatchesColab':
-        $response = getMatchesColab($apiurl, $appkey, $cookie);
+        $response = getMatchesColab();
         break;
     case 'getMatchLiveInfo':
-        $response = getMatchLiveInfo($apiurl, $appkey, $cookie, $matchId);
+        $response = getMatchLiveInfo($matchId);
         break;
     case 'getTeamLive':
-        $response = getTeamLive($apiurl, $appkey, $cookie, $matchId, $teamId);
+        $response = getTeamLive($matchId,$teamId);
+        break;
+    case 'getAllowColab':
+        $response = getAllowColab($matchId);
         break;
     default:
         echo json_encode(["error" => "Invalid action"]);

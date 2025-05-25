@@ -1,0 +1,292 @@
+html, body {
+  background-color: #23323F; 
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.gameList-container {
+  display: grid;
+  grid-template-columns: 300px 1fr; 
+  height: 100vh;
+  background-color: #23323F;
+  color: white;
+  font-family: sans-serif;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: white;
+  line-height: 1.5;
+  position: absolute;
+  top: 3vh;
+  left: 2vw;
+}
+
+.logo img {
+  height: 10vh;
+}
+
+.logoCol {
+  min-height: 8vh;
+  display: flex;
+}
+
+.jogosTitle {
+  font-size: 2rem;
+  whiteSpace: 'nowrap';
+}
+
+
+.filters {
+  background-color: white;//#2b3a47;
+  color: #23323F;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-radius: 15px;
+  height: auto;
+  margin-top: 5vh;
+}
+
+.filters h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.filters input {
+  width: 100%;
+  padding: 8px;
+  border: 3px solid #ccc;
+  border-radius: 15px;
+  margin-bottom: 10px;
+}
+
+.filters input:focus {
+  border-color: #23323F;
+  outline: none;
+}
+
+.teams, .sports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.teams {
+  max-height: 20vh;
+  overflow-y: auto;
+}
+
+.teams button, .sports button {
+  background-color: #1e2b36;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.teams button.active, .sports button.active {
+  background-color: white;
+  color: #23323F;
+  border: 2px solid #23323F;
+}
+
+.submit {
+  padding: 10px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.games-section {
+  flex-grow: 1;
+  padding: 30px;
+  height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.games-section h1 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.game-card {
+  background-color: white;
+  color: black;
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-card:hover {
+  cursor: pointer;
+  background-color: #f0f0f0;
+}
+
+.team1 {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.team2 {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+
+.team-logo {
+  width: 5vw;
+  height: 5vw;
+  background-color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20%;
+  margin-bottom: 5px;
+}
+
+.team-logo img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.vs {
+  font-weight: bold;
+  font-size: 1rem;
+  margin: 5px 0;
+  text-align: center;
+}
+
+.sport-icon {
+  width: 3vw;
+  height: 3vw;
+}
+
+/* Center align text in game-info */
+.game-info {
+  text-align: center;
+}
+
+.table-container {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.left {
+  margin-right: auto; 
+  text-align: left;
+}
+
+.center {
+  margin: 0 auto;
+}
+
+.right {
+  margin-left: auto;
+  text-align: right;
+}
+
+.sidebar {
+  width: 300px;
+  margin: 15px;
+}
+
+@media (min-width: 2000px) {
+  .gameList-container {
+    display: grid;
+    grid-template-columns: 20vw 1fr; 
+  }
+
+  .sidebar {
+    width: 20vw;
+  }
+
+  .logo {
+    font-size: 1.2vw;
+  }
+
+  .filters h2 {
+    font-size: 1.5vw;
+  }
+
+  .games-section h1 {
+    font-size: 2vw;
+  }
+
+  .jogosTitle {
+    font-size: 2vw;
+  }
+
+  .gameList-container {
+    font-size: 1vw;
+  }
+
+  .vs {
+    font-size: 1vw;
+  }
+
+  .team-logo {
+    border-radius: 20%;
+  }
+
+  .game-card {
+    border-radius: 1vw;
+  }
+  
+  .teams button {
+    border-radius: 0.5vw;
+  }
+
+  .submit {
+    border-radius: 0.5vw;
+  }
+
+  .filters input {
+    border-radius: 1vw;
+  }
+
+  .filters {
+    border-radius: 1vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .gameList-container {
+    grid-template-columns: 90vw 1fr;
+  }
+
+  .filters {
+    width: 100%;
+    height: auto;
+    margin-top: 12vh;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .jogosTitle {
+    padding-top: 20px;
+  }
+
+  .logo img {
+    width: auto;
+    width: auto;
+    height: 8vh;
+    position: absolute;
+    left: 5vw;
+  } 
+}

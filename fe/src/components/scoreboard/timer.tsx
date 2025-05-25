@@ -1,0 +1,67 @@
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import apiManager from '../../api/apiManager';
+import { formatTime, sportsFormat } from '../../utils/timeUtils';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import '../../styles/timer.scss';
+
+const Timer: React.FC = () => {
+    const [elapsedTime, setElapsedTime] = useState(0);
+    const [period, setPeriod] = useState(0);
+    const [placardId, setplacardId] = useState<string>('default');
+    const [sport, setsport] = useState<string>('default');
+    const { placardId: urlplacardId, sport: urlsport } = useParams<{ placardId: string, sport: string }>();
+
+    useEffect(() => {
+        if (urlplacardId) setplacardId(urlplacardId);
+        if (urlsport) setsport(urlsport);
+    }, [urlplacardId, urlsport]);
+
+    const fetchTimerStatus = React.useCallback(async () => {
+        if (!placardId || !sport || placardId === 'default' || sport === 'default') {
+            return;
+        }
+        try {
+            const response = await apiManager.getTimerStatus(placardId, sport);
+            const data = response;
+            if (data.remaining_time !== undefined && data.period !== undefined) {
+                setElapsedTime(data.remaining_time);
+                setPeriod(data.period);
+            }
+        } catch (error) {
+            console.error('Error fetching timer status:', error);
+        }
+    }, [placardId, sport]);
+
+    useEffect(() => {
+        if (placardId && sport && placardId !== 'default' && (sport !== 'default')) {
+            fetchTimerStatus();
+            const intervalId = setInterval(fetchTimerStatus, 1000);
+            return () => clearInterval(intervalId);
+        }
+        return undefined;
+    }, [placardId, fetchTimerStatus, sport]);
+
+    return (
+        <Container className="timer d-flex flex-column align-items-center justify-content-center mt-5 mb-5">
+            <Row className="w-100">
+                <Col xs={12} className="text-center">
+                    <div className="period display-4 fw-bold">
+                        {sportsFormat(sport, period)}
+                    </div>
+                </Col>
+            </Row>
+            <Row className="w-100">
+                <Col xs={12} className="text-center">
+                    <div className="time display-1 fw-bold">
+                        {formatTime(elapsedTime)}
+                    </div>
+                </Col>
+            </Row>
+        </Container>
+    );
+};
+
+export default Timer;
