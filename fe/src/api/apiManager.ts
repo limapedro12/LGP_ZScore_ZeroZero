@@ -32,7 +32,10 @@ type ActionType =
     | 'noPeriodBox'
     | 'noShotClock'
     | 'typeOfScore'
-    | 'sportConfig';
+    | 'sportConfig'
+    | 'authUserSocial'
+    | 'checkLogin'
+    | 'logout';
 
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock' | 'info'| 'foul';
 
@@ -293,6 +296,7 @@ interface GameFoulStatusResponse {
     };
 }
 
+
 interface FoulsResponse {
     fouls: Array<{
         eventId: string | number;
@@ -302,7 +306,12 @@ interface FoulsResponse {
         timestamp: number;
         period?: number;
     }>;
-}
+
+interface AuthResponse {
+    success: boolean;
+    username?: string;
+
+};
 
 /**
  * API Manager that handles all API requests
@@ -596,6 +605,7 @@ class ApiManager {
         );
     };
 
+<<<<<<< HEAD
     getFouls = (placardId: string, sport: string): Promise<FoulsResponse> => {
         const params: RequestParams = { placardId, sport };
         return this.makeRequest<FoulsResponse>(
@@ -605,6 +615,14 @@ class ApiManager {
             'GET'
         );
     };
+
+    checkToken = (authToken: string) =>
+        this.makeRequest<AuthResponse>('api', 'authUserSocial', { authToken }, 'GET');
+    checkLoginStatus = () =>
+        this.makeRequest<AuthResponse>('api', 'checkLogin', {}, 'GET');
+    logout = () =>
+        this.makeRequest<AuthResponse>('api', 'logout', {}, 'GET');
+
 
 }
 

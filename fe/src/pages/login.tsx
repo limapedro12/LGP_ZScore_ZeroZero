@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/login.scss';
 import apiManager from '../api/apiManager';
+import LoginButton from '../components/loginButton';
 
 const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -38,6 +39,7 @@ const LoginPage: React.FC = () => {
                         placeholder="Enter Password"
                     />
                     <button type="submit">Login</button>
+                    <LoginButton />
                 </div>
             </form>
         </div>
