@@ -32,7 +32,10 @@ type ActionType =
     | 'noPeriodBox'
     | 'noShotClock'
     | 'typeOfScore'
-    | 'sportConfig';
+    | 'sportConfig'
+    | 'authUserSocial'
+    | 'checkLogin'
+    | 'logout';
 
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock' | 'info'| 'foul';
 
@@ -289,6 +292,11 @@ interface GameFoulStatusResponse {
         };
         foulsPenaltyThreshold: number | null;
     };
+}
+
+interface AuthResponse {
+    success: boolean;
+    username?: string;
 }
 
 /**
@@ -582,6 +590,13 @@ class ApiManager {
             'GET'
         );
     };
+
+    checkToken = (authToken: string) =>
+        this.makeRequest<AuthResponse>('api', 'authUserSocial', { authToken }, 'GET');
+    checkLoginStatus = () =>
+        this.makeRequest<AuthResponse>('api', 'checkLogin', {}, 'GET');
+    logout = () =>
+        this.makeRequest<AuthResponse>('api', 'logout', {}, 'GET');
 
 }
 
