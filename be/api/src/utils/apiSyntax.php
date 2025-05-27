@@ -144,7 +144,7 @@
         $players = $data['PLAYERS'];
         foreach ($players as $player) {
             $playerId = $player['player_id'];
-            if (DbUtils::selectPlayer($playerId, $sport)) {
+            if (DbUtils::selectPlayerByzerozeroId($playerId)) {
                 continue; // Player already exists, skip to next
             }
             $playerName = $player['player_name'];
