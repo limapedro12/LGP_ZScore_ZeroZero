@@ -174,15 +174,35 @@
 
         }
 
-        public static function insertPlayer($playerId, $playerName, $sport, $playerPosition, $positionAcronym, $playerNumber, $teamId)
+        public static function selectPlayerByzerozeroId($zerozeroId)
         {
             $conn = DbUtils::connect();
             if ($conn === false) {
                 return false;
             }
 
-            $stmt = $conn->prepare("INSERT INTO AbstractPlayer (id, name, sport, position, position_acronym, number, teamId) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("isssssi", $playerId, $playerName, $sport, $playerPosition, $playerNumber, $teamId);
+            $stmt = $conn->prepare("SELECT * FROM AbstractPlayer WHERE zerozero_id = ?");
+            $stmt->bind_param("i", $zerozeroId); 
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $results = $result->fetch_assoc();
+            
+            $stmt->close();
+            $conn->close();
+
+            return $results;
+
+        }
+
+        public static function insertPlayer($zerozeroId, $playerName, $sport, $playerPosition, $positionAcronym, $playerNumber, $teamId)
+        {
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return false;
+            }
+
+            $stmt = $conn->prepare("INSERT INTO AbstractPlayer (zerozero_id, name, sport, position, position_acronym, number, teamId) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("isssssi", $zerozeroId, $playerName, $sport, $playerPosition, $playerNumber, $teamId);
             if ($stmt->execute()) {
                 $stmt->close();
                 $conn->close();
