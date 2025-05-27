@@ -179,6 +179,7 @@ interface SportsResponse {
         periodEndScore?: number;
         pointDifference?: number;
         resetPointsEachPeriod?: boolean;
+        positions?: Record<string, string>;
     };
 }
 
