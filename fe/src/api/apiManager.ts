@@ -374,7 +374,8 @@ class ApiManager {
 
             const data = await response.json();
             // Optionally show a success toast for certain actions
-            if (['create', 'update', 'delete', 'reset', 'start', 'pause', 'adjust', 'set'].includes(action) && data?.message) {
+            if (['create', 'update', 'delete', 'reset', 'start', 'pause', 'adjust', 'set', 'updateLineup'].
+                includes(action) && data?.message) {
                 toast.success(data.message);
             }
             return data;

@@ -11,7 +11,7 @@ const TeamLogosRow: React.FC<TeamLogosRowProps> = ({
     homeTeam,
     awayTeam,
 }) => (
-    <Container fluid className="my-5">
+    <Container fluid className="py-5">
         <Row className="justify-content-between align-items-center">
             <Col xs={5} md={4} className="d-flex justify-content-center align-items-center">
                 <img

@@ -4,7 +4,9 @@ import { Container, Row, Col, Spinner, Button } from 'react-bootstrap';
 import TeamLogosRow from '../../components/scorersTable/preGameSetup/teamLogos';
 import TeamPlayers from '../../components/scorersTable/preGameSetup/teamPlayers';
 import AddPlayerModal from '../../components/scorersTable/preGameSetup/addPlayerModal';
+import ConfirmModal from '../../components/scorersTable/confirmModal';
 import apiManager, { ApiTeam, ApiGame, ApiPlayer } from '../../api/apiManager';
+import { ToastContainer } from 'react-toastify';
 import '../../styles/setupWizard.scss';
 
 export default function PreGameSetupPage() {
@@ -21,6 +23,8 @@ export default function PreGameSetupPage() {
     const [currentTeamForAddPlayer, setCurrentTeamForAddPlayer] = useState<'home' | 'away' | null>(null);
     const [allPlayersGame, setAllPlayersGame] = useState<ApiPlayer[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [playerToDelete, setPlayerToDelete] = useState<string | number | null>(null);
 
 
     useEffect(() => {
@@ -83,17 +87,37 @@ export default function PreGameSetupPage() {
     const handleSubmitRoster = async () => {
         try {
             setLoading(true);
-            console.log('All players to be sent to backend:', allPlayersGame);
 
-            await apiManager.updateLineup(placardId!, allPlayersGame);
+            const response = await apiManager.updateLineup(placardId!, allPlayersGame);
 
-
-            navigate(`/scorersTable/${sport}/${placardId}`);
+            if (response.success) {
+                navigate(`/scorersTable/${sport}/${placardId}`);
+            }
         } catch (error) {
             console.error('Error submitting team roster:', error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleRequestRemovePlayer = (playerId: string | number) => {
+        setPlayerToDelete(playerId);
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirmRemovePlayer = () => {
+        if (playerToDelete !== null) {
+            setHomePlayers((prev) => prev.filter((player) => player.id !== playerToDelete));
+            setAwayPlayers((prev) => prev.filter((player) => player.id !== playerToDelete));
+            setAllPlayersGame((prev) => prev.filter((player) => player.id !== playerToDelete));
+        }
+        setShowConfirmModal(false);
+        setPlayerToDelete(null);
+    };
+
+    const handleCancelRemovePlayer = () => {
+        setShowConfirmModal(false);
+        setPlayerToDelete(null);
     };
 
     if (
@@ -112,8 +136,8 @@ export default function PreGameSetupPage() {
     }
     return (
         <div className="pre-game-setup-container">
+            <ToastContainer />
             <TeamLogosRow homeTeam={homeTeam} awayTeam={awayTeam} />
-
             <Container fluid>
                 <Row>
                     <Col xs={12} md={6}>
@@ -121,6 +145,8 @@ export default function PreGameSetupPage() {
                             teamPlayers={homePlayers}
                             teamColor={homeTeam?.color}
                             onAddPlayer={() => showAddPlayerModal('home')}
+                            onRemovePlayer={handleRequestRemovePlayer}
+
                         />
                     </Col>
                     <Col xs={12} md={6}>
@@ -128,6 +154,8 @@ export default function PreGameSetupPage() {
                             teamPlayers={awayPlayers}
                             teamColor={awayTeam?.color}
                             onAddPlayer={() => showAddPlayerModal('away')}
+                            onRemovePlayer={handleRequestRemovePlayer}
+
                         />
                     </Col>
                 </Row>
@@ -138,7 +166,7 @@ export default function PreGameSetupPage() {
                             className="btn-lg submit-roster-btn"
                             onClick={handleSubmitRoster}
                         >
-                            Submit Team Roster
+                            Submeter Plantel
                         </Button>
                     </Col>
                 </Row>
@@ -153,6 +181,15 @@ export default function PreGameSetupPage() {
                     onPlayerAdded={handlePlayerAdded}
                 />
             )}
+
+            <ConfirmModal
+                show={showConfirmModal}
+                onConfirm={handleConfirmRemovePlayer}
+                onCancel={handleCancelRemovePlayer}
+                title="Confirmar Alterações?"
+                confirmText="SIM"
+                cancelText="NÃO"
+            />
         </div>
     );
 }
