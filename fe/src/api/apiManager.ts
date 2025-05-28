@@ -32,7 +32,8 @@ export type ActionType =
     | 'noPeriodBox'
     | 'noShotClock'
     | 'typeOfScore'
-    | 'sportConfig';
+    | 'sportConfig'
+    | 'list_game_fouls';
 
 type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock' | 'info'| 'foul' | 'events';
 
@@ -162,9 +163,10 @@ export interface CardsResponse {
     }>;
 }
 
-interface EventsResponse {
-    events: Array<Record<string, string>>; // !!!!!!!!!!!!!
-}
+// interface EventsResponse {
+//     events: Array<Record<string, string>>; // !!!!!!!!!!!!!
+// }
+
 interface SportsResponse {
     sports?: string[];
     typeOfScore?: string;
@@ -605,7 +607,6 @@ class ApiManager {
     getNonTimerSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noTimer', { }, 'GET');
 
-    
     getNoPeriodSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noPeriodBox', { }, 'GET');
 
@@ -635,12 +636,12 @@ class ApiManager {
             'GET'
         );
     };
-    
-    getEvents = (placardId: string, sport: string): Promise<EventsResponse> =>
-        this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
-    
-    getEventDetails = (placardId: string, sport: string, eventId: number) =>
-        this.makeRequest<Record<string, string>>('events', 'get', { placardId, sport, eventId }, 'GET'); // !!!!!!!!!!!!
+
+    // getEvents = (placardId: string, sport: string): Promise<EventsResponse> =>
+    //     this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
+
+    // getEventDetails = (placardId: string, sport: string, eventId: number) =>
+    //     this.makeRequest<Record<string, string>>('events', 'get', { placardId, sport, eventId }, 'GET'); // !!!!!!!!!!!!
 }
 
 const apiManager = new ApiManager();
