@@ -306,7 +306,7 @@ const EventHistory: React.FC = () => {
                 timeoutEventsData,
             ] = await Promise.allSettled([
                 apiManager.makeRequest<{ points: ApiScoreEventData[] }>('score', 'get', { placardId, sport }, 'GET'),
-                apiManager.makeRequest<{ data: ApiFoulEventData[] }>('foul', 'list_game_fouls', { placardId, sport }, 'GET'),
+                apiManager.makeRequest<{ data: ApiFoulEventData[] }>('foul', 'get', { placardId, sport }, 'GET'),
                 apiManager.getCards(placardId, sport),
                 apiManager.getTimeoutEvents(placardId, sport),
             ]);
