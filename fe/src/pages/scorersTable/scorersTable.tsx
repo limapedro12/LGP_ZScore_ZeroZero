@@ -171,7 +171,7 @@ const ScorersTable = () => {
     };
 
     const handleCorrection = () => {
-        console.log('Correction button clicked - functionality to be implemented');
+        window.location.href = `/eventhistory/${sport}/${placardIdParam}`;
     };
 
 

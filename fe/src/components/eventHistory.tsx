@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import apiManager, {
-    FetchedEventItem, ApiScoreEventData, ApiFoulEventData, ApiCardEventData, EndpointType, ActionType,
+    FetchedEventItem, ApiScoreEventData, ApiFoulEventData, ApiCardEventData, ActionType, ApiTeam,
 } from '../api/apiManager'; // Removed ApiTimeoutEventData, adjusted line length
 import { formatTime } from '../utils/timeUtils';
 import { getEventIconPath, EventCategory } from '../utils/scorersTableUtils';
@@ -17,13 +17,12 @@ interface Event {
     timestamp: number;
     type: 'card' | 'foul' | 'score' | 'timeout' | 'substitution';
     description: string;
-    team?: 'home' | 'away'; // 'home' or 'away'
-    player?: string; // Player name or identifier string
-    details?: FetchedEventItem; // Store the original fetched item for more details
+    team?: 'home' | 'away';
+    player?: string;
+    details?: FetchedEventItem;
     icon?: React.ReactNode;
     teamLogo?: string;
     playerNumber?: string | number;
-    // Fields from original item that might be needed for editing
     originalPlayerId?: string | number;
     originalCardType?: string;
     originalPointValue?: number | string;
@@ -60,17 +59,15 @@ interface EditFormData {
     pointValue?: string | number;
 }
 
-// Define a more specific type for API parameters used in handleEditFormSubmit
 interface EventUpdateParams {
     placardId: string;
     sport: Sport;
     eventId: string;
     team?: 'home' | 'away';
     playerId?: string | number;
-    timestamp?: number; // Added for editing time, ensure it's part of the type
-    pointValue?: string | number; // For score
-    cardType?: string; // For card
-    // Align with RequestParams from apiManager.ts for broader compatibility if needed by makeRequest
+    timestamp?: number;
+    pointValue?: string | number;
+    cardType?: string;
     [key: string]: string | number | undefined;
 }
 
@@ -82,7 +79,7 @@ interface UpdateCardParams {
     playerId: string;
     cardType: string;
     timestamp: number;
-    [key: string]: string | number | undefined; // Added to match expected type with index signature
+    [key: string]: string | number | undefined;
 }
 
 const EventHistory: React.FC = () => {
@@ -95,11 +92,6 @@ const EventHistory: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<string>('recentes');
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [homeTeamLogoUrl, setHomeTeamLogoUrl] = useState<string>('/teamLogos/slb.png');
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [awayTeamLogoUrl, setAwayTeamLogoUrl] = useState<string>('/teamLogos/scp.png');
-
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
     const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
@@ -110,17 +102,47 @@ const EventHistory: React.FC = () => {
     const [showEditConfirmModal, setShowEditConfirmModal] = useState<boolean>(false);
     const [editConfirmMessage, setEditConfirmMessage] = useState<string>('');
 
+    const [homeTeam, setHomeTeam] = useState<ApiTeam>();
+    const [awayTeam, setAwayTeam] = useState<ApiTeam>();
+    // const homeTeam: ApiTeam = ({
+    //     id: 'home',
+    //     name: 'Equipa Casa',
+    //     logoURL: '/path/to/home/logo.png',
+    //     color: '#FF0000', // Example color
+    //     acronym: 'HC',
+    //     sport: 'futsal', // Adjust sport as needed
+    // });
+    // const awayTeam: ApiTeam = ({
+    //     id: 'away',
+    //     name: 'Equipa Fora',
+    //     logoURL: '/path/to/away/logo.png',
+    //     color: '#0000FF', // Example color
+    //     acronym: 'AF',
+    //     sport: 'futsal', // Adjust sport as needed
+    // });
 
     const sport = sportParam as Sport;
     const placardId = placardIdParam;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [homePlayers, setHomePlayers] = useState<Player[]>(mockHomePlayers);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [awayPlayers, setAwayPlayers] = useState<Player[]>(mockAwayPlayers);
+    const homePlayers = mockHomePlayers;
+    const awayPlayers = mockAwayPlayers;
+
+    const fetchTeams = useCallback(async () => {
+        if (placardId === 'default') return;
+        try {
+            const info = await apiManager.getPlacardInfo(placardId, sport);
+            if (info) {
+                const home = await apiManager.getTeamInfo(info.firstTeamId);
+                const away = await apiManager.getTeamInfo(info.secondTeamId);
+                setHomeTeam(home);
+                setAwayTeam(away);
+            }
+        } catch (error) {
+            console.error('Error fetching teams:', error);
+        }
+    }, [placardId, sport, sportParam, navigate]);
 
     const getEventIcon = useCallback((event: Event, currentSport: Sport): React.ReactNode => {
-        // ...existing code...
         let category: EventCategory | undefined;
         let iconPath: string | undefined;
 
@@ -166,7 +188,7 @@ const EventHistory: React.FC = () => {
     const normalizeEventData = useCallback((
         fetchedItems: ReadonlyArray<FetchedEventItem>,
         type: Event['type']
-    ): Event[] => fetchedItems.map((item: FetchedEventItem, index: number) => {
+    ): Promise<Event[]> => Promise.all(fetchedItems.map(async (item: FetchedEventItem, index: number) => {
         let gameTimeSeconds = 0;
         let rawGameTimeValue: number | string | undefined | null = item.timestamp;
 
@@ -211,10 +233,10 @@ const EventHistory: React.FC = () => {
         }
 
         let currentTeamLogo: string | undefined;
-        if (finalTeamValue === 'home' && homeTeamLogoUrl) {
-            currentTeamLogo = homeTeamLogoUrl;
-        } else if (finalTeamValue === 'away' && awayTeamLogoUrl) {
-            currentTeamLogo = awayTeamLogoUrl;
+        if (finalTeamValue === 'home' && homeTeam) {
+            currentTeamLogo = homeTeam.logoURL;
+        } else if (finalTeamValue === 'away' && awayTeam) {
+            currentTeamLogo = awayTeam.logoURL;
         } else {
             currentTeamLogo = item.teamLogo || undefined;
         }
@@ -225,27 +247,17 @@ const EventHistory: React.FC = () => {
 
         if (item.playerId) {
             const currentPlayerIdString = String(item.playerId);
-            let playersList: Player[];
-            if (finalTeamValue === 'home') {
-                playersList = homePlayers;
-            } else if (finalTeamValue === 'away') {
-                playersList = awayPlayers;
-            } else {
-                playersList = [...homePlayers, ...awayPlayers];
-            }
-            const foundPlayer = playersList.find((p) => String(p.id) === currentPlayerIdString);
-            if (foundPlayer) {
+            const foundPlayer = await apiManager.getPlayerInfo(currentPlayerIdString);
+            if (foundPlayer.name) {
                 resolvedPlayerName = foundPlayer.name;
                 resolvedPlayerNumber = foundPlayer.number;
             } else {
-                // Fallback if player not found in local lists, but API might have provided something (though unlikely for updates)
                 resolvedPlayerName = item.playerName || `Jogador ${currentPlayerIdString}`;
                 resolvedPlayerNumber = item.playerNumber;
             }
         } else {
-            // For events not associated with a specific player (e.g., some timeout events)
-            resolvedPlayerName = item.playerName; // Use if API provides it directly
-            resolvedPlayerNumber = item.playerNumber; // Use if API provides it directly
+            resolvedPlayerName = item.playerName;
+            resolvedPlayerNumber = item.playerNumber;
         }
 
         const playerNameForDescription = resolvedPlayerName || (item.playerId ? `Jogador ${item.playerId}` : undefined);
@@ -287,10 +299,9 @@ const EventHistory: React.FC = () => {
             originalCardType: type === 'card' ? (item as ApiCardEventData).cardType : undefined,
             originalPointValue: type === 'score' ? (item as ApiScoreEventData).pointValue : undefined,
         };
-    }), [homeTeamLogoUrl, awayTeamLogoUrl, sport, homePlayers, awayPlayers]);
+    })), [sport, homePlayers, awayPlayers]);
 
     const fetchEvents = useCallback(async () => {
-        // ...existing code...
         if (!placardId || !sport) {
             setError('ID do placar ou esporte não especificado.');
             setLoading(false);
@@ -315,25 +326,25 @@ const EventHistory: React.FC = () => {
 
             if (scoresResponse.status === 'fulfilled' && scoresResponse.value && scoresResponse.value.points) {
                 allEvents = allEvents.concat(
-                    normalizeEventData(scoresResponse.value.points, 'score'),
+                    await normalizeEventData(scoresResponse.value.points, 'score'),
                 );
             }
 
             if (foulsResponse.status === 'fulfilled' && foulsResponse.value && foulsResponse.value.data) {
                 allEvents = allEvents.concat(
-                    normalizeEventData(foulsResponse.value.data, 'foul'),
+                    await normalizeEventData(foulsResponse.value.data, 'foul'),
                 );
             }
 
             if (cardsData.status === 'fulfilled' && cardsData.value.cards) {
                 allEvents = allEvents.concat(
-                    normalizeEventData(cardsData.value.cards, 'card'),
+                    await normalizeEventData(cardsData.value.cards, 'card'),
                 );
             }
 
             if (timeoutEventsData.status === 'fulfilled' && timeoutEventsData.value.events) {
                 allEvents = allEvents.concat(
-                    normalizeEventData(timeoutEventsData.value.events, 'timeout'),
+                    await normalizeEventData(timeoutEventsData.value.events, 'timeout'),
                 );
             }
 
@@ -344,32 +355,37 @@ const EventHistory: React.FC = () => {
 
             allEvents.sort((a, b) => b.timestamp - a.timestamp);
             setEvents(allEvents);
-
         } catch (e) {
+            console.error('Error fetching events:', e); // Log the error details
             setError('Falha ao carregar o histórico de eventos.');
-            // console.error('Fetch Events Error:', e); // Keep or remove based on debugging needs
         } finally {
             setLoading(false);
         }
     }, [placardId, sport, normalizeEventData, getEventIcon]);
 
     useEffect(() => {
-        // ...existing code...
-        if (placardId && sport) {
-            fetchEvents();
-            const intervalId = setInterval(fetchEvents, 30000); // Refresh every 30 seconds
-            return () => clearInterval(intervalId);
-        }
-        return undefined;
-    }, [fetchEvents, placardId, sport]);
+        const initializeData = async () => {
+            if (placardId && sport) {
+                await fetchTeams();
+            }
+        };
+        initializeData();
+    }, [placardId, sport]);
 
     useEffect(() => {
-        // ...existing code...
+        if (homeTeam && awayTeam) {
+            console.log('1Home Team:', homeTeam);
+            console.log('1Away Team:', awayTeam);
+            fetchEvents();
+        }
+    }, [homeTeam, awayTeam]);
+
+    useEffect(() => {
         let currentFilteredEvents = events;
         if (activeTab !== 'recentes') {
             const tabToEventMap: Record<string, Event['type'] | undefined> = {
                 golos: 'score',
-                pontos: 'score', // For volleyball
+                pontos: 'score',
                 faltas: 'foul',
                 cartões: 'card',
                 pausas: 'timeout',
@@ -390,7 +406,7 @@ const EventHistory: React.FC = () => {
         }
         setEventToEdit(event);
         setEditFormData({
-            team: event.team === 'home' || event.team === 'away' ? event.team : 'home', // Default if undefined
+            team: event.team === 'home' || event.team === 'away' ? event.team : 'home',
             playerId: event.originalPlayerId,
             playerNumber: event.playerNumber,
             cardType: event.type === 'card' ? event.originalCardType : undefined,
@@ -405,15 +421,12 @@ const EventHistory: React.FC = () => {
         setEditFormData((prev) => {
             const updatedData = { ...prev, [name]: value };
             if (name === 'playerId') {
-                // Determine the correct list of players based on the original team of the event
-                // prev.team in editFormData should hold the original team from eventToEdit
                 const selectedTeamPlayers = prev.team === 'home' ? homePlayers : awayPlayers;
                 const selectedPlayer = selectedTeamPlayers.find((p) => String(p.id) === String(value));
                 if (selectedPlayer) {
                     updatedData.playerNumber = selectedPlayer.number;
                 }
             }
-            // The 'if (name === 'team')' block is removed as team is no longer editable
             return updatedData;
         });
     };
@@ -421,15 +434,11 @@ const EventHistory: React.FC = () => {
     const handleEditFormSubmit = async () => {
         if (!eventToEdit || !placardId || !sport) return;
 
-        // Ensure team is defined in editFormData before proceeding
         if (!editFormData.team) {
             setEditFormError('Erro interno: A equipa para o evento não está definida.');
             return;
         }
         setEditFormError(null);
-
-        // Base parameters for any event type, not used directly for cards here
-        // const params: EventUpdateParams = { ... };
 
         try {
             if (eventToEdit.type === 'score') {
@@ -442,10 +451,10 @@ const EventHistory: React.FC = () => {
                     placardId,
                     sport,
                     eventId: String(eventToEdit.id),
-                    team: editFormData.team, // Use validated editFormData.team
+                    team: editFormData.team,
                     playerId: editFormData.playerId,
                     pointValue: editFormData.pointValue,
-                    timestamp: eventToEdit.timestamp, // Include timestamp for score if backend supports/requires
+                    timestamp: eventToEdit.timestamp,
                 };
                 await apiManager.makeRequest('score', 'update', scoreUpdateParams, 'POST');
                 setEditConfirmMessage('Golo/Ponto atualizado com sucesso!');
@@ -459,10 +468,10 @@ const EventHistory: React.FC = () => {
                     placardId,
                     sport,
                     eventId: String(eventToEdit.id),
-                    team: editFormData.team, // Use validated editFormData.team (no '!' needed)
+                    team: editFormData.team,
                     playerId: String(editFormData.playerId),
                     cardType: editFormData.cardType,
-                    timestamp: eventToEdit.timestamp, // Ensure original timestamp is included
+                    timestamp: eventToEdit.timestamp,
                 };
                 console.log('Payload enviado:', cardUpdateParams);
                 await apiManager.updateCard(cardUpdateParams);
@@ -473,7 +482,6 @@ const EventHistory: React.FC = () => {
             setShowEditConfirmModal(true);
             fetchEvents();
         } catch (err) {
-            // console.error('Update event error:', err); // Trailing space removed
             let msg = 'Falha ao atualizar o evento.';
             if (err instanceof Error) msg += ` Detalhes: ${err.message}`;
             setEditFormError(msg);
@@ -494,19 +502,16 @@ const EventHistory: React.FC = () => {
 
 
     const requestDeleteEvent = (event: Event) => {
-        // ...existing code...
         setEventToDelete(event);
         setShowDeleteConfirm(true);
     };
 
     const cancelDelete = () => {
-        // ...existing code...
         setShowDeleteConfirm(false);
         setEventToDelete(null);
     };
 
     const confirmDeleteEvent = async () => {
-        // ...existing code...
         if (!eventToDelete) return;
 
         try {
@@ -574,12 +579,10 @@ const EventHistory: React.FC = () => {
 
 
     if (!placardId || !sport) {
-        // ...existing code...
         return <div className="event-history-error">ID do placar ou esporte não fornecido.</div>;
     }
     if (loading) return <div className="event-history-loading">Carregando histórico de eventos...</div>;
     if (error) {
-        // ...existing code...
         return (
             <div className="event-history-error">
                 Erro:
@@ -589,7 +592,6 @@ const EventHistory: React.FC = () => {
         );
     }
     if (!tabs[sport]) {
-        // ...existing code...
         return (
             <div className="event-history-error">
                 Esporte
@@ -718,7 +720,6 @@ const EventHistory: React.FC = () => {
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && eventToDelete && (
-                // ... existing delete confirmation modal JSX ...
                 <div className="confirmation-modal-overlay">
                     <div className="confirmation-modal">
                         <h3 className="confirmation-modal-title">Confirmar Exclusão?</h3>
@@ -762,7 +763,7 @@ const EventHistory: React.FC = () => {
                                     {/* Container for the logo and name */}
                                     {editFormData.team && ( // Check if team info is available in form data
                                         <img
-                                            src={editFormData.team === 'home' ? homeTeamLogoUrl : awayTeamLogoUrl}
+                                            src={editFormData.team === 'home' ? homeTeam.logoURL : awayTeam.logoURL}
                                             alt={`${editFormData.team} logo`}
                                             className="team-logo-form-preview"
                                         />
