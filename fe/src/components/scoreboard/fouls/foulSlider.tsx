@@ -22,7 +22,7 @@ interface FoulSliderProps {
 
 const FoulSlider: React.FC<FoulSliderProps> = ({ sport, team, placardId, players = [], teamColor }) => {
     const [foulsCountByPlayer, setFoulsCountByPlayer] = useState<Record<string, number>>({});
-
+    
     const fetchAndSetFouls = useCallback(async () => {
         if (!placardId || !sport) {
 
