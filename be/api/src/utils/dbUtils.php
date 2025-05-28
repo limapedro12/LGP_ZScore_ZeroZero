@@ -279,14 +279,26 @@
             }
 
             $stmt = $conn->prepare("SELECT * FROM AbstractPlacard");
-            $stmt->execute();
+            if (!$stmt) {
+                error_log("Prepare failed: (" . $conn->errno . ") " . $conn->error);
+                $conn->close();
+                return false;
+            }
+            
+            if (!$stmt->execute()) {
+                error_log("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
+                $stmt->close();
+                $conn->close();
+                return false;
+            }
+            
             $result = $stmt->get_result();
-            $results = $result->fetch_all(MYSQLI_ASSOC);
+            $placards = $result->fetch_all(MYSQLI_ASSOC);
             
             $stmt->close();
             $conn->close();
 
-            return $results;
+            return $placards;
         }
     }
           
