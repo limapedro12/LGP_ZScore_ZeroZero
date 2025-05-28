@@ -5,7 +5,7 @@ import TeamLogosRow from '../../components/scorersTable/preGameSetup/teamLogos';
 import TeamPlayers from '../../components/scorersTable/preGameSetup/teamPlayers';
 import AddPlayerModal from '../../components/scorersTable/preGameSetup/addPlayerModal';
 import apiManager, { ApiTeam, ApiGame, ApiPlayer } from '../../api/apiManager';
-import '../../styles/preGameSetup.scss';
+import '../../styles/setupWizard.scss';
 
 export default function PreGameSetupPage() {
     const location = useLocation();
@@ -88,7 +88,6 @@ export default function PreGameSetupPage() {
             await apiManager.updateLineup(placardId!, allPlayersGame);
 
 
-            // Navigate to the scorers table
             navigate(`/scorersTable/${sport}/${placardId}`);
         } catch (error) {
             console.error('Error submitting team roster:', error);
@@ -138,15 +137,6 @@ export default function PreGameSetupPage() {
                         <Button
                             className="btn-lg submit-roster-btn"
                             onClick={handleSubmitRoster}
-                            style={{
-                                background: 'linear-gradient(135deg, #3a86ff 0%, #1e4c8a 100%)',
-                                border: 'none',
-                                boxShadow: '0 4px 12px rgba(58, 134, 255, 0.2)',
-                                padding: '0.75rem 2.5rem',
-                                borderRadius: '0.5rem',
-                                fontWeight: 'bold',
-                                fontSize: '1.1rem',
-                            }}
                         >
                             Submit Team Roster
                         </Button>

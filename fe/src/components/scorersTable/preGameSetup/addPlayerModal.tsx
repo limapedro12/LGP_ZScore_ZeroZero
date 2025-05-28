@@ -18,12 +18,10 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ show, onHide, positions
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Add validation before submission
         if (!name.trim() || !number || !position) {
             return;
         }
 
-        // Create new player object with temporary ID
         const newPlayer: ApiPlayer = {
             id: `temp-${Date.now()}`,
             playerId: `temp-${Date.now()}`,
@@ -34,13 +32,11 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ show, onHide, positions
             // eslint-disable-next-line camelcase
             position_acronym: position,
             teamId: teamId,
-            newPlayer: true, // Indicate this is a new player
+            newPlayer: true,
         };
 
-        // Call the callback with the new player
         onPlayerAdded(newPlayer);
 
-        // Reset form and close modal
         setName('');
         setNumber('');
         setPosition('');
@@ -82,12 +78,12 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ show, onHide, positions
                                 <button
                                     key={acronym}
                                     type="button"
-                                    className={`position-btn${position === acronym ? ' selected' : ''}`}
+                                    className={`position-btn pregame-position-select-btn${position === acronym ? ' selected' : ''}`}
                                     onClick={() => setPosition(acronym)}
                                 >
                                     {name}
                                     {' '}
-                                    <span className="text-muted">
+                                    <span className="text-muted mx-1">
                                         (
                                         {acronym}
                                         )

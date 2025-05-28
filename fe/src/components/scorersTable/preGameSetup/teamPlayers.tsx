@@ -1,10 +1,10 @@
 import React from 'react';
 import { ApiPlayer } from '../../../api/apiManager';
 import PlayerJersey from '../../playerJersey';
-import { Plus } from 'react-bootstrap-icons';
+
 
 interface TeamPlayersProps {
-    teamPlayers: ApiPlayer[];
+    teamPlayers : ApiPlayer[];
     teamColor: string;
     onAddPlayer?: () => void;
 }
@@ -35,12 +35,12 @@ const TeamPlayers: React.FC<TeamPlayersProps> = (
             <button
                 className="btn add-player-button"
                 style={{
-                    background: `linear-gradient(135deg, ${teamColor} 65%, #222 100%)`,
+                    background: `${teamColor}`,
                 }}
                 onClick={onAddPlayer}
                 type="button"
             >
-                <Plus />
+                adicionar jogador
             </button>
         </div>
     </div>
