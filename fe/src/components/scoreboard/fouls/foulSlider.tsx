@@ -1,9 +1,9 @@
 // src/components/FoulSlider.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import apiManager, { Sport } from '../../../api/apiManager';
+import apiManager, { Sport, ApiPlayer } from '../../../api/apiManager';
 import BaseSlider from '../baseSlider';
-import EventDisplay from '../eventDisplay';
+import FoulEvent from './foulEvent';
 import '../../../styles/sliderComponents.scss';
 
 export interface TransformedFoulEventData {
@@ -16,34 +16,35 @@ interface FoulSliderProps {
   sport: Sport;
   team: 'home' | 'away';
   placardId: string;
+  players?: ApiPlayer[];
+  teamColor?: string;
 }
 
-const FoulSlider: React.FC<FoulSliderProps> = ({ sport, team, placardId }) => {
-    const [displayedFouls, setDisplayedFouls] = useState<Array<TransformedFoulEventData>>([]);
-    const MAX_EVENTS_TO_DISPLAY = 5;
+const FoulSlider: React.FC<FoulSliderProps> = ({ sport, team, placardId, players = [], teamColor }) => {
+    const [foulsCountByPlayer, setFoulsCountByPlayer] = useState<Record<string, number>>({});
 
     const fetchAndSetFouls = useCallback(async () => {
         if (!placardId || !sport) {
-            setDisplayedFouls([]);
+
             return;
         }
         try {
             const response = await apiManager.getFouls(placardId, sport);
-            const sortedApiFouls = response.fouls.sort((a, b) => b.timestamp - a.timestamp);
-            const teamFilteredFouls = sortedApiFouls.filter((apiFoul) => apiFoul.team === team);
+            const teamFilteredFouls = response.fouls.filter((apiFoul) => apiFoul.team === team);
 
-            const transformedEvents: TransformedFoulEventData[] = teamFilteredFouls.map((apiFoul) => ({
-                id: apiFoul.eventId,
-                playerName: `Jogador ${apiFoul.playerId}`,
-                playerNumber: Number(apiFoul.playerId) || undefined,
-            }));
 
-            setDisplayedFouls(transformedEvents.slice(0, MAX_EVENTS_TO_DISPLAY));
+            const counts: Record<string, number> = {};
+            for (const foul of teamFilteredFouls) {
+                const pId = String(foul.playerId);
+                counts[pId] = (counts[pId] || 0) + 1;
+            }
+            setFoulsCountByPlayer(counts);
         } catch (error) {
             console.error('Error fetching foul events:', error);
-            setDisplayedFouls([]);
+
+            setFoulsCountByPlayer({});
         }
-    }, [placardId, sport, team]);
+    }, [placardId, sport, team, players]);
 
     useEffect(() => {
         fetchAndSetFouls();
@@ -54,16 +55,30 @@ const FoulSlider: React.FC<FoulSliderProps> = ({ sport, team, placardId }) => {
 
     return (
         <BaseSlider title="Faltas" className="foul-slider">
-            <div className="player-events-list w-100 d-flex flex-column gap-2">
-                {displayedFouls.map((eventData) => (
-                    <div key={eventData.id} className="player-event-item">
-                        <EventDisplay
-                            playerName={eventData.playerName}
-                            playerNumber={eventData.playerNumber}
-                            team={team}
-                        />
+            <div className="squad-list w-100 d-flex flex-column">
+                {players && players.length > 0 ? (
+                    players.map((player: ApiPlayer) => {
+
+                        const committedFouls = foulsCountByPlayer[String(player.playerId)] || 0;
+
+                        return (
+                            <div key={player.playerId} className="squad-player-item">
+                                <FoulEvent
+                                    playerId={player.playerId}
+                                    playerNumber={Number(player.number)}
+                                    playerName={player.name}
+                                    team={team}
+                                    teamColor={teamColor}
+                                    foulsCommitted={committedFouls}
+                                />
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className="text-center py-2" style={{ color: 'white' }}>
+                        Nenhuma falta registrada
                     </div>
-                ))}
+                )}
             </div>
         </BaseSlider>
     );

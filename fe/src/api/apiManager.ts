@@ -305,13 +305,12 @@ interface FoulsResponse {
         team: 'home' | 'away';
         timestamp: number;
         period?: number;
-    }>;
+    }>;}
 
 interface AuthResponse {
     success: boolean;
     username?: string;
-
-};
+}
 
 /**
  * API Manager that handles all API requests
@@ -605,7 +604,6 @@ class ApiManager {
         );
     };
 
-<<<<<<< HEAD
     getFouls = (placardId: string, sport: string): Promise<FoulsResponse> => {
         const params: RequestParams = { placardId, sport };
         return this.makeRequest<FoulsResponse>(

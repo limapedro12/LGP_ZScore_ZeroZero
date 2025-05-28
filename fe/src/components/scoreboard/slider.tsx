@@ -23,7 +23,7 @@ interface SliderProps {
   sliderData: SliderData;
 }
 
-const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, sliderData }) => {
+const  Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, sliderData }) => {
     const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -75,7 +75,15 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, slid
                     teamColor={teamColor} typeOfScore={scoreType} key="player-score-item"
                 />] : []),
         ...(sliderData.hasData.fouls ?
-            [<FoulSlider sport={sport} team={team} placardId={placardId} key="foul-slider-item" />] : []),
+            [
+                <FoulSlider
+                    sport={sport}
+                    team={team}
+                    placardId={placardId}
+                    players={teamLineup}
+                    teamColor={teamColor}
+                    key="foul-slider-item"
+                />] : []),
     ];
 
 
