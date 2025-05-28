@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import TeamLogosRow from '../../components/scorersTable/preGameSetup/teamLogos';
+import TeamPlayers from '../../components/scorersTable/preGameSetup/teamPlayers';
 import apiManager, { ApiTeam, ApiGame, ApiPlayer } from '../../api/apiManager';
 import '../../styles/preGameSetup.scss';
 
@@ -55,13 +57,35 @@ export default function PreGameSetupPage() {
         }
     }, [homePlayers, awayPlayers]);
 
-    if (!homeTeam || !awayTeam) {
-        return <div>Loading...</div>;
+    if (
+        !homeTeam ||
+    !awayTeam ||
+    homePlayers.length === 0 ||
+    awayPlayers.length === 0
+    ) {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
+                <Spinner animation="border" role="status" variant="primary" style={{ width: '4rem', height: '4rem' }}>
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
+                <div style={{ marginTop: '1rem', fontSize: '1.2rem', color: '#ffff' }}>Loading...</div>
+            </div>
+        );
     }
-
     return (
         <div>
             <TeamLogosRow homeTeam={homeTeam} awayTeam={awayTeam} />
+
+            <Container fluid>
+                <Row>
+                    <Col xs={12} md={6}>
+                        <TeamPlayers teamPlayers={homePlayers} teamColor={homeTeam?.color} />
+                    </Col>
+                    <Col xs={12} md={6}>
+                        <TeamPlayers teamPlayers={awayPlayers} teamColor={awayTeam?.color} />
+                    </Col>
+                </Row>
+            </Container>
         </div>
     );
 }
