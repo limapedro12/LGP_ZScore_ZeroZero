@@ -33,7 +33,10 @@ export type ActionType =
     | 'noShotClock'
     | 'typeOfScore'
     | 'sportConfig'
-    | 'list_game_fouls';
+    | 'list_game_fouls'
+    | 'authUserSocial'
+    | 'checkLogin'
+    | 'logout';
 
 export type EndpointType =
     | 'timer'
@@ -177,10 +180,6 @@ export interface CardsResponse {
     cards: Array<Card>;
 }
 
-// interface EventsResponse {
-//     events: Array<Record<string, string>>; // !!!!!!!!!!!!!
-// }
-
 interface SportsResponse {
     sports?: string[];
     typeOfScore?: string;
@@ -215,6 +214,7 @@ export interface SliderData {
     scores: boolean;
     players: boolean;
     cards: boolean;
+    fouls: boolean;
   };
 }
 
@@ -363,6 +363,22 @@ export interface ApiTimeoutEventData extends BaseApiEvent {
 
 // Tipo de união para os itens que a função normalizeEventData irá processar
 export type FetchedEventItem = ApiScoreEventData | ApiFoulEventData | ApiCardEventData | ApiTimeoutEventData;
+
+
+interface FoulsResponse {
+    fouls: Array<{
+        eventId: string | number;
+        placardId: string;
+        playerId: string;
+        team: 'home' | 'away';
+        timestamp: number;
+        period?: number;
+    }>;}
+
+interface AuthResponse {
+    success: boolean;
+    username?: string;
+}
 
 /**
  * API Manager that handles all API requests
@@ -663,6 +679,24 @@ class ApiManager {
 
     // getEventDetails = (placardId: string, sport: string, eventId: number) =>
     //     this.makeRequest<Record<string, string>>('events', 'get', { placardId, sport, eventId }, 'GET'); // !!!!!!!!!!!!
+    getFouls = (placardId: string, sport: string): Promise<FoulsResponse> => {
+        const params: RequestParams = { placardId, sport };
+        return this.makeRequest<FoulsResponse>(
+            'foul',
+            'get',
+            params,
+            'GET'
+        );
+    };
+
+    checkToken = (authToken: string) =>
+        this.makeRequest<AuthResponse>('api', 'authUserSocial', { authToken }, 'GET');
+    checkLoginStatus = () =>
+        this.makeRequest<AuthResponse>('api', 'checkLogin', {}, 'GET');
+    logout = () =>
+        this.makeRequest<AuthResponse>('api', 'logout', {}, 'GET');
+
+
 }
 
 const apiManager = new ApiManager();

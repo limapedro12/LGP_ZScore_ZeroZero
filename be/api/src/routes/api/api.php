@@ -17,7 +17,7 @@ if (is_null($action)) {
     exit;
 }
 
-$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive', 'getAllowColab'];
+$allowedActions = ['login', 'getMatchesColab', 'getMatchLiveInfo', 'getTeamLive', 'getAllowColab', 'authUserSocial', 'checkLogin', 'logout'];
 if (!in_array($action, $allowedActions)) {
     echo json_encode(["error" => "Invalid action"]);
     exit;
@@ -42,9 +42,18 @@ if (is_null($teamId) && $action === 'getTeamLive') {
     exit;
 }
 
+$authToken = $_GET['authToken'] ?? $jsonBody['authToken'] ?? null;
+if (is_null($authToken) && $action === 'authUserSocial') {
+    echo json_encode(["error" => "Missing authToken"]);
+    exit;
+}
+
 switch ($action) {
     case 'login':
         $response = login($username, $password);
+        break;
+    case 'authUserSocial':
+        $response = authUserSocial($authToken);
         break;
     case 'getMatchesColab':
         $response = getMatchesColab();
@@ -57,6 +66,12 @@ switch ($action) {
         break;
     case 'getAllowColab':
         $response = getAllowColab($matchId);
+        break;
+    case 'checkLogin':
+        $response = checkAuth();
+        break;
+    case 'logout':
+        $response = logout();
         break;
     default:
         echo json_encode(["error" => "Invalid action"]);

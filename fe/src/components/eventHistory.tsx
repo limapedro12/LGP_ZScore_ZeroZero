@@ -300,7 +300,7 @@ const EventHistory: React.FC = () => {
                 timeoutEventsData,
             ] = await Promise.allSettled([
                 apiManager.makeRequest<{ points: ApiScoreEventData[] }>('score', 'get', { placardId, sport }, 'GET'),
-                apiManager.makeRequest<{ data: ApiFoulEventData[] }>('foul', 'get', { placardId, sport }, 'GET'),
+                apiManager.getFouls(placardId, sport),
                 apiManager.getCards(placardId, sport),
                 apiManager.getTimeoutEvents(placardId, sport),
             ]);
@@ -313,9 +313,10 @@ const EventHistory: React.FC = () => {
                 );
             }
 
-            if (foulsResponse.status === 'fulfilled' && foulsResponse.value && foulsResponse.value.data) {
+            if (foulsResponse.status === 'fulfilled' && foulsResponse.value && foulsResponse.value.fouls) {
+                const foulsData: ReadonlyArray<ApiFoulEventData> = foulsResponse.value.fouls;
                 allEvents = allEvents.concat(
-                    await normalizeEventData(foulsResponse.value.data, 'foul'),
+                    await normalizeEventData(foulsData, 'foul'),
                 );
             }
 
@@ -382,8 +383,8 @@ const EventHistory: React.FC = () => {
     }, [activeTab, events]);
 
     const handleOpenEditModal = (event: Event) => {
-        if (event.type !== 'score' && event.type !== 'card') {
-            alert('A edição só é suportada para eventos de Golo/Ponto e Cartão.');
+        if (event.type !== 'score' && event.type !== 'card' && event.type !== 'foul') {
+            alert('A edição só é suportada para eventos de Golo/Ponto, Cartão e Falta.');
             return;
         }
         setEventToEdit(event);
@@ -455,9 +456,24 @@ const EventHistory: React.FC = () => {
                     cardType: editFormData.cardType,
                     timestamp: eventToEdit.timestamp,
                 };
-                console.log('Payload enviado:', cardUpdateParams);
                 await apiManager.updateCard(cardUpdateParams);
                 setEditConfirmMessage('Cartão atualizado com sucesso!');
+            } else if (eventToEdit.type === 'foul') {
+                if (!editFormData.playerId) {
+                    setEditFormError('Jogador é obrigatório para editar uma falta.');
+                    return;
+                }
+
+                const foulUpdateParams: EventUpdateParams = {
+                    placardId,
+                    sport,
+                    eventId: String(eventToEdit.id),
+                    team: editFormData.team,
+                    playerId: editFormData.playerId,
+                    timestamp: eventToEdit.timestamp,
+                };
+                await apiManager.makeRequest('foul', 'update', foulUpdateParams, 'POST');
+                setEditConfirmMessage('Falta atualizada com sucesso!');
             }
 
             setShowEditModal(false);
@@ -687,7 +703,7 @@ const EventHistory: React.FC = () => {
                             )}
                         </div>
                         <div className="event-actions">
-                            {(event.type === 'score' || event.type === 'card') && (
+                            {(event.type === 'score' || event.type === 'card' || event.type === 'foul') && (
                                 <button
                                     onClick={() => handleOpenEditModal(event)}
                                     className="action-button edit-button"

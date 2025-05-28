@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Game } from '../utils/gameUtils';
 import '../styles/selectView.scss';
+import apiManager from '../api/apiManager';
 
 
 const SelectView: React.FC = () => {
@@ -9,11 +10,22 @@ const SelectView: React.FC = () => {
 
     const location = useLocation();
     const { game } = location.state || { } as { game: Game };
+    const [isColab, setIsColab] = useState(false);
 
     useEffect(() => {
         if (!game) {
             navigate('/gameList');
         }
+        const checkColab = async () => {
+            try {
+                const response = await apiManager.getAllowColab(game.placardId);
+                setIsColab(response.allowColab);
+            } catch (error) {
+                console.error('Error fetching collaboration status:', error);
+            }
+        };
+
+        checkColab();
     }, [game, navigate]);
 
     const color = '#000000';
@@ -112,13 +124,15 @@ const SelectView: React.FC = () => {
                     >
                         Iniciar Placard
                     </button>
-                    <button
-                        onClick={() => {
-                            navigate(`/scorersTable/${game.sport}/${game.placardId}`); // TODO : If authenticated
-                        }}
-                    >
-                        Iniciar Mesa
-                    </button>
+                    {isColab && (
+                        <button
+                            onClick={() => {
+                                navigate(`/scorersTable/${game.sport}/${game.placardId}`); // TODO : If authenticated
+                            }}
+                        >
+                            Iniciar Mesa
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

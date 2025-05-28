@@ -30,6 +30,21 @@ const ScorersTable = () => {
     const [homeTeam, setHomeTeam] = useState<ApiTeam | null>(null);
     const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
 
+    useEffect(() => {
+        const checkColab = async () => {
+            try {
+                const response = await apiManager.getAllowColab(placardId);
+                if (!response.allowColab) {
+                    navigate('/gameList');
+                }
+            } catch (error) {
+                console.error('Error fetching collaboration status:', error);
+                navigate('/gameList');
+            }
+        };
+
+        checkColab();
+    }, [placardIdParam]);
 
     const fetchTeams = useCallback(async () => {
         if (placardId === 'default') return;

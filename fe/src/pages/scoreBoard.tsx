@@ -38,6 +38,7 @@ const ScoreBoard = () => {
     const [shouldPollScoreHistory, setShouldPollScoreHistory] = useState(true);
     const [shouldPollCardEvents, setShouldPollCardEvents] = useState(true);
     const [shouldPollPlayers, setShouldPollPlayers] = useState(true);
+    const [shouldPollFouls, setShouldPollFouls] = useState(true);
 
     const [sliderData, setSliderData] = useState<SliderData>({
         data: {
@@ -48,6 +49,7 @@ const ScoreBoard = () => {
             scores: false,
             cards: false,
             players: false,
+            fouls: false,
         },
     });
 
@@ -190,8 +192,28 @@ const ScoreBoard = () => {
                 }));
             }
         }
+
+        if (placardId && sport && shouldPollFouls) {
+            try {
+                const foulsResponse = await apiManager.getFouls(placardId, sport);
+
+                const hasFouls = (foulsResponse?.fouls?.length ?? 0) > 0;
+
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, fouls: hasFouls },
+                }));
+
+                if (hasFouls) setShouldPollFouls(false);
+            } catch {
+                setSliderData((prev) => ({
+                    ...prev,
+                    hasData: { ...prev.hasData, fouls: false },
+                }));
+            }
+        }
     }, [placardId, sport, nonCardSports, shouldPollScoreHistory, shouldPollCardEvents,
-        shouldPollPlayers, homeTeam?.id, awayTeam?.id]);
+        shouldPollPlayers, shouldPollFouls, homeTeam?.id, awayTeam?.id]);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -234,11 +256,14 @@ const ScoreBoard = () => {
         if (shouldPollPlayers) {
             intervals.push(window.setInterval(fetchSliderData, 5000));
         }
+        if (shouldPollFouls) {
+            intervals.push(window.setInterval(fetchSliderData, 5000));
+        }
 
         return () => {
             intervals.forEach((interval) => window.clearInterval(interval));
         };
-    }, [fetchSliderData, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers]);
+    }, [fetchSliderData, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers, shouldPollFouls]);
 
     const Center = useMemo(() => (
         <>

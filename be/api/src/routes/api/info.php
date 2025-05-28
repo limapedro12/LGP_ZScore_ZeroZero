@@ -8,8 +8,7 @@
     {
         $placardIds = insertMatchesColab();
         if ($placardIds === false) {
-            echo json_encode(["error" => "Failed to insert placards"]);
-            exit;
+            return [];
         }
         $response = [];
         foreach ($placardIds as $pair) {
@@ -24,6 +23,16 @@
             }
         }
         return $response;
+    }
+
+    function getPlacards()
+    {
+        $placards = DbUtils::selectAllPlacards();
+        if ($placards === false) {
+            return json_encode(["error" => "Failed to get placards"]);
+        }
+        
+        return $placards;
     }
 
 
@@ -80,7 +89,9 @@
         case 'getAvailPlacards':
             $response = getAvailPlacards();
             break;
-
+        case 'getPlacards':
+            $response = getPlacards();
+            break;
         case 'getPlacardInfo':
             if ($placardId === null) {
                 echo json_encode(["error" => "Missing placardId"]);
