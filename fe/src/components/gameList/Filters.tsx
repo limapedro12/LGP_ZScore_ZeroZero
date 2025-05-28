@@ -74,6 +74,11 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         const selected = Array.isArray(sport) ? sport[0] : sport;
         setSelectedSport(selected);
 
+        let localFormattedDate: string | null = null;
+        if (selectedDate) {
+            localFormattedDate = formatDate(selectedDate); // Ensure date is formatted as dd/MM/yyyy
+        }
+
         const filteredGames = games.filter((game) => {
             const matchesSport = (() => {
                 if (Array.isArray(sport)) {
@@ -84,9 +89,7 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
                 }
                 return true;
             })();
-            const matchesDate = selectedDate
-                ? game.date.startsWith(selectedDate.toISOString().split('T')[0])
-                : true;
+            const matchesDate = localFormattedDate ? game.date === localFormattedDate : true; // Compare using dd/MM/yyyy
             const matchesTeams = selectedTeams.every(
                 (team) => game.home === team || game.away === team
             );
