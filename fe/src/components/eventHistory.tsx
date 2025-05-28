@@ -26,6 +26,7 @@ interface Event {
     originalPlayerId?: string | number;
     originalCardType?: string;
     originalPointValue?: number | string;
+    teamColor?: string; // Add teamColor property
 }
 
 interface Player {
@@ -233,10 +234,14 @@ const EventHistory: React.FC = () => {
         }
 
         let currentTeamLogo: string | undefined;
+        let currentTeamColor: string | undefined;
+
         if (finalTeamValue === 'home' && homeTeam) {
             currentTeamLogo = homeTeam.logoURL;
+            currentTeamColor = homeTeam.color; // Assign home team color
         } else if (finalTeamValue === 'away' && awayTeam) {
             currentTeamLogo = awayTeam.logoURL;
+            currentTeamColor = awayTeam.color; // Assign away team color
         } else {
             currentTeamLogo = item.teamLogo || undefined;
         }
@@ -294,6 +299,7 @@ const EventHistory: React.FC = () => {
             details: item,
             icon: null, // Icon is set later in the fetchEvents logic
             teamLogo: currentTeamLogo,
+            teamColor: currentTeamColor, // Add teamColor to the event
             playerNumber: resolvedPlayerNumber,
             originalPlayerId: item.playerId,
             originalCardType: type === 'card' ? (item as ApiCardEventData).cardType : undefined,
@@ -680,6 +686,7 @@ const EventHistory: React.FC = () => {
                                             <PlayerJersey
                                                 number={typeof event.playerNumber === 'string' ?
                                                     parseInt(event.playerNumber, 10) : event.playerNumber}
+                                                color={event.teamColor || '#273E7C'}
                                             />
                                         </div>
                                     )}
