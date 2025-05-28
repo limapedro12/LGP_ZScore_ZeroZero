@@ -28,6 +28,7 @@ type ActionType =
     | 'getAllowColab'
     | 'getTeamLineup'
     | 'getPlayerInfo'
+    | 'updateLineup'
     | 'noCards'
     | 'noPeriodBox'
     | 'noShotClock'
@@ -77,7 +78,7 @@ export interface ScoreHistoryResponse {
 interface RequestParams {
     placardId?: string;
     sport?: string;
-    [key: string]: string | number | undefined;
+    [key: string]: string | number | undefined | ApiPlayer[];
 }
 
 interface ApiParams {
@@ -254,6 +255,7 @@ export interface ApiPlayer {
     position: string;
     teamId: string;
     position_acronym: string;
+    newPlayer?: boolean; // Indicates if this is a newly added player
 }
 
 interface CreatedFoulDetails {
@@ -527,6 +529,11 @@ class ApiManager {
         this.makeRequest<ApiColab>('info', 'getAllowColab', { placardId });
     getTeamLineup = (placardId: string, teamId: string) =>
         this.makeRequest<ApiPlayer>('info', 'getTeamLineup', { placardId, teamId });
+    updateLineup = (placardId: string, players: ApiPlayer[]) =>
+        this.makeRequest<{success: boolean, message: string}>('info', 'updateLineup', {
+            placardId,
+            players,
+        });
 
     getPlayerInfo = (playerId: string) =>
         this.makeRequest<ApiPlayer>('info', 'getPlayerInfo', { playerId });

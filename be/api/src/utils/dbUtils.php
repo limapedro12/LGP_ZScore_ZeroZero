@@ -21,6 +21,8 @@
             }
         }
 
+
+
         public static function selectTeam($teamId)
         {
             $conn = DbUtils::connect();
@@ -202,7 +204,7 @@
             }
 
             $stmt = $conn->prepare("INSERT INTO AbstractPlayer (zerozero_id, name, sport, position, position_acronym, number, teamId) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("isssssi", $zerozeroId, $playerName, $sport, $playerPosition, $playerNumber, $teamId);
+            $stmt->bind_param("issssssi", $zerozeroId, $playerName, $sport, $playerPosition,$position_acronym, $playerNumber, $teamId);
             if ($stmt->execute()) {
                 $stmt->close();
                 $conn->close();
@@ -290,6 +292,87 @@
             $conn->close();
             return $results;
         }
+
+        public static function submitTeamRoster($placardId, $players) {
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return false;
+            }
+
+            // Start transaction to ensure data integrity
+            $conn->begin_transaction();
+            
+            try {
+                foreach ($players as $player) {
+                    // Check if this is a new player (not in AbstractPlayer table)
+                    if (isset($player['newPlayer']) && $player['newPlayer']) {
+                        // Insert new player into AbstractPlayer table
+                        $stmt = $conn->prepare("INSERT INTO AbstractPlayer (name, position, position_acronym, number, teamId, sport) VALUES (?, ?, ?, ?, ?, (SELECT sport FROM AbstractTeam WHERE id = ?))");
+                        $stmt->bind_param("ssssii", $player['name'], $player['position'], $player['position_acronym'], $player['number'], $player['teamId'], $player['teamId']);
+                        
+                        if (!$stmt->execute()) {
+                            $conn->rollback();
+                            $stmt->close();
+                            $conn->close();
+                            return false;
+                        }
+                        
+                        // Get the new player's ID
+                        $playerId = $conn->insert_id;
+                        $stmt->close();
+                    } else {
+                        // This is an existing player, use the provided ID
+                        $playerId = $player['playerId'] ?? $player['id'];
+                    }
+                    
+                    // Check if this player is already in PlacardPlayer table
+                    $stmt = $conn->prepare("SELECT id FROM PlacardPlayer WHERE placardId = ? AND playerId = ?");
+                    $stmt->bind_param("ii", $placardId, $playerId);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $existingRecord = $result->fetch_assoc();
+                    $stmt->close();
+                    
+                    // Convert isStarting to proper boolean value
+                    $isStarting = isset($player['isStarting']) ? $player['isStarting'] : 0;
+                    if ($isStarting === 'true' || $isStarting === '1' || $isStarting === true) {
+                        $isStarting = 1;
+                    } else {
+                        $isStarting = 0;
+                    }
+                    
+                    if ($existingRecord) {
+                        // Update existing record
+                        $stmt = $conn->prepare("UPDATE PlacardPlayer SET isStarting = ? WHERE placardId = ? AND playerId = ?");
+                        $stmt->bind_param("iii", $isStarting, $placardId, $playerId);
+                    } else {
+                        // Insert new record
+                        $stmt = $conn->prepare("INSERT INTO PlacardPlayer (placardId, playerId, isStarting) VALUES (?, ?, ?)");
+                        $stmt->bind_param("iii", $placardId, $playerId, $isStarting);
+                    }
+                    
+                    if (!$stmt->execute()) {
+                        $conn->rollback();
+                        $stmt->close();
+                        $conn->close();
+                        return false;
+                    }
+                    
+                    $stmt->close();
+                }
+                
+                // Commit the transaction if all operations succeeded
+                $conn->commit();
+                $conn->close();
+                return true;
+            } catch (Exception $e) {
+                $conn->rollback();
+                $conn->close();
+                return false;
+            }
+        }
     }
+
+
           
 ?>

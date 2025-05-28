@@ -4,7 +4,7 @@ import PlayerJersey from '../../playerJersey';
 import { Plus } from 'react-bootstrap-icons';
 
 interface TeamPlayersProps {
-    teamPlayers : ApiPlayer[];
+    teamPlayers: ApiPlayer[];
     teamColor: string;
     onAddPlayer?: () => void;
 }

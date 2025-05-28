@@ -123,6 +123,21 @@
             }
             $response = getPlayerInfo($playerId);
             break;
+        case 'updateLineup':
+            $jsonBody = RequestUtils::getRequestParams();
+            if ($jsonBody === null || !isset($jsonBody['placardId']) || !isset($jsonBody['players'])) {
+                echo json_encode(["error" => "Invalid request body"]);
+                exit;
+            }
+            $placardId = $jsonBody['placardId'];
+            $players = $jsonBody['players'];
+            $response = DbUtils::submitTeamRoster($placardId, $players);
+            if ($response) {
+                $response = ["success" => true, "message" => "Team roster updated successfully"];
+            } else {
+                $response = ["error" => "Failed to update team roster"];
+            }
+            break;
         default:
             echo json_encode(["error" => "Invalid action"]);
             exit;

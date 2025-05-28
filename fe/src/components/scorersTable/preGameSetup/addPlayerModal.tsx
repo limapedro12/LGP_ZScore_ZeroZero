@@ -1,19 +1,49 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
+import { ApiPlayer } from '../../../api/apiManager';
 
 interface AddPlayerModalProps {
   show: boolean;
   onHide: () => void;
   positions: Record<string, string>;
+  teamId: string;
+  onPlayerAdded: (newPlayer: ApiPlayer) => void;
 }
 
-const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ show, onHide, positions }) => {
+const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ show, onHide, positions, teamId, onPlayerAdded }) => {
     const [name, setName] = useState('');
     const [number, setNumber] = useState('');
     const [position, setPosition] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Add validation before submission
+        if (!name.trim() || !number || !position) {
+            return;
+        }
+
+        // Create new player object with temporary ID
+        const newPlayer: ApiPlayer = {
+            id: `temp-${Date.now()}`,
+            playerId: `temp-${Date.now()}`,
+            isStarting: 'false',
+            name: name.trim(),
+            number: number,
+            position: Object.keys(positions).find((key) => positions[key] === position) || '',
+            // eslint-disable-next-line camelcase
+            position_acronym: position,
+            teamId: teamId,
+            newPlayer: true, // Indicate this is a new player
+        };
+
+        // Call the callback with the new player
+        onPlayerAdded(newPlayer);
+
+        // Reset form and close modal
+        setName('');
+        setNumber('');
+        setPosition('');
         onHide();
     };
 
