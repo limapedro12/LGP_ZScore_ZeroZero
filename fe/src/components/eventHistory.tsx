@@ -299,7 +299,7 @@ const EventHistory: React.FC = () => {
             originalCardType: type === 'card' ? (item as ApiCardEventData).cardType : undefined,
             originalPointValue: type === 'score' ? (item as ApiScoreEventData).pointValue : undefined,
         };
-    })), [sport, homePlayers, awayPlayers]);
+    })), [sport, homePlayers, awayPlayers, homeTeam, awayTeam]);
 
     const fetchEvents = useCallback(async () => {
         if (!placardId || !sport) {
@@ -361,7 +361,7 @@ const EventHistory: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [placardId, sport, normalizeEventData, getEventIcon]);
+    }, [placardId, sport, normalizeEventData, getEventIcon, homeTeam, awayTeam]); // Add homeTeam and awayTeam as dependencies
 
     useEffect(() => {
         const initializeData = async () => {
@@ -374,8 +374,6 @@ const EventHistory: React.FC = () => {
 
     useEffect(() => {
         if (homeTeam && awayTeam) {
-            console.log('1Home Team:', homeTeam);
-            console.log('1Away Team:', awayTeam);
             fetchEvents();
         }
     }, [homeTeam, awayTeam]);
