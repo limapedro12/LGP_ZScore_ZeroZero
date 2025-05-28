@@ -270,6 +270,24 @@
             $conn->close();
             return $results;
         }
+
+        public static function selectAllPlacards()
+        {
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return false;
+            }
+
+            $stmt = $conn->prepare("SELECT * FROM AbstractPlacard");
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $results = $result->fetch_all(MYSQLI_ASSOC);
+            
+            $stmt->close();
+            $conn->close();
+
+            return $results;
+        }
     }
           
 ?>

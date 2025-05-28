@@ -10,8 +10,7 @@
     {
         $matchesColab = getMatchesColab();
         if ($matchesColab === false) {
-            echo json_encode(["error" => "Failed to get matches"]);
-            exit;
+            return false; // Error fetching matches
         }
         $matchesColab = json_decode($matchesColab, true);
         if (empty($matchesColab) || !isset($matchesColab['data'])) {

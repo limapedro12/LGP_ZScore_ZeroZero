@@ -9,6 +9,7 @@ import ShowGames from '../components/gameList/ShowGames';
 import { Game } from '../types/types';
 import apiManager from '../api/apiManager';
 import { formatDate } from '../utils/dateUtils';
+import LoginButton from '../components/loginButton';
 
 const GameList = () => {
     const [games, setGames] = useState<Game[]>([]);
@@ -78,12 +79,14 @@ const GameList = () => {
                 <Col xs={4}>
                     <Filters games={games} onFilter={handleFilter} />
                 </Col>
-
             </Row>
 
-            <Row className="mb-4 d-none d-md-flex">
-                <Col xs={6} className="text-center">
-                    {jogosTitle}
+            <Row className="mb-4 d-none d-md-flex align-items-center">
+                <Col xs={6}>
+                    <div className="title-login d-flex justify-content-between align-items-center w-100">
+                        {jogosTitle}
+                        <LoginButton />
+                    </div>
                 </Col>
 
                 <Col xs={{ span: 10, offset: 2 }}>
