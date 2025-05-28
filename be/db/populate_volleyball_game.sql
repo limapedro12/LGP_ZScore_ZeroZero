@@ -77,8 +77,8 @@ BEGIN
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM AbstractPlacard WHERE id = placard_id_val) THEN
-        INSERT INTO AbstractPlacard (id, firstTeamId, secondTeamId, isFinished, sport, startTime)
-        VALUES (placard_id_val, team1_id_val, team2_id_val, 0, sport_val, NOW());
+        INSERT INTO AbstractPlacard (id, firstTeamId, secondTeamId, isFinished, sport, startTime, allowColab)
+        VALUES (placard_id_val, team1_id_val, team2_id_val, 0, sport_val, NOW(), 1);
 
         INSERT INTO VolleyballPlacard (abstractPlacardId, currentSet, availableTimeOutsFirst, availableTimeOutsSecond, isTimeOut)
         VALUES (placard_id_val, 1, 2, 2, 0);
