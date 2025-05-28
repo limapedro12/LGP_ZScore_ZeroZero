@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import apiManager, {
-    FetchedEventItem, ApiScoreEventData, ApiFoulEventData, ApiCardEventData, ActionType, ApiTeam, ApiPlayer,
+    FetchedEventItem, ApiScoreEventData, ApiFoulEventData, ApiCardEventData, ActionType, ApiTeam, ApiPlayer, EndpointType,
 } from '../api/apiManager'; // Removed ApiTimeoutEventData, adjusted line length
 import { formatTime } from '../utils/timeUtils';
 import { getEventIconPath, EventCategory } from '../utils/scorersTableUtils';
@@ -27,6 +27,7 @@ interface Event {
     originalCardType?: string;
     originalPointValue?: number | string;
     teamColor?: string; // Add teamColor property
+    cardType?: string; // For card events
 }
 
 
@@ -91,7 +92,7 @@ const EventHistory: React.FC = () => {
     const [awayTeam, setAwayTeam] = useState<ApiTeam>();
 
     const sport = sportParam as Sport;
-    const placardId = placardIdParam;
+    const placardId: string = (placardIdParam !== undefined) ? placardIdParam : '';
 
     const [homePlayers, setHomeTeamPlayers] = useState<ApiPlayer[]>([]);
     const [awayPlayers, setAwayTeamPlayers] = useState<ApiPlayer[]>([]);
@@ -319,8 +320,9 @@ const EventHistory: React.FC = () => {
             }
 
             if (cardsData.status === 'fulfilled' && cardsData.value.cards) {
+                const tempCards: ReadonlyArray<ApiCardEventData> = cardsData.value.cards;
                 allEvents = allEvents.concat(
-                    await normalizeEventData(cardsData.value.cards, 'card'),
+                    await normalizeEventData(tempCards, 'card'),
                 );
             }
 
@@ -587,6 +589,13 @@ const EventHistory: React.FC = () => {
 
     const currentPlayers = editFormData.team === 'home' ? homePlayers : awayPlayers;
 
+    function getTeamLogo(team: ApiTeam | undefined | null): string {
+        if (team !== undefined && team !== null) {
+            return team.logoURL || '';
+        }
+        return '';
+    }
+
     return (
         <div className="event-history">
             {/* ... existing JSX for back button, title, tabs ... */}
@@ -744,7 +753,7 @@ const EventHistory: React.FC = () => {
                                     {/* Container for the logo and name */}
                                     {editFormData.team && ( // Check if team info is available in form data
                                         <img
-                                            src={editFormData.team === 'home' ? homeTeam.logoURL : awayTeam.logoURL}
+                                            src={editFormData.team === 'home' ? getTeamLogo(homeTeam) : getTeamLogo(awayTeam)}
                                             alt={`${editFormData.team} logo`}
                                             className="team-logo-form-preview"
                                         />

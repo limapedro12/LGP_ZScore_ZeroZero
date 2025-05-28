@@ -35,7 +35,18 @@ export type ActionType =
     | 'sportConfig'
     | 'list_game_fouls';
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock' | 'info'| 'foul' | 'events';
+export type EndpointType =
+    | 'timer'
+    | 'timeout'
+    | 'api'
+    | 'cards'
+    | 'score'
+    | 'substitution'
+    | 'sports'
+    | 'shotclock'
+    | 'info'
+    | 'foul'
+    | 'events';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -110,7 +121,16 @@ interface TimerResponse {
     error?: string;
 }
 
-interface TimeoutResponse {
+export interface TimeoutEventInfo {
+    eventId: string;
+    placardId: string;
+    team: TeamTag | string | null;
+    homeTimeoutsUsed: string;
+    awayTimeoutsUsed: string;
+    totalTimeoutsPerTeam: string;
+}
+
+export interface TimeoutResponse {
     message?: string;
     status?: 'running' | 'paused' | 'inactive';
     team?: TeamTag;
@@ -131,14 +151,7 @@ interface TimeoutResponse {
         awayTimeoutsUsed: number;
         totalTimeoutsPerTeam: number;
     };
-    events?: Array<{
-        eventId: string;
-        placardId: string;
-        team: TeamTag | null;
-        homeTimeoutsUsed: string;
-        awayTimeoutsUsed: string;
-        totalTimeoutsPerTeam: string;
-    }>;
+    events?: Array<TimeoutEventInfo>;
     error?: string;
 }
 
@@ -151,16 +164,17 @@ interface ShotClockResponse {
     error?: string;
 }
 
+export interface Card {
+    eventId: number;
+    placardId: string;
+    playerId: string;
+    cardType: string;
+    team: 'home' | 'away';
+    timestamp: number;
+}
 
 export interface CardsResponse {
-    cards: Array<{
-        eventId: number;
-        placardId: string;
-        playerId: string;
-        cardType: string;
-        team: 'home' | 'away';
-        timestamp: number;
-    }>;
+    cards: Array<Card>;
 }
 
 // interface EventsResponse {
@@ -304,12 +318,18 @@ export interface BaseApiEvent {
     timestamp?: number | string; // Timestamp do evento, pode ser string ou número
     recordedAt?: string;     // Outra forma de timestamp que algumas APIs podem usar
     teamId?: string;         // ID da equipa, se aplicável
-    team?: TeamType | null;  // 'home' ou 'away', se aplicável
+    team:  TeamTag | string | null;  // 'home' ou 'away', se aplicável
     playerId?: string | number;// ID do jogador
     playerName?: string;     // Nome do jogador
     teamLogo?: string;       // URL do logo da equipa
     playerNumber?: string | number; // Número do jogador
-    [key: string]: string;      // !!!!!!!!!!!!!!!!
+    cardType?: string; // Tipo de cartão, se aplicável
+    playerInName?: string;
+    playerOutName?: string;
+    playerInId?: string;
+    playerOutId?: string;
+    playerInNumber?: string | number;
+    playerOutNumber?: string | number;
 }
 
 export interface ApiScoreEventData extends BaseApiEvent {
@@ -328,20 +348,21 @@ export interface ApiCardEventData extends BaseApiEvent {
     placardId: string;
     playerId: string;
     cardType: string;
-    team: TeamType;
+    team: 'home' | 'away';
     timestamp: number;
 }
 
 // Atualize ApiTimeoutEventData para herdar de BaseApiEvent
 export interface ApiTimeoutEventData extends BaseApiEvent {
-    eventId: string; // Campo obrigatório de TimeoutResponse.events
-    // team já está em BaseApiEvent
-    // Campos como homeTimeoutsUsed são mais para o sumário do timeout, não para o evento individual em si na normalização.
+    eventId: string;
+    placardId: string;
+    homeTimeoutsUsed: string;
+    awayTimeoutsUsed: string;
+    totalTimeoutsPerTeam: string;
 }
 
 // Tipo de união para os itens que a função normalizeEventData irá processar
 export type FetchedEventItem = ApiScoreEventData | ApiFoulEventData | ApiCardEventData | ApiTimeoutEventData;
-
 
 /**
  * API Manager that handles all API requests

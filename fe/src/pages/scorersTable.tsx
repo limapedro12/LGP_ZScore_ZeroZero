@@ -4,7 +4,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import { useParams, Link } from 'react-router-dom';
-import { Sport } from '../utils/scorersTableUtils';
+import { Sport } from '../api/apiManager';
 import TeamLogo from '../components/scorersTable/teamLogo';
 import CentralConsole from '../components/scorersTable/centralConsole';
 
