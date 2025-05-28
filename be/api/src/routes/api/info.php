@@ -8,21 +8,20 @@
     {
         $placardIds = insertMatchesColab();
         if ($placardIds === false) {
-            return [];
+            echo json_encode(["error" => "Failed to insert placards"]);
+            exit;
         }
-        $response = [];
-        foreach ($placardIds as $pair) {
-            foreach ($pair as $placardId => $sport) {    
-                $placard = DbUtils::selectPlacard($placardId);
-                if ($placard) {
-                    $response[] = $placard;
-                }else {
-                    echo json_encode(["error" => "Failed to get placard info"]);
-                    exit;
-                }
+
+        $allPlacards = DbUtils::selectAllPlacards();
+
+        if ($allPlacards === false) {
+            if (http_response_code() === 200) { 
+                 echo json_encode(["error" => "Failed to retrieve placards from database."]);
             }
+            exit;
         }
-        return $response;
+        
+        return $allPlacards;
     }
 
     function getPlacards()

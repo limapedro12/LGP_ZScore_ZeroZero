@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__.'/dbUtils.php';
+
 if (session_status() == PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
@@ -131,6 +133,17 @@ function getAllowColab($matchId) {
     if (is_null($cookie)) {
         ['allowColab' => false];
     }
+
+    $game = DbUtils::selectPlacard($matchId);
+    if (is_null($game)) {
+        return ['allowColab' => false];
+    }
+
+    if ($game['allowColab'])
+        return ['allowColab' => true];
+    
+
+
     $url = $apiurl . 'allowColab'. '/AppKey/'. $appkey. '/key/' . $cookie . '/fk_jogo/' . $matchId;
     $response = sendGetRequest($url);
     $result = json_decode($response, true);
