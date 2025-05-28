@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import apiManager, {
-    FetchedEventItem, ApiScoreEventData, ApiFoulEventData, ApiCardEventData, ActionType, ApiTeam,
+    FetchedEventItem, ApiScoreEventData, ApiFoulEventData, ApiCardEventData, ActionType, ApiTeam, ApiPlayer,
 } from '../api/apiManager'; // Removed ApiTimeoutEventData, adjusted line length
 import { formatTime } from '../utils/timeUtils';
 import { getEventIconPath, EventCategory } from '../utils/scorersTableUtils';
@@ -28,22 +28,6 @@ interface Event {
     originalPointValue?: number | string;
     teamColor?: string; // Add teamColor property
 }
-
-interface Player {
-    id: string | number;
-    name: string;
-    number: string | number;
-}
-
-const mockHomePlayers: Player[] = [
-    { id: 'H1', name: 'Jogador Casa 1', number: 10 },
-    { id: 'H2', name: 'Jogador Casa 2', number: 12 },
-    { id: 'H3', name: 'Carina Moura (Casa)', number: 13 },
-];
-const mockAwayPlayers: Player[] = [
-    { id: 'A1', name: 'Jogador Fora 1', number: 7 },
-    { id: 'A2', name: 'Jogador Fora 2', number: 9 },
-];
 
 
 const tabs: Record<Sport, string[]> = {
@@ -105,28 +89,12 @@ const EventHistory: React.FC = () => {
 
     const [homeTeam, setHomeTeam] = useState<ApiTeam>();
     const [awayTeam, setAwayTeam] = useState<ApiTeam>();
-    // const homeTeam: ApiTeam = ({
-    //     id: 'home',
-    //     name: 'Equipa Casa',
-    //     logoURL: '/path/to/home/logo.png',
-    //     color: '#FF0000', // Example color
-    //     acronym: 'HC',
-    //     sport: 'futsal', // Adjust sport as needed
-    // });
-    // const awayTeam: ApiTeam = ({
-    //     id: 'away',
-    //     name: 'Equipa Fora',
-    //     logoURL: '/path/to/away/logo.png',
-    //     color: '#0000FF', // Example color
-    //     acronym: 'AF',
-    //     sport: 'futsal', // Adjust sport as needed
-    // });
 
     const sport = sportParam as Sport;
     const placardId = placardIdParam;
 
-    const homePlayers = mockHomePlayers;
-    const awayPlayers = mockAwayPlayers;
+    const [homePlayers, setHomeTeamPlayers] = useState<ApiPlayer[]>([]);
+    const [awayPlayers, setAwayTeamPlayers] = useState<ApiPlayer[]>([]);
 
     const fetchTeams = useCallback(async () => {
         if (placardId === 'default') return;
@@ -137,6 +105,14 @@ const EventHistory: React.FC = () => {
                 const away = await apiManager.getTeamInfo(info.secondTeamId);
                 setHomeTeam(home);
                 setAwayTeam(away);
+                const homeTeamLineUp = await apiManager.getTeamLineup(placardId, home.id);
+                const awayTeamLineUp = await apiManager.getTeamLineup(placardId, away.id);
+                if (Array.isArray(homeTeamLineUp)) {
+                    setHomeTeamPlayers(homeTeamLineUp);
+                }
+                if (Array.isArray(awayTeamLineUp)) {
+                    setAwayTeamPlayers(awayTeamLineUp);
+                }
             }
         } catch (error) {
             console.error('Error fetching teams:', error);
@@ -297,19 +273,19 @@ const EventHistory: React.FC = () => {
             team: finalTeamValue,
             player: resolvedPlayerName,
             details: item,
-            icon: null, // Icon is set later in the fetchEvents logic
+            icon: null,
             teamLogo: currentTeamLogo,
-            teamColor: currentTeamColor, // Add teamColor to the event
+            teamColor: currentTeamColor,
             playerNumber: resolvedPlayerNumber,
             originalPlayerId: item.playerId,
             originalCardType: type === 'card' ? (item as ApiCardEventData).cardType : undefined,
             originalPointValue: type === 'score' ? (item as ApiScoreEventData).pointValue : undefined,
         };
-    })), [sport, homePlayers, awayPlayers, homeTeam, awayTeam]);
+    })), [sport, homePlayers, awayPlayers, homeTeam, awayTeam, homePlayers, awayPlayers]);
 
     const fetchEvents = useCallback(async () => {
         if (!placardId || !sport) {
-            setError('ID do placar ou esporte não especificado.');
+            setError('ID do placard ou desporto não especificado.');
             setLoading(false);
             return;
         }
@@ -367,7 +343,7 @@ const EventHistory: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [placardId, sport, normalizeEventData, getEventIcon, homeTeam, awayTeam]); // Add homeTeam and awayTeam as dependencies
+    }, [placardId, sport, normalizeEventData, getEventIcon, homeTeam, awayTeam, homePlayers, awayPlayers]);
 
     useEffect(() => {
         const initializeData = async () => {
@@ -382,7 +358,7 @@ const EventHistory: React.FC = () => {
         if (homeTeam && awayTeam) {
             fetchEvents();
         }
-    }, [homeTeam, awayTeam]);
+    }, [homeTeam, awayTeam, homePlayers, awayPlayers, fetchEvents]);
 
     useEffect(() => {
         let currentFilteredEvents = events;
@@ -583,7 +559,7 @@ const EventHistory: React.FC = () => {
 
 
     if (!placardId || !sport) {
-        return <div className="event-history-error">ID do placar ou esporte não fornecido.</div>;
+        return <div className="event-history-error">ID do placard ou dessporto não fornecido.</div>;
     }
     if (loading) return <div className="event-history-loading">Carregando histórico de eventos...</div>;
     if (error) {
@@ -598,7 +574,7 @@ const EventHistory: React.FC = () => {
     if (!tabs[sport]) {
         return (
             <div className="event-history-error">
-                Esporte
+                Desporto
                 {' '}
                 &apos;
                 {sport}
@@ -798,7 +774,7 @@ const EventHistory: React.FC = () => {
                                 </select>
                             </div>
 
-                            {eventToEdit.type === 'score' && (
+                            {/* {eventToEdit.type === 'score' && (
                                 <div className="form-group">
                                     <label htmlFor="pointValue">Pontuação:</label>
                                     <input
@@ -811,7 +787,7 @@ const EventHistory: React.FC = () => {
                                         min="1"
                                     />
                                 </div>
-                            )}
+                            )} */}
 
                             {eventToEdit.type === 'card' && (
                                 <div className="form-group">
