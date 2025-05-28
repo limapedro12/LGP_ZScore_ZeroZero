@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import TeamLogosRow from '../../components/scorersTable/preGameSetup/teamLogos';
 import TeamPlayers from '../../components/scorersTable/preGameSetup/teamPlayers';
+import AddPlayerModal from '../../components/scorersTable/preGameSetup/addPlayerModal';
 import apiManager, { ApiTeam, ApiGame, ApiPlayer } from '../../api/apiManager';
 import '../../styles/preGameSetup.scss';
 
@@ -15,6 +16,9 @@ export default function PreGameSetupPage() {
     const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
     const [homePlayers, setHomePlayers] = useState<ApiPlayer[]>([]);
     const [awayPlayers, setAwayPlayers] = useState<ApiPlayer[]>([]);
+    const [playersPositions, setPlayersPositions] = useState<Record<string, string>>({});
+    const [showAddPlayer, setShowAddPlayer] = useState(false);
+
 
     useEffect(() => {
         const fetchTeams = async () => {
@@ -37,9 +41,11 @@ export default function PreGameSetupPage() {
                 if (Array.isArray(homePlayersData) && Array.isArray(awayPlayersData)) {
                     setHomePlayers(homePlayersData);
                     setAwayPlayers(awayPlayersData);
-                    console.log('Home Players:', homePlayers);
-                    console.log('Away Players:', awayPlayers);
                 }
+
+                const sportResponse = (await apiManager.getSportConfig(sport));
+                const positions = sportResponse?.config?.positions || {};
+                setPlayersPositions(positions);
 
             } catch (error) {
                 console.error('Error fetching team information:', error);
@@ -50,18 +56,12 @@ export default function PreGameSetupPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sport, placardId, navigate, location.state]);
 
-    useEffect(() => {
-        if (homePlayers.length > 0 || awayPlayers.length > 0) {
-            console.log('Home Players:', homePlayers);
-            console.log('Away Players:', awayPlayers);
-        }
-    }, [homePlayers, awayPlayers]);
-
     if (
         !homeTeam ||
     !awayTeam ||
     homePlayers.length === 0 ||
-    awayPlayers.length === 0
+    awayPlayers.length === 0 ||
+    Object.keys(playersPositions).length === 0
     ) {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>

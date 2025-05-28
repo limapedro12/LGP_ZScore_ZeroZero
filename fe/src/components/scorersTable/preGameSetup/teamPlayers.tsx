@@ -1,15 +1,16 @@
 import React from 'react';
 import { ApiPlayer } from '../../../api/apiManager';
 import PlayerJersey from '../../playerJersey';
-import { Plus } from 'react-bootstrap-icons'; // Import the Plus icon
+import { Plus } from 'react-bootstrap-icons';
 
 interface TeamPlayersProps {
     teamPlayers : ApiPlayer[];
     teamColor: string;
+    onAddPlayer?: () => void;
 }
 
 const TeamPlayers: React.FC<TeamPlayersProps> = (
-    { teamPlayers, teamColor }
+    { teamPlayers, teamColor, onAddPlayer }
 ) => (
     <div className="team-players">
         {teamPlayers.map((player) => (
@@ -36,6 +37,8 @@ const TeamPlayers: React.FC<TeamPlayersProps> = (
                 style={{
                     background: `linear-gradient(135deg, ${teamColor} 65%, #222 100%)`,
                 }}
+                onClick={onAddPlayer}
+                type="button"
             >
                 <Plus />
             </button>
