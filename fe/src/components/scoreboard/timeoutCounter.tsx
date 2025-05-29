@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { useMediaQuery } from 'react-responsive';
 import apiManager from '../../api/apiManager';
 import BoxCounter from './../scoreboard/boxCounter';
-import '../../styles/timeoutCounter.scss';
 import { BREAKPOINTS } from '../../media-queries/index';
 
 const TimeoutCounter: React.FC = () => {

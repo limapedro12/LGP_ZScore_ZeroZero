@@ -4,6 +4,9 @@
 $background-color: #2C3E50;
 $text-color: #ffffff;
 $secondary-text-color: #000000;
+$button-bg-variant: lighten($background-color, 10%);
+$button-bg-variant-active: darken($background-color, 10%);
+$button-bg-variant-selected: lighten($background-color, 55%);
 
 // Typography
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto:wght@400;700&display=swap');
