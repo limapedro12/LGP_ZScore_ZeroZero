@@ -127,7 +127,7 @@ const SelectView: React.FC = () => {
                     {isColab && (
                         <button
                             onClick={() => {
-                                navigate(`/scorersTable/${game.sport}/${game.placardId}`); // TODO : If authenticated
+                                navigate(`/scorersTable/${game.sport}/${game.placardId}/preGameSetup`); // TODO : If authenticated
                             }}
                         >
                             Iniciar Mesa
