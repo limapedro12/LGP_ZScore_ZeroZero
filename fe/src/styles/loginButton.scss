@@ -2,23 +2,18 @@
 
 .login-button,
 .logout-button {
-  position: relative; // For positioning the logout menu
+  position: relative;
   display: inline-block;
 
   button {
-    padding: 8px 15px;
-    border-radius: 20px; // Rounded corners for buttons
+    padding: 10px;
+    border-radius: 6px;
+    background-color: lighten(config.$background-color, 10%);
     border: none;
-    background-color: lighten(config.$background-color, 10%); // A slightly lighter shade than main bg
     color: config.$text-color;
-    font-family: config.$font-primary;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 8px; // Space between text and potential icon
+    margin: auto;
 
     &:hover {
       background-color: lighten(config.$background-color, 15%);
@@ -28,6 +23,12 @@
     &:active {
       background-color: lighten(config.$background-color, 5%);
     }
+  }
+
+  img {
+    width: 40px;
+    height: 40px;
+    margin-right: 8px; // Space between icon and text
   }
 }
 
