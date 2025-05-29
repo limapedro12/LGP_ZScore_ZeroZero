@@ -373,7 +373,7 @@
                         return ["error" => "Invalid player name"];
                     }
                     $position = trim($player['position'] ?? '');
-                    if (!preg_match('/^[a-zA-ZÀ-ÿ\s\'\-]{1,30}$/u', $position)) {
+                    if (!preg_match('/^[a-zA-ZÀ-ÿ0-9\s\'\-]{1,30}$/u', $position)) {
                         $conn->rollback();
                         $conn->close();
                         return ["error" => "Invalid player position"];
