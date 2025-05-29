@@ -13,7 +13,7 @@ class GameConfig {
             'typeOfScore' => 'g',
             'foulsPenaltyThreshold' => 5,
             'positions' => [
-                'Goalkeeper' => 'GK',
+                'Guarda-redes' => 'GR',
                 'Fixo' => 'FX',
                 'Ala' => 'ALA',
                 'Pivô' => 'PV',
@@ -53,13 +53,11 @@ class GameConfig {
             'resetPointsEachPeriod' => true,
             'typeOfScore' => 'p',
             'positions' => [
-                'Outside Hitter' => 'OH',
-                'Opposite Hitter' => 'OP',
-                'Middle Blocker' => 'MB',
-                'Setter' => 'S',
+                'Zona 4' => 'Z4',
+                'Oposto' => 'OP',
+                'Central' => 'C',
+                'Distribuidor' => 'D',
                 'Libero' => 'L',
-                'Defensive Specialist' => 'DS',
-                'Serving Specialist' => 'SS',
             ],
         ]
     ];
