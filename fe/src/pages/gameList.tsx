@@ -59,7 +59,7 @@ const GameList = () => {
 
     const logo = (
         <div className="logo text-white">
-            <img src="/images/logo.png" alt="XP Sports Logo" />
+            <img src="/images/zscore_logo_no_bg.png" alt="XP Sports Logo" />
         </div>
     );
 
