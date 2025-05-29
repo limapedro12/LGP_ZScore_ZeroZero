@@ -53,7 +53,7 @@ const FoulSlider: React.FC<FoulSliderProps> = ({
             console.error('Error fetching foul events:', error);
             setFoulsCountByPlayer({});
         }
-    }, [placardId, sport, team, players]);
+    }, [placardId, sport, team]);
 
     useEffect(() => {
         fetchAndSetFouls();
@@ -104,7 +104,7 @@ const FoulSlider: React.FC<FoulSliderProps> = ({
                     currentPagePlayers.map((player) => {
                         const committedFouls = foulsCountByPlayer[String(player.playerId)] || 0;
                         return (
-                            <div key={player.playerId} className="squad-player-item">
+                            <div key={player.playerId} className="squad-player-item py-1">
                                 <FoulEvent
                                     playerId={player.playerId}
                                     playerNumber={Number(player.number)}

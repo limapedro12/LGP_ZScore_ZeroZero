@@ -1,6 +1,5 @@
-// FoulEvent.tsx
 import * as React from 'react';
-import EventDisplay from '../eventDisplay'; // Ajuste o caminho se necessário
+import EventDisplay from '../eventDisplay';
 
 interface FoulEventProps {
     playerName?: string;
@@ -31,7 +30,9 @@ const FoulEvent: React.FC<FoulEventProps> = ({
             );
         }
         return (
-            <div className="foul-dots-display-container">
+            <div
+                className={`foul-dots-display-container${team === 'away' ? ' reverse' : ''}`}
+            >
                 {dots}
             </div>
         );
