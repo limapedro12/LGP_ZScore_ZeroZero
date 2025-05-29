@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS AbstractPlacard (
     firstTeamId INT NOT NULL,
     secondTeamId INT NOT NULL,
     isFinished BOOLEAN NOT NULL,
+    allowColab BOOLEAN DEFAULT 0 NOT NULL,
     sport VARCHAR(255) NOT NULL,
     startTime DATETIME NOT NULL,
     FOREIGN KEY (firstTeamId) REFERENCES AbstractTeam(id),
@@ -79,6 +80,7 @@ CREATE TABLE IF NOT EXISTS BasketballPlacard (
 
 CREATE TABLE IF NOT EXISTS AbstractPlayer (
     id INT PRIMARY KEY AUTO_INCREMENT, 
+    zerozero_id int,
     name VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
     position_acronym VARCHAR(255) NOT NULL,

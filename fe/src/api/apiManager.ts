@@ -28,9 +28,11 @@ type ActionType =
     | 'getAllowColab'
     | 'getTeamLineup'
     | 'getPlayerInfo'
+    | 'updateLineup'
     | 'noCards'
     | 'noPeriodBox'
     | 'noShotClock'
+    | 'noFouls'
     | 'typeOfScore'
     | 'sportConfig'
     | 'authUserSocial'
@@ -80,7 +82,7 @@ export interface ScoreHistoryResponse {
 interface RequestParams {
     placardId?: string;
     sport?: string;
-    [key: string]: string | number | undefined;
+    [key: string]: string | number | undefined | ApiPlayer[];
 }
 
 interface ApiParams {
@@ -183,6 +185,7 @@ interface SportsResponse {
         periodEndScore?: number;
         pointDifference?: number;
         resetPointsEachPeriod?: boolean;
+        positions?: Record<string, string>;
     };
 }
 
@@ -258,6 +261,7 @@ export interface ApiPlayer {
     position: string;
     teamId: string;
     position_acronym: string;
+    newPlayer?: boolean; // Indicates if this is a newly added player
 }
 
 interface CreatedFoulDetails {
@@ -392,7 +396,8 @@ class ApiManager {
 
             const data = await response.json();
             // Optionally show a success toast for certain actions
-            if (['create', 'update', 'delete', 'reset', 'start', 'pause', 'adjust', 'set'].includes(action) && data?.message) {
+            if (['create', 'update', 'delete', 'reset', 'start', 'pause', 'adjust', 'set', 'updateLineup'].
+                includes(action) && data?.message) {
                 toast.success(data.message);
             }
             return data;
@@ -547,6 +552,11 @@ class ApiManager {
         this.makeRequest<ApiColab>('info', 'getAllowColab', { placardId });
     getTeamLineup = (placardId: string, teamId: string) =>
         this.makeRequest<ApiPlayer>('info', 'getTeamLineup', { placardId, teamId });
+    updateLineup = (placardId: string, players: ApiPlayer[]) =>
+        this.makeRequest<{success: boolean, message: string}>('info', 'updateLineup', {
+            placardId,
+            players,
+        });
 
     getPlayerInfo = (playerId: string) =>
         this.makeRequest<ApiPlayer>('info', 'getPlayerInfo', { playerId });
@@ -579,6 +589,9 @@ class ApiManager {
 
     getNoCardSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noCards', { }, 'GET');
+
+    getNoFoulSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noFouls', { }, 'GET');
 
     getNoShotClockSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noShotClock', { }, 'GET');

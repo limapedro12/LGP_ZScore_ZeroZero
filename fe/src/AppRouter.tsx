@@ -12,6 +12,7 @@ import PointValueSelection from './pages/scorersTable/pointValueSelection';
 import SelectView from './pages/selectView';
 import TimeAdjustment from './pages/scorersTable/timeAdjustment';
 import ShotClockAdjustment from './pages/scorersTable/shotClockAdjustment';
+import PreGameSetupPage from './pages/scorersTable/preGameSetup';
 
 /**
  * AppRouter component
@@ -33,6 +34,7 @@ const AppRouter = () => (
             <Route path="/scorersTable/:sport/:placardId/shotClockAdjustment" element={<ShotClockAdjustment />} />
             <Route path="/scorersTable/:sport/:placardId/pointValueSelection/:teamTag" element={<PointValueSelection />} />
             <Route path="/selectView" element={<SelectView />} />
+            <Route path="/scorersTable/:sport/:placardId/preGameSetup" element={<PreGameSetupPage />} />
         </Routes>
     </BrowserRouter>
 );

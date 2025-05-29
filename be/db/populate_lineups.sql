@@ -85,12 +85,12 @@ BEGIN
                 SET v_player_positions = JSON_ARRAY(
                     'Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center',
                     'Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center',
-                    'Guard', 'Forward'
+                    'Sixth Man', 'Defensive Specialist'
                 );
                 SET v_player_position_acronyms = JSON_ARRAY(
                     'PG', 'SG', 'SF', 'PF', 'C',
                     'PG', 'SG', 'SF', 'PF', 'C',
-                    'G', 'F'
+                    '6M', 'DS'
                 );
             ELSE
                 -- Unknown sport, skip or handle as error

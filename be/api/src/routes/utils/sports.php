@@ -7,7 +7,7 @@ $params = RequestUtils::getRequestParams();
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 $requiredParams = ['action'];
-$allowedActions = ['noTimer', 'noPeriodBox', 'noCards', 'typeOfScore', 'noShotClock', 'sportConfig'];
+$allowedActions = ['noTimer', 'noPeriodBox', 'noCards', 'typeOfScore', 'noShotClock', 'sportConfig', 'noFouls'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -100,6 +100,24 @@ try {
             }
             $response = [
                 "sports" => $sportsWithoutShotClock
+            ];
+            break;
+        case 'noFouls':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for this action."];
+                break;
+            }
+            $sportsWithoutFouls = [];
+            $configs = $gameConfig->getAllConfigs();
+
+            foreach ($configs as $sport => $config) {
+                if (!isset($config['foulsPenaltyThreshold'])) {
+                    $sportsWithoutFouls[] = $sport;
+                }
+            }
+            $response = [
+                "sports" => $sportsWithoutFouls
             ];
             break;
         case 'typeOfScore':
