@@ -166,8 +166,7 @@ export interface CardsResponse {
     }>;
 }
 
-
-interface SportsResponse {
+export interface SportsResponse {
     sports?: string[];
     typeOfScore?: string;
     sport?: string;
@@ -217,11 +216,11 @@ export type Sport = 'futsal' | 'volleyball' | 'basketball';
  * @property {Substitution[]} substitutions - Array of substitutions made
  * @property {string} [error] - Optional error message from the API
  */
-interface SubstitutionResponse{
+export interface SubstitutionResponse{
     message?: string;
     substitutionId?: string;
     substitutions?: Array<{
-        substitutionId: string,
+        eventId: string,
         team: string,
         playerInId: string,
         playerOutId: string,
@@ -229,6 +228,8 @@ interface SubstitutionResponse{
     }>;
     error?: string;
 }
+
+export type Substitution = NonNullable<SubstitutionResponse['substitutions']>[number];
 
 export interface ApiGame {
     id: string;
@@ -395,7 +396,19 @@ class ApiManager {
             }
 
             const data = await response.json();
-            // Optionally show a success toast for certain actions
+            if (data?.error) {
+                toast.error(data.error);
+                const error = new Error(data.error);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (error as any).response = {
+                    data,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                    config: options,
+                };
+                throw error;
+            }
             if (['create', 'update', 'delete', 'reset', 'start', 'pause', 'adjust', 'set', 'updateLineup'].
                 includes(action) && data?.message) {
                 toast.success(data.message);

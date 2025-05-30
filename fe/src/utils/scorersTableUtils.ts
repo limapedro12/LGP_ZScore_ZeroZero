@@ -123,7 +123,15 @@ const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
         {
             eventName: 'Substituição',
             eventCategory: 'substitution',
-            onEventAction: (teamTag) => console.log(`Volleyball Substituição - Team: ${teamTag}`),
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'substitution' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for volleyball substitution event');
+                }
+            },
         },
         {
             eventName: 'Cartão',

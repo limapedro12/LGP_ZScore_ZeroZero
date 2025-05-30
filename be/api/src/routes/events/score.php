@@ -160,8 +160,11 @@ try {
                 }
             }
 
-            $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
-
+            if (isset($gameConfig['periodDuration']) && $gameConfig['periodDuration']) {
+                $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            } else {
+                $gameTimePosition = 0;
+            }
 
             $pointData = [
                 'eventId' => $eventId,

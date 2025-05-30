@@ -4,8 +4,9 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import PlayerJersey from '../../components/playerJersey';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '../../styles/playerSelection.scss';
-import apiManager, { ApiPlayer } from '../../api/apiManager';
+import apiManager, { ApiPlayer, Sport } from '../../api/apiManager';
 import { correctSportParameter } from '../../utils/navigationUtils';
 
 interface LocationState {
@@ -15,7 +16,7 @@ interface LocationState {
 }
 
 const PlayerSelectionPage: React.FC = () => {
-    const { sport, placardId, teamTag } = useParams<{ sport: string, placardId: string, teamTag: string }>();
+    const { sport: sportParam, placardId, teamTag } = useParams<{ sport: string, placardId: string, teamTag: string }>();
     const navigate = useNavigate();
     const location = useLocation();
     const { eventCategory, pointValue } = location.state as LocationState || { eventCategory: '', pointValue: undefined };
@@ -25,140 +26,140 @@ const PlayerSelectionPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [jerseyColor, setJerseyColor] = useState(teamTag === 'home' ? '#E83030' : '#008057');
-
+    const [selectedPlayerOut, setSelectedPlayerOut] = useState<ApiPlayer | null>(null);
+    const [selectedPlayerIn, setSelectedPlayerIn] = useState<ApiPlayer | null>(null);
+    const [selectionStep, setSelectionStep] = useState<'out' | 'in'>('out');
+    const isSubstitutionMode = location.state?.eventCategory === 'substitution';
+    const [currentSport, setCurrentSport] = useState<Sport>(sportParam as Sport);
 
     const fetchPlayers = useCallback(async () => {
         setIsLoading(true);
-        if (!placardId || !teamTag || !sport) {
-            console.error('Missing placardId, teamTag, or sport for fetching lineup');
+        if (!placardId || !teamTag || !currentSport) {
             setPlayers([]);
             setIsLoading(false);
             return;
         }
         try {
-            const placardInfo = await apiManager.getPlacardInfo(placardId, sport);
-
+            const placardInfo = await apiManager.getPlacardInfo(placardId, currentSport);
             if (placardInfo.sport) {
-                correctSportParameter(sport, placardInfo.sport, navigate);
+                setCurrentSport(placardInfo.sport);
+                correctSportParameter(sportParam, placardInfo.sport, navigate);
             }
-
             let targetTeamId: string | undefined;
-
-            if (teamTag === 'home') {
-                targetTeamId = placardInfo.firstTeamId;
-            } else if (teamTag === 'away') {
-                targetTeamId = placardInfo.secondTeamId;
-            }
-
-            const teamInfo = await apiManager.getTeamInfo(targetTeamId as string);
-            setJerseyColor(teamInfo.color);
-
+            if (teamTag === 'home') targetTeamId = placardInfo.firstTeamId;
+            else if (teamTag === 'away') targetTeamId = placardInfo.secondTeamId;
             if (!targetTeamId) {
-                console.error('Could not determine target team ID from placard info and team tag');
                 setPlayers([]);
                 setIsLoading(false);
                 return;
             }
-
+            const teamInfo = await apiManager.getTeamInfo(targetTeamId as string);
+            setJerseyColor(teamInfo.color);
             const lineupData = await apiManager.getTeamLineup(placardId, targetTeamId);
-
-            if (Array.isArray(lineupData)) {
-                // Use the API data directly without mapping
-                setPlayers(lineupData);
-            } else {
-                console.error('Invalid response format from getTeamLineup API:', lineupData);
-                setPlayers([]);
-            }
-        } catch (error) {
-            console.error('Error fetching players for lineup:', error);
+            if (Array.isArray(lineupData)) setPlayers(lineupData);
+            else if (lineupData && typeof lineupData === 'object' && lineupData.playerId) setPlayers([lineupData as ApiPlayer]);
+            else setPlayers([]);
+        } catch {
             setPlayers([]);
         } finally {
             setIsLoading(false);
         }
-    }, [placardId, teamTag, sport, navigate]);
+    }, [placardId, teamTag, currentSport, sportParam, navigate]);
 
     useEffect(() => {
         fetchPlayers();
     }, [fetchPlayers]);
 
-    const handleGoBack = () => {
-        navigate(-1);
-    };
+    const handleGoBack = () => navigate(-1);
 
-    const handlePlayerSelect = (playerId: string) => {
-        if (selectedPlayerId === playerId) {
-            setSelectedPlayerId(null);
+    const handlePlayerSelect = (player: ApiPlayer) => {
+        if (!isSubstitutionMode) {
+            setSelectedPlayerId((prevId) => (prevId === player.playerId ? null : player.playerId));
         } else {
-            setSelectedPlayerId(playerId);
+            if (selectionStep === 'out') {
+                if (selectedPlayerIn && selectedPlayerIn.playerId === player.playerId) return;
+                setSelectedPlayerOut(player);
+                setSelectionStep('in');
+            } else if (selectionStep === 'in') {
+                if (selectedPlayerOut && selectedPlayerOut.playerId === player.playerId) {
+                    setSelectedPlayerOut(null);
+                    setSelectedPlayerIn(null);
+                    setSelectionStep('out');
+                    return;
+                }
+                if (selectedPlayerIn && selectedPlayerIn.playerId === player.playerId) {
+                    setSelectedPlayerIn(null);
+                    return;
+                }
+                setSelectedPlayerIn(player);
+            }
         }
     };
 
     const handleConfirm = async () => {
-        if (!selectedPlayerId || !sport || !placardId || !teamTag) return;
-
+        if (!currentSport || !placardId || !teamTag) return;
         try {
-            switch (eventCategory) {
-                case 'futsalScore':
-                    await apiManager.createScoreEvent(
-                        placardId,
-                        sport,
-                        teamTag as 'home' | 'away',
-                        selectedPlayerId,
-                        1
-                    );
-                    break;
-                case 'volleyballScore':
-                    await apiManager.createScoreEvent(
-                        placardId,
-                        sport,
-                        teamTag as 'home' | 'away',
-                        selectedPlayerId,
-                        1
-                    );
-                    break;
-                case 'basketballScore':
-                    if (!pointValue) {
-                        console.error('Point value is required for basketball scores');
-                        return;
+            if (isSubstitutionMode) {
+                if (!selectedPlayerOut || !selectedPlayerIn) return;
+                await apiManager.createSubstitution(
+                    placardId,
+                    currentSport,
+                teamTag as 'home' | 'away',
+                selectedPlayerIn.playerId,
+                selectedPlayerOut.playerId
+                );
+            } else {
+                if (!selectedPlayerId) return;
+                switch (eventCategory) {
+                    case 'futsalScore':
+                    case 'volleyballScore':
+                        await apiManager.createScoreEvent(
+                            placardId,
+                            currentSport,
+                            teamTag as 'home' | 'away',
+                            selectedPlayerId,
+                            1
+                        );
+                        break;
+                    case 'basketballScore':
+                        if (!pointValue) return;
+                        await apiManager.createScoreEvent(
+                            placardId,
+                            currentSport,
+                            teamTag as 'home' | 'away',
+                            selectedPlayerId,
+                            pointValue
+                        );
+                        break;
+                    case 'card': {
+                        const { cardType } = location.state as LocationState;
+                        if (!cardType) return;
+                        await apiManager.createCard(
+                            placardId,
+                            currentSport,
+                            selectedPlayerId,
+                            cardType,
+                            teamTag as 'home' | 'away'
+                        );
+                        break;
                     }
-                    await apiManager.createScoreEvent(
-                        placardId,
-                        sport,
-                        teamTag as 'home' | 'away',
-                        selectedPlayerId,
-                        pointValue
-                    );
-                    break;
-                case 'card': {
-                    const { cardType } = location.state as LocationState;
-                    if (!cardType) {
-                        console.error('Card type is required for card events');
+                    case 'foul':
+                        await apiManager.createFoul(
+                            placardId,
+                            currentSport,
+                            selectedPlayerId,
+                            teamTag as 'home' | 'away'
+                        );
+                        break;
+                    default:
                         return;
-                    }
-                    await apiManager.createCard(
-                        placardId,
-                        sport,
-                        selectedPlayerId,
-                        cardType,
-                        teamTag as 'home' | 'away'
-                    );
-                    break;
                 }
-                case 'foul':
-                    await apiManager.createFoul(
-                        placardId,
-                        sport,
-                        selectedPlayerId,
-                        teamTag as 'home' | 'away'
-                    );
-                    break;
-                default:
-                    console.error(`Unsupported event category: ${eventCategory}`);
             }
-
-            navigate(`/scorersTable/${sport}/${placardId}`);
-        } catch (error) {
-            console.error('Error creating event:', error);
+            navigate(`/scorersTable/${currentSport}/${placardId}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            console.error('Error confirming player selection:', error);
+        // Error toast is already shown by apiManager, no need to add another
         }
     };
 
@@ -168,13 +169,30 @@ const PlayerSelectionPage: React.FC = () => {
         return nameMatches || numberMatches;
     });
 
-    const getPlayerCardClass = (playerId: string) => {
+    const getPlayerCardClass = (player: ApiPlayer) => {
         let className = 'player-card';
-        if (selectedPlayerId === playerId) {
-            className += ' selected';
+        if (isSubstitutionMode) {
+            if (selectedPlayerOut?.playerId === player.playerId) className += ' selected-out';
+            else if (selectedPlayerIn?.playerId === player.playerId) className += ' selected-in';
+        } else {
+            if (selectedPlayerId === player.playerId) className += ' selected';
         }
         return className;
     };
+
+    let pageTitle = 'Selecione o Jogador';
+    if (isSubstitutionMode) {
+        if (selectionStep === 'out') pageTitle = 'Selecione o Jogador a SAIR';
+        else pageTitle = selectedPlayerOut ? `A SAIR: ${selectedPlayerOut.name} 
+        (#${selectedPlayerOut.number}) - Selecione o Jogador a ENTRAR` : 'Selecione o Jogador a ENTRAR';
+    }
+
+    let confirmButtonText = 'Confirmar Seleção';
+    let isConfirmDisabled = !selectedPlayerId;
+    if (isSubstitutionMode) {
+        confirmButtonText = 'Confirmar Substituição';
+        isConfirmDisabled = !selectedPlayerOut || !selectedPlayerIn;
+    }
 
     let playersContent;
     if (isLoading) {
@@ -187,8 +205,8 @@ const PlayerSelectionPage: React.FC = () => {
                 {filteredPlayers.map((player) => (
                     <div
                         key={player.playerId}
-                        className={getPlayerCardClass(player.playerId)}
-                        onClick={() => handlePlayerSelect(player.playerId)}
+                        className={getPlayerCardClass(player)}
+                        onClick={() => handlePlayerSelect(player)}
                     >
                         <div className="jersey-container">
                             <PlayerJersey
@@ -201,7 +219,7 @@ const PlayerSelectionPage: React.FC = () => {
                                 {player.name}
                             </div>
                             <div className="player-position">
-                                {player.position}
+                                {player.position_acronym || player.position}
                             </div>
                         </div>
                     </div>
@@ -220,13 +238,17 @@ const PlayerSelectionPage: React.FC = () => {
                     </Button>
                 </Col>
                 <Col>
-                    <h1 className="page-title mb-0 text-center">Selecione o Jogador</h1>
+                    <h1
+                        className="page-title mb-0 text-center"
+                        style={{ fontSize: isSubstitutionMode && selectionStep === 'in' && selectedPlayerOut ? '1.2rem' : '1.75rem' }}
+                    >
+                        {pageTitle}
+                    </h1>
                 </Col>
                 <Col xs="auto" style={{ visibility: 'hidden' }}>
                     <ArrowLeft color="white" size={30} />
                 </Col>
             </Row>
-
             <Row className="search-row gx-0 py-3 px-3">
                 <Col className="d-flex justify-content-center">
                     <Form.Control
@@ -238,22 +260,20 @@ const PlayerSelectionPage: React.FC = () => {
                     />
                 </Col>
             </Row>
-
             <Row className="players-row gx-0" style={{ flexGrow: 1, overflowY: 'auto' }}>
                 <Col>
                     {playersContent}
                 </Col>
             </Row>
-
             <Row className="footer-row gx-0 pt-3 pb-4 px-3 justify-content-center">
                 <div className="d-flex flex-column align-items-center">
                     <Button
                         variant="light"
                         className="confirm-button"
                         onClick={handleConfirm}
-                        disabled={!selectedPlayerId}
+                        disabled={isConfirmDisabled}
                     >
-                        Confirmar Seleção
+                        {confirmButtonText}
                     </Button>
                 </div>
             </Row>

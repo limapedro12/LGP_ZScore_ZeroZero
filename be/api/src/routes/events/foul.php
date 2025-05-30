@@ -139,7 +139,11 @@ try {
                 break;
             }
 
-            $timestamp = RequestUtils::getGameTimePosition($placardId, $sportSpecificConfig);
+            if (isset($gameConfig['periodDuration']) && $gameConfig['periodDuration']) {
+                $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            } else {
+                $gameTimePosition = 0;
+            }            
             $currentPeriod = RequestUtils::getGamePeriod($placardId, $sportSpecificConfig);
             if ($currentPeriod > $totalPeriods) {
                  http_response_code(400);
@@ -154,6 +158,7 @@ try {
             $eventIdStringForRedis = (string)$eventIdRedis;
             $foulEventKey = $foulEventBaseKey . $eventIdStringForRedis;
             $accumulatedFoulKey = $accumulatedFoulBaseKey . "{$teamStr}:period:{$currentPeriod}:fouls_accumulated";
+            $timestamp = $gameTimePosition;
 
             $foulEvent = new FoulEvent((string)$timestamp, $sport, null, $playerIdStr, $teamStr, $currentPeriod);
             $foulEvent->setId($eventIdStringForRedis);
@@ -164,7 +169,7 @@ try {
                 'sport' => $sport,
                 'playerId' => $playerIdStr, 
                 'team' => $teamStr,        
-                'timestamp' => (string)$timestamp,
+                'timestamp' => $gameTimePosition ,
                 'period' => (string)$currentPeriod
             ];
             
