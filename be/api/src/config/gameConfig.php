@@ -15,9 +15,12 @@ class GameConfig {
             'positions' => [
                 'Guarda-redes' => 'GR',
                 'Fixo' => 'FX',
-                'Ala' => 'ALA',
-                'Pivô' => 'PV',
-                'Universal' => 'UNI',
+                'Fixo / Ala' => 'FA',
+                'Ala' => 'AL',
+                'Ala / Pivot' => 'AP',
+                'Pivot' => 'PV',
+                'Fixo / Pivot' => 'FP',
+                'Universal' => 'U',
             ],
         ],
         'basketball' => [
@@ -31,13 +34,10 @@ class GameConfig {
             'typeOfScore' => 'p',
             'foulsPenaltyThreshold' => 5,
             'positions' => [
-                'Point Guard' => 'PG',
-                'Shooting Guard' => 'SG',
-                'Small Forward' => 'SF',
-                'Power Forward' => 'PF',
-                'Center' => 'C',
-                'Sixth Man' => '6M',
-                'Defensive Specialist' => 'DS',
+                'Poste' => 'P',
+                'Extremo' => 'E',
+                'Base' => 'B',
+                'Universal' => 'U',
             ],
         ],
         'volleyball' => [
@@ -53,11 +53,12 @@ class GameConfig {
             'resetPointsEachPeriod' => true,
             'typeOfScore' => 'p',
             'positions' => [
-                'Zona 4' => 'Z4',
-                'Oposto' => 'OP',
-                'Central' => 'C',
                 'Distribuidor' => 'D',
-                'Libero' => 'L',
+                'Líbero' => 'L',
+                'Central' => 'C',
+                'Oposto' => 'OP',
+                'Zona 4' => 'Z4',
+                'Universal' => 'U',
             ],
         ]
     ];

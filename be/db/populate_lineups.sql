@@ -104,7 +104,7 @@ BEGIN
                 FOR i IN 0..(v_roster_size - 1) DO
                     INSERT INTO AbstractPlayer (name, position, position_acronym, number, teamId, sport)
                     VALUES (
-                        CONCAT(JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), ' (T', v_firstTeamId, ')'), 
+                        JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), 
                         JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))), 
                         JSON_UNQUOTE(JSON_EXTRACT(v_player_position_acronyms, CONCAT('$[', i, ']'))),
                         i + 1, 
@@ -148,7 +148,7 @@ BEGIN
                 FOR i IN 0..(v_roster_size - 1) DO
                     INSERT INTO AbstractPlayer (name, position, position_acronym, number, teamId, sport)
                     VALUES (
-                        CONCAT(JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), ' (T', v_secondTeamId, ')'), 
+                        JSON_UNQUOTE(JSON_EXTRACT(v_player_names, CONCAT('$[', i, ']'))), 
                         JSON_UNQUOTE(JSON_EXTRACT(v_player_positions, CONCAT('$[', i, ']'))),
                         JSON_UNQUOTE(JSON_EXTRACT(v_player_position_acronyms, CONCAT('$[', i, ']'))),
                         i + 1, 

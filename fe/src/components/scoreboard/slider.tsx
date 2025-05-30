@@ -51,40 +51,61 @@ const  Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, sli
         fetchScoreType();
     }, [fetchScoreType]);
 
-    const sliderItems: React.ReactNode[] = [
+    let sliderItems: React.ReactNode[] = [];
 
-        ...(sliderData.hasData.players ?
-            [
-                <SquadSlider
-                    team={team} key="squad-slider-item" teamColor={teamColor} players={teamLineup}
+    if (sport === 'basketball') {
+        sliderItems = [
+            ...(sliderData.hasData.fouls ?
+                [
+                    <FoulSlider
+                        sport={sport}
+                        team={team}
+                        placardId={placardId}
+                        players={teamLineup}
+                        teamColor={teamColor}
+                        key="foul-slider-item"
+                    />] : []),
+        ];
+    } else {
+        sliderItems = [
+
+            ...(sliderData.hasData.players ?
+                [
+                    <SquadSlider
+                        team={team} key="squad-slider-item" teamColor={teamColor} players={teamLineup}
+                    />] : []),
+
+            ...(sliderData.hasData.cards ? [
+                <CardSlider
+                    sport={sport as CardSports}
+                    team={team} placardId={placardId} players={teamLineup} teamColor={teamColor} key="card-slider-item"
                 />] : []),
 
-        ...(sliderData.hasData.cards ? [
-            <CardSlider
-                sport={sport as CardSports}
-                team={team} placardId={placardId} players={teamLineup} teamColor={teamColor} key="card-slider-item"
-            />] : []),
+            ...(sliderData.hasData.scores ?
+                [
+                    <ScoreHistorySlider
+                        sport={sport} team={team} placardId={placardId}
+                        typeOfScore={scoreType} key="score-history-item"
+                    />] : []),
 
-        ...(sliderData.hasData.scores ?
-            [<ScoreHistorySlider sport={sport} team={team} placardId={placardId} typeOfScore={scoreType} key="score-history-item" />] : []),
-
-        ...((sliderData.hasData.scores && sliderData.hasData.players) ?
-            [
-                <PlayerScoreSlider
-                    sport={sport} team={team} placardId={placardId}
-                    teamColor={teamColor} typeOfScore={scoreType} key="player-score-item"
-                />] : []),
-        ...(sliderData.hasData.fouls ?
-            [
-                <FoulSlider
-                    sport={sport}
-                    team={team}
-                    placardId={placardId}
-                    players={teamLineup}
-                    teamColor={teamColor}
-                    key="foul-slider-item"
-                />] : []),
-    ];
+            ...((sliderData.hasData.scores && sliderData.hasData.players) ?
+                [
+                    <PlayerScoreSlider
+                        sport={sport} team={team} placardId={placardId}
+                        teamColor={teamColor} typeOfScore={scoreType} key="player-score-item"
+                    />] : []),
+            ...(sliderData.hasData.fouls ?
+                [
+                    <FoulSlider
+                        sport={sport}
+                        team={team}
+                        placardId={placardId}
+                        players={teamLineup}
+                        teamColor={teamColor}
+                        key="foul-slider-item"
+                    />] : []),
+        ];
+    }
 
 
     useEffect(() => {

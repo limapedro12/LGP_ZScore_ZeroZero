@@ -213,16 +213,21 @@ const ScoreBoard = () => {
         }
     }, [placardId, homeTeam?.id, awayTeam?.id, shouldPollPlayers]);
 
-    const fetchFouls = useCallback(async () => {
+    const fetchFouls = useCallback(() => {
         if (!placardId || !sport) return;
 
         try {
-            const response = await apiManager.getFouls(placardId, sport);
-            const hasFouls = response.fouls.length > 0;
+
+            let fouls = false;
+            if (hasFouls) {
+                fouls = true;
+            } else {
+                fouls = false;
+            }
 
             setSliderData((prev) => ({
                 ...prev,
-                hasData: { ...prev.hasData, fouls: hasFouls },
+                hasData: { ...prev.hasData, fouls: fouls },
             }));
 
             if (hasFouls && shouldPollFouls) {
@@ -235,7 +240,7 @@ const ScoreBoard = () => {
                 hasData: { ...prev.hasData, fouls: false },
             }));
         }
-    }, [placardId, sport, shouldPollFouls]);
+    }, [placardId, sport, shouldPollFouls, hasFouls]);
 
     useEffect(() => {
         fetchScoreHistory();
@@ -286,7 +291,6 @@ const ScoreBoard = () => {
             try {
                 const response = await apiManager.getSubstitutionStatus(placardId, sport);
                 const latest = response?.substitutions?.[response?.substitutions?.length - 1] || null;
-                console.log(latest, latestSubstitutionRef.current);
                 if (
                     (!latestSubstitutionRef.current && latest) ||
                 (latestSubstitutionRef.current && latest && latestSubstitutionRef.current.eventId !== latest.eventId)
