@@ -44,7 +44,10 @@ const PlayerJersey: React.FC<PlayerJerseyProps> = ({ number, color = '#273E7C', 
                 </>
             )}
             {number && number > 0 && (
-                <div className="player-jersey-number position-absolute top-50 start-50 translate-middle text-white fw-bold">
+                <div
+                    className="player-jersey-number position-absolute top-50 start-50 translate-middle text-white fw-bold"
+                    style={{ textShadow: '0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black' }}
+                >
                     {number}
                 </div>
             )}

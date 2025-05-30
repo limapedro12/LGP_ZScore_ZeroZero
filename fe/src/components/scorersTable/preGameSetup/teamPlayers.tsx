@@ -51,7 +51,8 @@ const TeamPlayers: React.FC<TeamPlayersProps> = (
             <button
                 className="btn add-player-button"
                 style={{
-                    background: `${teamColor}`,
+                    background: teamColor,
+                    color: ['#ffffff', '#fff', 'white'].includes(teamColor.toLowerCase()) ? 'black' : 'white',
                 }}
                 onClick={onAddPlayer}
                 type="button"
