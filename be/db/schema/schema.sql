@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS BasketballPlacard (
 
 CREATE TABLE IF NOT EXISTS AbstractPlayer (
     id INT PRIMARY KEY AUTO_INCREMENT, 
+    zerozero_id int,
     name VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
     position_acronym VARCHAR(255) NOT NULL,

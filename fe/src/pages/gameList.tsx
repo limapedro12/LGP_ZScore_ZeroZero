@@ -8,11 +8,13 @@ import Filters from '../components/gameList/Filters';
 import ShowGames from '../components/gameList/ShowGames';
 import { Game } from '../types/types';
 import apiManager from '../api/apiManager';
+import { formatDate } from '../utils/dateUtils';
 import LoginButton from '../components/loginButton';
 
 const GameList = () => {
     const [games, setGames] = useState<Game[]>([]);
     const [filteredGames, setFilteredGames] = useState<Game[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchGames = async () => {
@@ -25,11 +27,11 @@ const GameList = () => {
                         const awayTeam = await apiManager.getTeamInfo(game.secondTeamId);
                         return {
                             placardId: game.id,
-                            home: homeTeam?.name || 'Unknown', // Ensure `home` is defined
-                            homeLogo: homeTeam?.logoURL || '', // Ensure `homeLogo` is defined
-                            away: awayTeam?.name || 'Unknown', // Ensure `away` is defined
-                            awayLogo: awayTeam?.logoURL || '', // Ensure `awayLogo` is defined
-                            date: new Date(game.startTime).toLocaleDateString(),
+                            home: homeTeam?.name || 'Unknown',
+                            homeLogo: homeTeam?.logoURL || '',
+                            away: awayTeam?.name || 'Unknown',
+                            awayLogo: awayTeam?.logoURL || '',
+                            date: formatDate(new Date(game.startTime)),
                             time: new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             sport: game.sport,
                             liga: 'Liga Mock', // TODO remove this
@@ -43,6 +45,8 @@ const GameList = () => {
                 }
             } catch (error) {
                 console.error('Error fetching games:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -55,7 +59,7 @@ const GameList = () => {
 
     const logo = (
         <div className="logo text-white">
-            <img src="/images/logo.png" alt="XP Sports Logo" />
+            <img src="/images/zscore_logo_no_bg.png" alt="XP Sports Logo" />
         </div>
     );
 
@@ -86,7 +90,11 @@ const GameList = () => {
                 </Col>
 
                 <Col xs={{ span: 10, offset: 2 }}>
-                    <ShowGames games={filteredGames} />
+                    {loading ? (
+                        <h1 className="text-white text-center">A Carregar...</h1>
+                    ) : (
+                        <ShowGames games={filteredGames} />
+                    )}
                 </Col>
             </Row>
 
@@ -102,7 +110,11 @@ const GameList = () => {
                     {jogosTitle}
                 </Col>
                 <Col xs={12}>
-                    <ShowGames games={filteredGames} />
+                    {loading ? (
+                        <h1 className="text-white text-center">A Carregar...</h1>
+                    ) : (
+                        <ShowGames games={filteredGames} />
+                    )}
                 </Col>
             </Row>
         </Container>

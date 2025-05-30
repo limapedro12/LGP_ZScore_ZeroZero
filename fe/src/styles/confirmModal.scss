@@ -1,0 +1,31 @@
+@use './config.scss';
+
+.confirm-modal-content {
+    background: config.$background-color !important;
+    border-radius: 1rem;
+}
+
+.confirm-modal-title {
+    color: #fff;
+    font-size: 2rem;
+    font-family: config.$font-secondary;
+    margin-bottom: 1rem;
+}
+
+.confirm-modal-confirm-btn {
+    border-radius: 0.5rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+    min-width: 100px;
+    font-weight: bold;
+    font-family: config.$font-secondary;
+
+}
+
+.confirm-modal-cancel-btn {
+    border-radius: 0.5rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+    min-width: 100px;
+    font-family: config.$font-secondary;
+}

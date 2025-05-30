@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Game } from '../../types/types';
+import { formatDate } from '../../utils/dateUtils';
 
 type FiltersProps = {
     games: Game[];
@@ -56,10 +57,7 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
 
         let localFormattedDate: string | null = null;
         if (date) {
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
-            const year = date.getFullYear();
-            localFormattedDate = `${day}/${month}/${year}`;
+            localFormattedDate = formatDate(date);
         }
 
         const filteredGames = games.filter((game) => {
@@ -72,14 +70,32 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         onFilter(filteredGames);
     };
 
-    const handleSportChange = (sport: string | null) => {
-        setSelectedSport(sport);
+    const handleSportChange = (sport: string | string[] | null) => {
+        const selected = Array.isArray(sport) ? sport[0] : sport;
+        setSelectedSport(selected);
+
+        let localFormattedDate: string | null = null;
+        if (selectedDate) {
+            localFormattedDate = formatDate(selectedDate); // Ensure date is formatted as dd/MM/yyyy
+        }
+
         const filteredGames = games.filter((game) => {
-            const matchesSport = sport ? game.sport === sport : true;
-            const matchesDate = selectedDate ? game.date.startsWith(selectedDate.toISOString().split('T')[0]) : true;
-            const matchesTeams = selectedTeams.every((team) => game.home === team || game.away === team);
+            const matchesSport = (() => {
+                if (Array.isArray(sport)) {
+                    return sport.includes(game.sport);
+                }
+                if (sport) {
+                    return game.sport === sport;
+                }
+                return true;
+            })();
+            const matchesDate = localFormattedDate ? game.date === localFormattedDate : true; // Compare using dd/MM/yyyy
+            const matchesTeams = selectedTeams.every(
+                (team) => game.home === team || game.away === team
+            );
             return matchesSport && matchesDate && matchesTeams;
         });
+
         onFilter(filteredGames);
     };
 
@@ -117,15 +133,27 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
             </div>
             <label>Desporto</label>
             <div className="sports">
-                {Object.entries({ 'Futsal': 'futsal', 'Voleibol': 'voleyball', 'Basket': 'basketball' }).map(([label, sport]) => (
-                    <button
-                        key={sport}
-                        onClick={() => handleSportChange(selectedSport === sport ? null : sport)}
-                        className={selectedSport === sport ? 'active' : ''}
-                    >
-                        {label}
-                    </button>
-                ))}
+                {Object.entries({
+                    Futsal: 'futsal',
+                    Voleibol: 'volleyball',
+                    Basquetebol: 'basketball',
+                }).map(([label, sport]) => {
+                    const isActive = Array.isArray(sport)
+                        ? sport.includes(selectedSport || '')
+                        : selectedSport === sport;
+
+                    return (
+                        <button
+                            key={label}
+                            onClick={() =>
+                                handleSportChange(isActive ? null : sport)
+                            }
+                            className={isActive ? 'active' : ''}
+                        >
+                            {label}
+                        </button>
+                    );
+                })}
             </div>
         </div>
     );

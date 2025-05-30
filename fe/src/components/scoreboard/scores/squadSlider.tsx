@@ -80,9 +80,7 @@ const SquadSlider: React.FC<SquadSliderProps> = ({
                         </div>
                     ))
                 ) : (
-                    <div className="text-center text-white p-3">
-                        Sem jogadores
-                    </div>
+                    <div className="text-center text-white p-3" />
                 )}
             </div>
         </BaseSlider>

@@ -12,6 +12,13 @@ class GameConfig {
             'points' => 1,
             'typeOfScore' => 'g',
             'foulsPenaltyThreshold' => 5,
+            'positions' => [
+                'Guarda-redes' => 'GR',
+                'Fixo' => 'FX',
+                'Ala' => 'ALA',
+                'Pivô' => 'PV',
+                'Universal' => 'UNI',
+            ],
         ],
         'basketball' => [
             'periods' => 4,
@@ -23,6 +30,15 @@ class GameConfig {
             'shotClock' => 24,
             'typeOfScore' => 'p',
             'foulsPenaltyThreshold' => 5,
+            'positions' => [
+                'Point Guard' => 'PG',
+                'Shooting Guard' => 'SG',
+                'Small Forward' => 'SF',
+                'Power Forward' => 'PF',
+                'Center' => 'C',
+                'Sixth Man' => '6M',
+                'Defensive Specialist' => 'DS',
+            ],
         ],
         'volleyball' => [
             'periods' => 5,
@@ -36,6 +52,13 @@ class GameConfig {
             'pointDifference' => 2,
             'resetPointsEachPeriod' => true,
             'typeOfScore' => 'p',
+            'positions' => [
+                'Zona 4' => 'Z4',
+                'Oposto' => 'OP',
+                'Central' => 'C',
+                'Distribuidor' => 'D',
+                'Libero' => 'L',
+            ],
         ]
     ];
     

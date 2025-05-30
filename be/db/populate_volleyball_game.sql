@@ -85,10 +85,10 @@ BEGIN
     END IF;
 
    
-    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Tiago Violas', 'Dtribuidor', 'D', 17, sport_val, 1);
-    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Francisco Leitão', 'Dtribuidor', 'D', 5, sport_val, 1);
-    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Bernardo Silva', 'Líbero', 'L', 2, sport_val, 1);
-    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Ivo Casas', 'Líbero', 'L', 7, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Tiago Violas', 'Distribuidor', 'D', 17, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Francisco Leitão', 'Distribuidor', 'D', 5, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Bernardo Silva', 'Libero', 'L', 2, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Ivo Casas', 'Libero', 'L', 7, sport_val, 1);
     CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Pearson Eshenko', 'Central', 'C', 11, sport_val, 1);
     CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Matheus Alejandro', 'Central', 'C', 12, sport_val, 1);
     CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Lucas França', 'Central', 'C', 14, sport_val, 0);
@@ -100,8 +100,8 @@ BEGIN
 
     CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Armando Velásquez', 'Distribuidor', 'D', 17, sport_val, 1);
     CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Yurii Synytsia', 'Distribuidor', 'D', 8, sport_val, 1);
-    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Gonçalo Sousa', 'Líbero', 'L', 10, sport_val, 1);
-    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Nicolás Perren', 'Líbero', 'L', 20, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Gonçalo Sousa', 'Libero', 'L', 10, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Nicolás Perren', 'Libero', 'L', 20, sport_val, 1);
     CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Tiago Barth', 'Central', 'C', 13, sport_val, 1);
     CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Jonas Aguenier', 'Central', 'C', 14, sport_val, 1);
     CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Alejandro Vigil', 'Central', 'C', 22, sport_val, 0);
@@ -115,5 +115,81 @@ END //
 
 DELIMITER ;
 
-CALL PopulateVolleyballGame_SLB_SCP();
+-- CALL PopulateVolleyballGame_SLB_SCP();
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS PopulateVolleyballGame_LSCA_LSCB; //
+CREATE PROCEDURE PopulateVolleyballGame_LSCA_LSCB()
+BEGIN
+    DECLARE team1_id_val INT DEFAULT 1;
+    DECLARE team1_name_val VARCHAR(255) DEFAULT 'Leixões A';
+    DECLARE team1_logo_val VARCHAR(255) DEFAULT 'https://www.zerozero.pt/img/logos/equipas/1727_imgbank_1746806303.png';
+    DECLARE team1_color_val VARCHAR(255) DEFAULT '#FF0000';
+    DECLARE team1_acronym_val VARCHAR(255) DEFAULT 'LSC A';
+
+    DECLARE team2_id_val INT DEFAULT 2;
+    DECLARE team2_name_val VARCHAR(255) DEFAULT 'Leixões B';
+    DECLARE team2_logo_val VARCHAR(255) DEFAULT 'https://www.zerozero.pt/img/logos/equipas/1727_imgbank_1746806303.png';
+    DECLARE team2_color_val VARCHAR(255) DEFAULT '#FF0000';
+    DECLARE team2_acronym_val VARCHAR(255) DEFAULT 'LSC B';
+
+    DECLARE sport_val VARCHAR(255) DEFAULT 'volleyball';
+    DECLARE placard_id_val INT;
+    DECLARE max_existing_placard_id INT;
+
+    SELECT MAX(id) INTO max_existing_placard_id FROM AbstractPlacard;
+    IF max_existing_placard_id IS NULL THEN
+        SET placard_id_val = 1;
+    ELSE
+        SET placard_id_val = max_existing_placard_id + 1;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM AbstractTeam WHERE id = team1_id_val) THEN
+        INSERT INTO AbstractTeam (id, logoURL, color, acronym, name, sport)
+        VALUES (team1_id_val, team1_logo_val, team1_color_val, team1_acronym_val, team1_name_val, sport_val);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM VolleyballTeam WHERE id = team1_id_val) THEN
+        INSERT INTO VolleyballTeam (id, abstractTeamId) VALUES (team1_id_val, team1_id_val);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM AbstractTeam WHERE id = team2_id_val) THEN
+        INSERT INTO AbstractTeam (id, logoURL, color, acronym, name, sport)
+        VALUES (team2_id_val, team2_logo_val, team2_color_val, team2_acronym_val, team2_name_val, sport_val);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM VolleyballTeam WHERE id = team2_id_val) THEN
+        INSERT INTO VolleyballTeam (id, abstractTeamId) VALUES (team2_id_val, team2_id_val);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM AbstractPlacard WHERE id = placard_id_val) THEN
+        INSERT INTO AbstractPlacard (id, firstTeamId, secondTeamId, isFinished, sport, startTime, allowColab)
+        VALUES (placard_id_val, team1_id_val, team2_id_val, 0, sport_val, '2025-05-29 22:30:00', 1);
+
+        INSERT INTO VolleyballPlacard (abstractPlacardId, currentSet, availableTimeOutsFirst, availableTimeOutsSecond, isTimeOut)
+        VALUES (placard_id_val, 1, 2, 2, 0);
+    END IF;
+
+    -- Team 1: Leixões A Athletes
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Joana Cabral Lisboa e Silva Guedes', 'Distribuidor', 'D', 85, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Aline Fernandes Pinto', 'Zona 4', 'Z4', 10, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Catarina Oliveira Coelho de Pinho', 'Central', 'C', 3, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Francisca Gonçalves Arcos Carneiro', 'Oposto', 'OP', 11, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Leonor Pinto de Castro', 'Zona 4', 'Z4', 18, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Maria Inês Parafita Oliveira', 'Central', 'C', 20, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team1_id_val, 'Nayara Alexandra Germano Tavares', 'Libero', 'L', 6, sport_val, 1);
+
+    -- Team 2: Leixões B Athletes
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Margarida dos Santos Silva', 'Distribuidor', 'D', 16, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Gisela Catarina Alves Mendes', 'Zona 4', 'Z4', 7, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Sofia Pousa Bacaltchuc Ribeiro', 'Central', 'C', 13, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Constança Pinto Correia', 'Oposto', 'OP', 17, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Ana Clara Fernandes Oliveira', 'Zona 4', 'Z4', 1, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Myrella Hiorrana Lima de Oliveira', 'Central', 'C', 15, sport_val, 1);
+    CALL AddPlayerToTeamAndLineup_VolleySpecific(placard_id_val, team2_id_val, 'Maria Inês Moreira Botelho', 'Libero', 'L', 5, sport_val, 1);
+
+END //
+
+DELIMITER ;
+
+CALL PopulateVolleyballGame_LSCA_LSCB();
 

@@ -36,7 +36,7 @@ const ShowGames: React.FC<ShowGamesProps> = ({ games }) => {
                         <div className="team-logo">
                             <img src={game.homeLogo} alt={`${game.home} logo`} />
                         </div>
-                        <div className="team-name">
+                        <div className="team-name-gameList">
                             {game.home}
                         </div>
                     </div>
@@ -54,7 +54,7 @@ const ShowGames: React.FC<ShowGamesProps> = ({ games }) => {
                         <div className="team-logo">
                             <img src={game.awayLogo} alt={`${game.away} logo`} />
                         </div>
-                        <div className="team-name">
+                        <div className="team-name-gameList">
                             {game.away}
                         </div>
                     </div>
