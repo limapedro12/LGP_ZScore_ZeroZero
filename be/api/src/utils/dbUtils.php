@@ -85,7 +85,7 @@
             }
         }
 
-        public static function insertPlacard($placardId, $team1, $team2, $isFinished, $sport, $date)
+        public static function insertPlacard($placardId, $team1, $team2, $isFinished, $sport, $date, $stadium, $competition)
         {
             if ($sport !== 'futsal' && $sport !== 'volleyball' && $sport !== 'basketball') {
                 return true; // Invalid sport
@@ -96,8 +96,8 @@
                 return false;
             }
 
-            $stmt = $conn->prepare("INSERT INTO AbstractPlacard (id, firstTeamId, secondTeamId, isFinished, sport, startTime) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("iiiiss", $placardId, $team1, $team2, $isFinished, $sport, $date);
+            $stmt = $conn->prepare("INSERT INTO AbstractPlacard (id, firstTeamId, secondTeamId, isFinished, sport, startTime, stadium, competition) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("iiiissss", $placardId, $team1, $team2, $isFinished, $sport, $date, $stadium, $competition);
             if ($stmt->execute()) {
                 $stmt->close();
                 $conn->close();
