@@ -10,7 +10,7 @@
     {
         $matchesColab = getMatchesColab();
         if ($matchesColab === false) {
-            echo json_encode(["error" => "Failed to fetch matches from Colab"]);
+            //echo json_encode(["error" => "Failed to fetch matches from Colab"]);
             return false; // Error fetching matches
         }
         $matchesColab = json_decode($matchesColab, true);
@@ -118,7 +118,7 @@
                     }
                     continue; // Skip to next placard
                 }
-                if (!DbUtils::insertPlacard($placardId, $team1, $team2, $isFinished, $sport, $date)) {
+                if (!DbUtils::insertPlacard($placardId, $team1, $team2, $isFinished, $sport, $date, $stadium, $competition)) {
                     echo json_encode(["error" => "Failed to insert placard: $placardId"]);
                     return false; // Insert failed
                 }

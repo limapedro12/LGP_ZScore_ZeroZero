@@ -7,10 +7,10 @@
     function getAvailPlacards()
     {
         $placardIds = insertMatchesColab();
-        if ($placardIds === false) {
-            echo json_encode(["error" => "Failed to insert placards"]);
-            exit;
-        }
+        //if ($placardIds === false) {
+          //  echo json_encode(["error" => "Failed to insert placards"]);
+           // exit;
+        //}
 
         $allPlacards = DbUtils::selectAllPlacards();
 
