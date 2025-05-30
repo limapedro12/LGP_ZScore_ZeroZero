@@ -4,6 +4,7 @@ import config from './config/config';
 import HomePage from './pages/home';
 import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
+import EventHistory from './components/eventHistory';
 import GameList from './pages/gameList';
 import ScorersTable from './pages/scorersTable/scorersTable';
 import SelectCardPage from './pages/scorersTable/selectCard';
@@ -34,6 +35,7 @@ const AppRouter = () => (
             <Route path="/scorersTable/:sport/:placardId/shotClockAdjustment" element={<ShotClockAdjustment />} />
             <Route path="/scorersTable/:sport/:placardId/pointValueSelection/:teamTag" element={<PointValueSelection />} />
             <Route path="/selectView" element={<SelectView />} />
+            <Route path="/eventhistory/:sport/:placardId" element={<EventHistory />} />
             <Route path="/scorersTable/:sport/:placardId/preGameSetup" element={<PreGameSetupPage />} />
         </Routes>
     </BrowserRouter>

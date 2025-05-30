@@ -82,3 +82,4 @@ logs/
 *package-lock.json
 
 !schema.sql
+package.json

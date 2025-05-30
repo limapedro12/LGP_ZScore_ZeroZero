@@ -7,11 +7,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import TeamLogo from '../../components/scorersTable/teamLogo';
 import CentralConsole from '../../components/scorersTable/centralConsole';
 import '../../styles/scorersTable.scss';
-import clockPaused from '../../../public/icons/clock_paused.png';
-import clockResumed from '../../../public/icons/clock_resumed.png';
-import clockEdit from '../../../public/icons/edit-clock-icon.png';
-import shotClockEdit from '../../../public/icons/shot-clock-edit-icon.png';
-import shotClockIcon from '../../../public/icons/start-stop-shot-clock-icon.png';
+import clockPaused from '../../../src/icons/clock_paused.png';
+import clockResumed from '../../../src/icons/clock_resumed.png';
+import clockEdit from '../../../src/icons/edit-clock-icon.png';
+import shotClockEdit from '../../../src/icons/shot-clock-edit-icon.png';
+import shotClockIcon from '../../../src/icons/start-stop-shot-clock-icon.png';
 import apiManager, { Sport, ApiTeam } from '../../api/apiManager';
 import { ToastContainer } from 'react-toastify';
 import { correctSportParameter } from '../../utils/navigationUtils';
@@ -186,7 +186,7 @@ const ScorersTable = () => {
     };
 
     const handleCorrection = () => {
-        console.log('Correction button clicked - functionality to be implemented');
+        window.location.href = `/eventhistory/${sport}/${placardIdParam}`;
     };
 
 

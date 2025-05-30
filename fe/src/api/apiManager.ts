@@ -7,9 +7,9 @@ import { toast } from 'react-toastify';
 const BASE_URL = `${config.API_HOSTNAME}`;
 
 /**
- * Defines the possible timer actions that can be sent to the API
+ * Defines the possible timer and also event actions that can be sent to the API
  */
-type ActionType =
+export type ActionType =
     | 'start'
     | 'pause'
     | 'reset'
@@ -35,11 +35,23 @@ type ActionType =
     | 'noFouls'
     | 'typeOfScore'
     | 'sportConfig'
+    | 'list_game_fouls'
     | 'authUserSocial'
     | 'checkLogin'
     | 'logout';
 
-type EndpointType = 'timer' | 'timeout' | 'api' | 'cards' | 'score' | 'substitution' | 'sports' | 'shotclock' | 'info'| 'foul';
+export type EndpointType =
+    | 'timer'
+    | 'timeout'
+    | 'api'
+    | 'cards'
+    | 'score'
+    | 'substitution'
+    | 'sports'
+    | 'shotclock'
+    | 'info'
+    | 'foul'
+    | 'events';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -101,6 +113,7 @@ interface UpdateCardParams {
     playerId?: string;
     cardType?: string;
     timestamp?: number;
+    team?: 'home' | 'away'; // Add team property
     [key: string]: string | number | undefined;
 }
 
@@ -113,7 +126,16 @@ interface TimerResponse {
     error?: string;
 }
 
-interface TimeoutResponse {
+export interface TimeoutEventInfo {
+    eventId: string;
+    placardId: string;
+    team: TeamTag | string | null;
+    homeTimeoutsUsed: string;
+    awayTimeoutsUsed: string;
+    totalTimeoutsPerTeam: string;
+}
+
+export interface TimeoutResponse {
     message?: string;
     status?: 'running' | 'paused' | 'inactive';
     team?: TeamTag;
@@ -134,14 +156,7 @@ interface TimeoutResponse {
         awayTimeoutsUsed: number;
         totalTimeoutsPerTeam: number;
     };
-    events?: Array<{
-        eventId: string;
-        placardId: string;
-        team: TeamTag | null;
-        homeTimeoutsUsed: string;
-        awayTimeoutsUsed: string;
-        totalTimeoutsPerTeam: string;
-    }>;
+    events?: Array<TimeoutEventInfo>;
     error?: string;
 }
 
@@ -154,19 +169,20 @@ interface ShotClockResponse {
     error?: string;
 }
 
-
-export interface CardsResponse {
-    cards: Array<{
-        eventId: number;
-        placardId: string;
-        playerId: string;
-        cardType: string;
-        team: 'home' | 'away';
-        timestamp: number;
-    }>;
+export interface Card {
+    eventId: number;
+    placardId: string;
+    playerId: string;
+    cardType: string;
+    team: 'home' | 'away';
+    timestamp: number;
 }
 
-export interface SportsResponse {
+export interface CardsResponse {
+    cards: Array<Card>;
+}
+
+interface SportsResponse {
     sports?: string[];
     typeOfScore?: string;
     sport?: string;
@@ -302,6 +318,59 @@ interface GameFoulStatusResponse {
         foulsPenaltyThreshold: number | null;
     };
 }
+
+// Novas definições de tipo para eventos brutos da API
+export interface BaseApiEvent {
+    eventId?: number | string; // ID do evento vindo da API
+    id?: number | string;      // Alias para eventId, se usado pela API
+    timestamp?: number | string; // Timestamp do evento, pode ser string ou número
+    recordedAt?: string;     // Outra forma de timestamp que algumas APIs podem usar
+    teamId?: string;         // ID da equipa, se aplicável
+    team:  TeamTag | string | null;  // 'home' ou 'away', se aplicável
+    playerId?: string | number;// ID do jogador
+    playerName?: string;     // Nome do jogador
+    teamLogo?: string;       // URL do logo da equipa
+    playerNumber?: string | number; // Número do jogador
+    cardType?: string; // Tipo de cartão, se aplicável
+    playerInName?: string;
+    playerOutName?: string;
+    playerInId?: string;
+    playerOutId?: string;
+    playerInNumber?: string | number;
+    playerOutNumber?: string | number;
+}
+
+export interface ApiScoreEventData extends BaseApiEvent {
+    pointValue?: number | string; // Valor dos pontos/golos
+    // Outros campos específicos de eventos de pontuação...
+}
+
+export interface ApiFoulEventData extends BaseApiEvent {
+    period?: number | string; // Período em que a falta ocorreu
+    // Outros campos específicos de eventos de falta...
+}
+
+// Atualize ApiCardEventData para herdar de BaseApiEvent e manter campos obrigatórios
+export interface ApiCardEventData extends BaseApiEvent {
+    eventId: number;
+    placardId: string;
+    playerId: string;
+    cardType: string;
+    team: 'home' | 'away';
+    timestamp: number;
+}
+
+// Atualize ApiTimeoutEventData para herdar de BaseApiEvent
+export interface ApiTimeoutEventData extends BaseApiEvent {
+    eventId: string;
+    placardId: string;
+    homeTimeoutsUsed: string;
+    awayTimeoutsUsed: string;
+    totalTimeoutsPerTeam: string;
+}
+
+// Tipo de união para os itens que a função normalizeEventData irá processar
+export type FetchedEventItem = ApiScoreEventData | ApiFoulEventData | ApiCardEventData | ApiTimeoutEventData;
 
 
 interface FoulsResponse {
@@ -550,7 +619,6 @@ class ApiManager {
     deleteSubstitution = (placardId: string, sport: string, team: string, substitutionId: string) =>
         this.makeRequest<SubstitutionResponse>('substitution', 'delete', { placardId, sport, team, substitutionId });
 
-
     createCard = (placardId: string, sport: string, playerId: string, cardType: string, team: string) =>
         this.makeRequest<CardsResponse>('cards', 'create', { placardId, sport, playerId, cardType, team });
 
@@ -592,6 +660,9 @@ class ApiManager {
         if (params.timestamp !== undefined) {
             filteredParams.timestamp = params.timestamp;
         }
+        if (params.team !== undefined) { // Add team to filteredParams
+            filteredParams.team = params.team;
+        }
 
         return this.makeRequest<CardsResponse>('cards', 'update', filteredParams);
     };
@@ -632,6 +703,11 @@ class ApiManager {
         );
     };
 
+    // getEvents = (placardId: string, sport: string): Promise<EventsResponse> =>
+    //     this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
+
+    // getEventDetails = (placardId: string, sport: string, eventId: number) =>
+    //     this.makeRequest<Record<string, string>>('events', 'get', { placardId, sport, eventId }, 'GET'); // !!!!!!!!!!!!
     getFouls = (placardId: string, sport: string): Promise<FoulsResponse> => {
         const params: RequestParams = { placardId, sport };
         return this.makeRequest<FoulsResponse>(
@@ -648,6 +724,9 @@ class ApiManager {
         this.makeRequest<AuthResponse>('api', 'checkLogin', {}, 'GET');
     logout = () =>
         this.makeRequest<AuthResponse>('api', 'logout', {}, 'GET');
+
+    getScore = (placardId: string, sport: string) =>
+        this.makeRequest<ScoreResponse>('score', 'get', { placardId, sport }, 'GET');
 
 
 }

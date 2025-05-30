@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import clockRewind from '../../../public/icons/rewind-icon.png';
+import clockRewind from '../../../src/icons/rewind-icon.png';
 
 interface TimeRewindButtonProps {
   value: number;
