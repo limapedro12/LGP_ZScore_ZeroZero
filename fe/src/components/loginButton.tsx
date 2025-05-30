@@ -117,7 +117,10 @@ const LoginButton: React.FC = () => {
     } else {
         return (
             <div className="login-button">
-                <button onClick={handleExternalLogin}>Login with zerozero</button>
+                <button onClick={handleExternalLogin}>
+                    <img src="https://zerozero.live/static/media/logo48x48.82f90bea.svg" alt="Login Icon" />
+                    Iniciar sessão com zerozero
+                </button>
             </div>
         );
     }

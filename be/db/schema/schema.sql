@@ -30,9 +30,11 @@ CREATE TABLE IF NOT EXISTS AbstractPlacard (
     firstTeamId INT NOT NULL,
     secondTeamId INT NOT NULL,
     isFinished BOOLEAN NOT NULL,
-    allowColab BOOLEAN DEFAULT 0 NOT NULL,
     sport VARCHAR(255) NOT NULL,
     startTime DATETIME NOT NULL,
+    allowColab BOOLEAN DEFAULT 0 NOT NULL,
+    stadium VARCHAR(255) NOT NULL,
+    competition VARCHAR(255) NOT NULL,
     FOREIGN KEY (firstTeamId) REFERENCES AbstractTeam(id),
     FOREIGN KEY (secondTeamId) REFERENCES AbstractTeam(id)
 );
