@@ -1,57 +1,96 @@
-@use "config.scss"; 
+@use "config.scss";
+
+// Style for the back button to be positioned on the page
+.page-back-button {
+  position: fixed; // Or absolute, depending on your page structure
+  top: 20px;
+  left: 20px;
+  z-index: 1051; // Ensure it's above other elements, including modals
+  background-color: #9c9c9c;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%; // Make it circular
+  width: 50px; // Fixed width
+  height: 50px; // Fixed height
+  font-size: 1.8rem; // Larger arrow
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s;
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: #6e6e6e;
+    color: #ffffff;
+    text-decoration: none;
+    outline: none;
+  }
+}
 
 .event-history {
-  background-color: #ffffff; 
-  color: #333333;           
-  padding: 20px;
-  border-radius: 15px;       
-  margin: 20px auto;         
-  max-width: 900px;          
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+  background-color: #ffffff;
+  color: #333333;
+  padding: 25px;
+  border-radius: 20px;
+  margin: 20px;
+  width: 75%;   
+  max-height: 85vh; 
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
 
-  .event-history-title { 
-    font-size: 1.8rem; 
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .event-history-title {
+    font-size: 2.2rem; // Increased font size
     color: #333333;
     text-align: center;
     text-transform: uppercase;
-    font-weight: 600; 
-    letter-spacing: 1px;
-    margin-bottom: 25px;
+    font-weight: 700; // Bolder
+    letter-spacing: 1.5px; // Wider spacing
+    margin-bottom: 30px; // Increased margin
   }
 
-  .tabs-container { 
+  .tabs-container {
     display: flex;
-    justify-content: flex-start; 
-    margin-bottom: 20px;
-    background-color: #f0f0f0; 
-    border-radius: 10px;
-    padding: 5px;
-    overflow-x: auto; 
+    // justify-content: flex-start; // Removed to allow flex-grow to work
+    margin-bottom: 25px; // Increased margin
+    background-color: #e9ecef; // Lighter background
+    border-radius: 12px; // More rounded
+    padding: 6px; // Increased padding
+    overflow-x: auto;
+    flex-shrink: 0;
 
-    .tab-button { 
+    .tab-button {
       background-color: transparent;
       border: none;
-      color: #555555;
-      padding: 10px 20px;
-      margin: 0 4px; 
+      color: #495057; // Darker grey
+      padding: 12px 15px; // Adjusted padding
+      // margin: 0; // Removed margin, flex-grow will handle spacing
       cursor: pointer;
-      font-family: config.$font-primary, sans-serif; 
-      font-size: 0.95rem;
+      font-family: config.$font-primary, sans-serif;
+      font-size: 1.1rem; // Increased font size
       font-weight: 500;
-      border-radius: 8px;
-      transition: background-color 0.3s, color 0.3s;
-      white-space: nowrap; 
+      border-radius: 10px; // More rounded
+      transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+      white-space: nowrap;
+      flex-grow: 1; // Make buttons grow to fill the container
+      text-align: center; // Center text within the button
 
       &:hover {
-        background-color: #e0e0e0;
-        color: #333333;
+        background-color: #dee2e6;
+        color: #212529;
       }
 
       &.active {
-        background-color: #6c757d; 
+        background-color: #007bff; // Brighter active color
         color: #ffffff;
-        font-weight: bold;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-weight: 600; // Slightly bolder active tab
+        box-shadow: 0 3px 6px rgba(0, 123, 255, 0.25); // Shadow for active tab
       }
     }
   }
@@ -60,20 +99,27 @@
     list-style: none;
     padding: 0;
     margin: 0;
+    flex-grow: 1; 
+    overflow-y: auto; 
+    min-height: 150px; 
 
-    .event-item-empty { 
+    
+    padding-right: 10px;
+
+    .event-item-empty {
       text-align: center;
-      padding: 20px;
-      color: #888888;
+      padding: 25px; // Increased padding
+      color: #6c757d; // Softer color
       font-style: italic;
+      font-size: 1.1rem; // Increased font size
     }
 
     .event-item {
       display: flex;
       align-items: center;
-      padding: 12px 8px;
-      border-bottom: 1px solid #eeeeee; 
-      gap: 10px; 
+      padding: 18px 12px; // Increased padding
+      border-bottom: 1px solid #dee2e6; // Lighter border
+      gap: 15px; // Increased gap
 
       &:last-child {
         border-bottom: none;
@@ -81,131 +127,123 @@
 
       .event-time {
         font-family: config.$font-primary, sans-serif;
-        font-size: 0.9rem;
+        font-size: 1.05rem; // Increased font size
         font-weight: bold;
-        color: #555555;
-        min-width: 45px; 
+        color: #495057;
+        min-width: 60px; // Increased min-width
       }
 
       .event-icon-display {
-        font-size: 1.4rem; 
-        min-width: 30px;
+        min-width: 35px; // Increased min-width
         text-align: center;
         display: flex;
         align-items: center;
         justify-content: center;
 
         .event-history-icon-img {
-          width: 22px; 
-          height: 22px; 
+          width: 30px; // Increased icon size
+          height: 30px; // Increased icon size
           object-fit: contain;
         }
 
         .card-display-icon {
-          padding: 2px 5px;
-          border-radius: 3px;
-          color: white; 
-          &.yellow-card-icon {  } 
-          &.red-card-icon {  } 
+          padding: 3px 6px; // Adjusted padding
+          border-radius: 4px;
+          color: white;
+          font-size: 1rem; // Ensure card text is visible
+          &.yellow-card-icon { /* background-color: #ffc107; */ } // Example, if you use background
+          &.red-card-icon { /* background-color: #dc3545; */ } // Example
         }
       }
 
       .event-details-main {
         flex-grow: 1;
-        display: flex; // Crucial for inline layout
-        align-items: center; // Vertical alignment
-        gap: 0.5rem; // Space between elements
+        display: flex;
+        align-items: center;
+        gap: 1rem; // Increased gap
 
         .event-info-left {
-          // Styles for description and player name container
           display: flex;
-          flex-direction: column; // Or row if preferred, adjust alignment
-          // flex-grow: 1; // Allow it to take available space before visuals group
+          flex-direction: column;
         }
 
         .event-description-text {
           font-family: config.$font-secondary, sans-serif;
-          font-size: 1rem;
-          color: #333333;
-          // flex-shrink: 0; // Optional: if you don't want it to shrink
+          font-size: 1.2rem; // Increased font size
+          color: #212529; // Darker text
         }
 
         .player-name-text {
-          // Add styling for player name if needed
-          // font-weight: bold;
-          white-space: nowrap; // Prevent player name from wrapping
-          color: #333333; // Match other text or define as needed
-          font-size: 0.9rem; // Slightly smaller if needed
+          white-space: nowrap;
+          color: #343a40;
+          font-size: 1rem; // Increased font size
         }
 
         .event-visuals-group {
-          margin-left: auto; // Pushes this group to the right
+          margin-left: auto;
           display: flex;
           align-items: center;
-          gap: 8px; // Space between jersey and logo
-          flex-shrink: 0; // Prevent this group from shrinking
+          gap: 12px; // Increased gap
+          flex-shrink: 0;
 
           .player-jersey-history-item {
-            width: 30px; // Define a fixed small size
-            height: 30px;
+            width: 40px; // Increased jersey size
+            height: 40px; // Increased jersey size
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
 
-            // Target PlayerJersey's inner structure to scale it down
-            & > div { // Assuming PlayerJersey's root is a div
+            & > div {
               width: 100% !important;
               height: 100% !important;
               display: flex;
               align-items: center;
               justify-content: center;
 
-              img { // The jersey t-shirt image
+              img {
                 max-width: 100%;
                 max-height: 100%;
                 object-fit: contain;
               }
 
-              div[class*="position-absolute"] { // The number text
-                font-size: 0.6em; // Make number smaller to fit
-                // Adjust positioning if needed, though translate-middle should work
-                // e.g., top: 50% !important; left: 50% !important;
+              div[class*="position-absolute"] {
+                font-size: 0.75em; // Adjusted number size
               }
             }
           }
 
           .team-logo-miniature {
-            width: 30px; // Define a fixed small size
-            height: 30px;
-            object-fit: contain; // Ensures logo scales within bounds
+            width: 38px; // Increased logo size
+            height: 38px; // Increased logo size
+            object-fit: contain;
             flex-shrink: 0;
           }
         }
 
         .substitution-details-text {
-          font-size: 0.9rem;
-          color: #555;
+          font-size: 1rem; // Increased font size
+          color: #495057;
         }
       }
 
-      .event-team-info {
+      .event-team-info { // This class seems unused in the provided JSX, but kept for completeness
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
 
         .player-number-badge {
-          background-color: #343a40; 
+          background-color: #343a40;
           color: #ffffff;
-          padding: 3px 8px;
-          border-radius: 4px;
-          font-size: 0.85rem;
+          padding: 4px 10px;
+          border-radius: 5px;
+          font-size: 0.95rem;
           font-weight: bold;
         }
 
         .team-logo-display {
-          width: 28px; 
-          height: 28px;
+          width: 32px;
+          height: 32px;
           object-fit: contain;
         }
       }
@@ -213,24 +251,24 @@
       .event-actions {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 15px; // Increased gap
 
         .action-button {
           background: none;
           border: none;
           cursor: pointer;
-          padding: 5px;
-          font-size: 1.3rem; 
+          padding: 6px; // Increased padding
+          font-size: 1.8rem; // Increased icon size
 
           &.edit-button {
-            color: #007bff; 
+            color: #007bff;
             &:hover {
               color: #0056b3;
             }
           }
 
           &.delete-button {
-            color: #dc3545; 
+            color: #dc3545;
             &:hover {
               color: #c82333;
             }
@@ -241,14 +279,15 @@
   }
 }
 
+// This class seems to be for a different button, keeping its original styles
 .corrigir-button-custom {
-  background-color: #ffffff; 
-  color: #000000;           
-  border: none;              
-  border-radius: 50px;       
-  padding: 10px 25px;        
-  font-weight: 700;          
-  font-size: 2rem;           
+  background-color: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 25px;
+  font-weight: 700;
+  font-size: 2rem;
   text-align: center;
   text-decoration: none;
   display: inline-block;
@@ -258,17 +297,17 @@
   &:hover,
   &:focus,
   &:active {
-    background-color: #f5f5f5; 
+    background-color: #f5f5f5;
     color: #000000;
     text-decoration: none;
-    outline: none;             
-    box-shadow: none;          
+    outline: none;
+    box-shadow: none;
   }
 
   &.btn {
-    background-color: #ffffff !important; 
-    color: #000000 !important;           
-    border: none !important;              
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
     background-image: none !important;
     font-size: inherit !important;
     &:focus {
@@ -277,14 +316,20 @@
   }
 }
 
+// This class is now superseded by .page-back-button if the button is moved out.
+// If it's a different button, it can remain.
+// For now, I'll assume .voltar-button-custom is the one you want to replace with .page-back-button styling
+// If you still use .voltar-button-custom elsewhere with these styles, keep it.
 .voltar-button-custom {
-  background-color: #9c9c9c; 
-  color: #ffffff;           
-  border: none;              
-  border-radius: 50px;       
-  padding: 10px 25px;        
-  font-weight: 700;          
-  font-size: 2rem;           
+  // Original styles, if this button is still used elsewhere with this appearance
+  // If this was the main back button, its styles are now in .page-back-button
+  background-color: #9c9c9c;
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 25px;
+  font-weight: 700;
+  font-size: 2rem;
   text-align: center;
   text-decoration: none;
   display: inline-block;
@@ -294,17 +339,17 @@
   &:hover,
   &:focus,
   &:active {
-    background-color: #6e6e6e; 
+    background-color: #6e6e6e;
     color: #ffffff;
     text-decoration: none;
-    outline: none;             
-    box-shadow: none;          
+    outline: none;
+    box-shadow: none;
   }
 
   &.btn {
-    background-color: #9c9c9c !important; 
-    color: #ffffff !important;           
-    border: none !important;              
+    background-color: #9c9c9c !important;
+    color: #ffffff !important;
+    border: none !important;
     background-image: none !important;
     font-size: inherit !important;
     &:focus {
@@ -312,6 +357,7 @@
     }
   }
 }
+
 
 .confirmation-modal-overlay {
   position: fixed;
@@ -319,168 +365,179 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6); 
+  background-color: rgba(0, 0, 0, 0.65); // Slightly darker overlay
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050; 
+  z-index: 1050;
+  padding: 15px; // Add padding for smaller screens
 }
 
 .confirmation-modal {
-  background-color: #2c3e50; // Padrão para outros modais (ex: delete)
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  width: 90%;
-  max-width: 450px;
+  background-color: #2c3e50;
+  padding: 35px; // Increased padding
+  border-radius: 18px; // More rounded
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); // Enhanced shadow
+  width: 100%; // Responsive width
+  max-width: 480px; // Slightly larger max-width
   text-align: center;
   color: #ffffff;
 
   .confirmation-modal-title {
-    font-size: 1.8rem;
+    font-size: 2rem; // Increased font size
     font-weight: bold;
     margin-top: 0;
-    margin-bottom: 15px;
-    color: #ffffff; // Título branco para o modal de delete padrão
+    margin-bottom: 20px; // Increased margin
+    color: #ffffff;
   }
 
   .confirmation-modal-text {
-    font-size: 1rem;
-    margin-bottom: 25px;
+    font-size: 1.15rem; // Increased font size
+    margin-bottom: 30px; // Increased margin
     color: #e0e0e0;
+    line-height: 1.6; // Improved readability
   }
 
   .confirmation-modal-actions {
     display: flex;
     justify-content: space-around;
+    gap: 15px; // Add gap between buttons
 
     .confirmation-modal-button {
-      padding: 12px 25px;
-      font-size: 1.1rem;
+      padding: 14px 28px; // Increased padding
+      font-size: 1.2rem; // Increased font size
       font-weight: bold;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px; // More rounded
       cursor: pointer;
-      min-width: 120px;
-      transition: background-color 0.2s, color 0.2s, opacity 0.2s;
+      min-width: 130px; // Slightly wider
+      transition: background-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s;
 
       &:hover {
-        opacity: 0.85;
+        opacity: 0.9;
+        transform: translateY(-2px); // Slight lift on hover
+      }
+      &:active {
+        transform: translateY(0px); // Reset lift on active
       }
 
-      // Estilos padrão para botões de confirmação (SIM/OK) e cancelamento (NÃO)
-      &.confirm { // Usado para SIM no delete, OK na confirmação de edição
-        background-color: #28a745; // Verde
+      &.confirm {
+        background-color: #28a745;
         color: white;
       }
 
-      &.cancel { // Usado para NÃO no delete
-        background-color: #dc3545; // Vermelho
+      &.cancel {
+        background-color: #dc3545;
         color: white;
       }
     }
   }
 
-  // Estilos específicos para o modal de EDIÇÃO para corresponder a editar.jpg
   &.edit-modal {
-    background-color: #ffffff; // Fundo branco para o formulário de edição
-    color: #333333; // Texto escuro padrão dentro do formulário
-    max-width: 400px; // Ajustar conforme necessário
-    padding: 25px;
-    border-radius: 8px;
+    background-color: #ffffff;
+    color: #333333;
+    max-width: 500px; // Slightly wider edit modal
+    padding: 30px; // Adjusted padding
+    border-radius: 12px;
 
     .confirmation-modal-title {
-      color: #333333; // Título escuro para o formulário de edição
-      margin-bottom: 25px;
+      color: #333333;
+      margin-bottom: 30px;
+      font-size: 1.9rem; // Adjusted title size
     }
 
     .edit-event-form {
       display: flex;
       flex-direction: column;
-      gap: 18px; // Espaço entre os form-groups
+      gap: 22px; // Increased gap
       text-align: left;
 
       .form-group {
         display: flex;
-        align-items: center; // Alinha label e input verticalmente
-        gap: 10px; // Espaço entre label e input
+        flex-direction: column; // Stack label on top of input for better responsiveness
+        // align-items: center; // Remove if stacking
+        gap: 8px; // Space between label and input when stacked
 
         label {
           font-weight: bold;
-          font-size: 1rem; // Tamanho da label como na imagem
-          color: #333333; // Cor escura da label
-          min-width: 70px; // Largura mínima para alinhar os inputs
-          flex-shrink: 0;
+          font-size: 1.05rem; // Slightly larger label
+          color: #333333;
+          // min-width: auto; // Remove min-width if stacking
+          // flex-shrink: 0; // Remove if stacking
         }
 
         input[type="number"],
         select {
-          flex-grow: 1; // Input/select ocupa o espaço restante
-          border-radius: 5px;
-          border: 1px solid #cccccc; // Borda cinza claro
-          background-color: #f8f9fa; // Fundo muito levemente acinzentado ou branco
-          color: #333333; // Texto escuro no input
-          font-size: 1rem;
+          // flex-grow: 1; // Not needed if width is 100%
+          width: 100%; // Make input full width
+          padding: 12px 15px; // Increased padding
+          border-radius: 8px; // More rounded
+          border: 1px solid #ced4da; // Standard bootstrap border color
+          background-color: #f8f9fa;
+          color: #495057; // Standard bootstrap input text color
+          font-size: 1.05rem; // Slightly larger font
           box-sizing: border-box;
+          transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 
           &:focus {
             outline: none;
-            border-color: #007bff; // Exemplo de cor de foco
+            border-color: #80bdff; // Bootstrap focus color
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
           }
         }
-        
+
         select option {
-          background-color: #ffffff; // Fundo das opções do select
+          background-color: #ffffff;
           color: #333333;
         }
 
         .team-logo-form-preview {
-          width: 24px;
-          height: 24px;
+          width: 28px; // Slightly larger
+          height: 28px;
           object-fit: contain;
-          // Não precisa de margin-left se o select é flex-grow e o form-group tem gap
+          margin-top: 5px; // Add some space if input is above
         }
       }
 
       .form-error-text {
-        color: #dc3545; // Cor de erro
-        font-size: 0.9rem;
+        color: #dc3545;
+        font-size: 0.95rem; // Slightly larger
         text-align: center;
-        margin-top: -10px; // Ajustar espaçamento se necessário
-        margin-bottom: 5px;
+        margin-top: -12px;
+        margin-bottom: 8px;
       }
     }
 
-    // Ajustes nos botões especificamente para o modal de edição
     .confirmation-modal-actions {
-      margin-top: 25px;
-      justify-content: center; // Centraliza o botão "Editar"
+      margin-top: 30px;
+      // justify-content: center; // Keep if only one primary button
+      // If two buttons (Cancel, Edit), space-around or space-between might be better
+      display: flex;
+      justify-content: flex-end; // Align buttons to the right
+      gap: 12px;
+
 
       .confirmation-modal-button {
-        // Botão "Editar" (confirm)
-        &.confirm {
-          background-color: #e0e0e0; // Cinza claro como na imagem
-          color: #333333; // Texto escuro
-          border: 1px solid #cccccc;
-          padding: 10px 35px;
-          font-weight: bold;
+        padding: 12px 30px; // Adjusted padding
+        font-size: 1.1rem; // Adjusted font size
+
+        &.confirm { // "Editar" button
+          background-color: #007bff; // Primary blue
+          color: #ffffff;
+          border: none;
           &:hover {
-            background-color: #d4d4d4;
+            background-color: #0069d9;
             opacity: 1;
           }
         }
 
-        // Botão "Cancelar" (cancel) no modal de edição
-        &.cancel {
-          background-color: transparent;
-          color: #6c757d; // Cor secundária, menos proeminente
+        &.cancel { // "Cancelar" button
+          background-color: #6c757d; // Secondary grey
+          color: #ffffff;
           border: none;
-          padding: 10px 20px;
-          font-weight: normal;
-          text-decoration: underline;
+          text-decoration: none; // Remove underline for button look
           &:hover {
-            color: #5a6268;
+            background-color: #5a6268;
             opacity: 1;
           }
         }
@@ -489,14 +546,15 @@
   }
 }
 
+// This class seems unused in the provided JSX, but kept for completeness
 .event-player-team-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px; // Increased gap
 
   .team-logo-miniature {
-    width: 28px;
-    height: 28px;
+    width: 32px; // Increased size
+    height: 32px; // Increased size
     object-fit: contain;
   }
 }

@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import apiManager, {
     FetchedEventItem, ApiScoreEventData, ApiFoulEventData, ApiCardEventData, ActionType, ApiTeam, ApiPlayer, EndpointType,
-} from '../api/apiManager'; // Removed ApiTimeoutEventData, adjusted line length
+} from '../api/apiManager';
 import { formatTime } from '../utils/timeUtils';
 import { getEventIconPath, EventCategory } from '../utils/scorersTableUtils';
 import { getCardIconPath, Sport as CardUtilsSport } from '../utils/cardUtils';
 import PlayerJersey from './playerJersey';
 import './../styles/eventHistory.scss';
+import { ArrowLeft } from 'react-bootstrap-icons';
 
 type Sport = 'futsal' | 'basketball' | 'volleyball';
 
@@ -579,8 +580,11 @@ const EventHistory: React.FC = () => {
     if (!placardId || !sport) {
         return <div className="event-history-error">ID do placard ou dessporto não fornecido.</div>;
     }
-    if (loading) return <div className="event-history-loading">Carregando histórico de eventos...</div>;
-    if (error) {
+    if (loading) return (
+        <div className="d-flex align-items-center justify-content-center min-vh-100">
+            <h2 className="text-white">Carregando histórico de eventos...</h2>
+        </div>
+    );    if (error) {
         return (
             <div className="event-history-error">
                 Erro:
@@ -613,267 +617,255 @@ const EventHistory: React.FC = () => {
     }
 
     return (
-        <div className="event-history">
-            {/* ... existing JSX for back button, title, tabs ... */}
+        <>
             <Button
-                className="voltar-button-custom mb-3"
+                variant="link"
+                className="p-0 me-2 page-back-button"
                 onClick={() => navigate(-1)}
             >
-                ←
+                <ArrowLeft color="white" size={30} className="thicker-arrow-icon" />
             </Button>
-            <h2 className="event-history-title">Eventos</h2>
-            <div className="tabs-container">
-                {tabs[sport].map((tabName) => (
-                    <button
-                        key={tabName}
-                        className={`tab-button ${activeTab === tabName ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tabName)}
-                    >
-                        {tabName.charAt(0).toUpperCase() + tabName.slice(1)}
-                    </button>
-                ))}
-            </div>
-            <ul className="events-list">
-                {filteredEvents.length === 0 && (
-                    <li className="event-item-empty">
-                        Nenhum evento para exibir nesta categoria.
-                    </li>
-                )}
-                {filteredEvents.map((event) => (
-                    <li key={event.id} className={`event-item event-type-${event.type}`}>
-                        <div className="event-time">
-                            {sport === 'volleyball' && event.timestamp === 0
-                                ? '-'
-                                : formatTime(event.timestamp)}
-                        </div>
-                        <div className="event-icon-display">
-                            {event.icon}
-                        </div>
-                        <div className="event-details-main">
-                            <div className="event-info-left">
-                                <span className="event-description-text">
-                                    {event.description}
-                                </span>
-                                {event.type === 'substitution' && event.details && (
-                                    <span className="substitution-details-text">
-                                        {/* ... substitution details ... */}
-                                        {event.details.playerInName || event.details.playerInId
-                                            ? ` Entra: ${String(event.details.playerInName || event.details.playerInId)}`
-                                            : ''}
-                                        {event.details.playerInNumber ? ` (${String(event.details.playerInNumber)})` : ''}
-                                        {event.details.playerOutName || event.details.playerOutId
-                                            ? `, Sai: ${String(event.details.playerOutName || event.details.playerOutId)}`
-                                            : ''}
-                                        {event.details.playerOutNumber ? ` (${String(event.details.playerOutNumber)})` : ''}
-                                    </span>
-                                )}
-                            </div>
 
-                            {(
-                                (event.playerNumber && event.type !== 'timeout') ||
-                                (event.details &&
-                                    event.details.playerId !== null &&
-                                    event.details.playerId !== undefined &&
-                                    event.type !== 'timeout') ||
-                                event.teamLogo
-                            ) && (
-                                <div className="event-visuals-group">
-                                    {/* Display PlayerJersey if playerNumber exists and not a timeout event */}
-                                    {event.playerNumber !== undefined &&
-                                        event.playerNumber !== null &&
-                                        event.playerNumber !== '' &&
-                                        event.type !== 'timeout' && (
-                                        <div className="player-jersey-history-item">
-                                            <PlayerJersey
-                                                number={typeof event.playerNumber === 'string' ?
-                                                    parseInt(event.playerNumber, 10) : event.playerNumber}
-                                                color={event.teamColor || '#273E7C'}
-                                            />
+            <div className="d-flex align-items-center justify-content-center min-vh-100">
+                <div className="event-history w.75">
+                    <h2 className="event-history-title">Eventos</h2>
+                    <div className="tabs-container">
+                        {tabs[sport].map((tabName) => (
+                            <button
+                                key={tabName}
+                                className={`tab-button ${activeTab === tabName ? 'active' : ''}`}
+                                onClick={() => setActiveTab(tabName)}
+                            >
+                                {tabName.charAt(0).toUpperCase() + tabName.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                    <ul className="events-list">
+                        {filteredEvents.length === 0 && (
+                            <li className="event-item-empty">
+                                Nenhum evento para exibir nesta categoria.
+                            </li>
+                        )}
+                        {filteredEvents.map((event) => (
+                            <li key={event.id} className={`event-item event-type-${event.type}`}>
+                                <div className="event-time">
+                                    {sport === 'volleyball' && event.timestamp === 0
+                                        ? '-'
+                                        : formatTime(event.timestamp)}
+                                </div>
+                                <div className="event-icon-display">
+                                    {event.icon}
+                                </div>
+                                <div className="event-details-main">
+                                    <div className="event-info-left">
+                                        <span className="event-description-text">
+                                            {event.description}
+                                        </span>
+                                        {event.type === 'substitution' && event.details && (
+                                            <span className="substitution-details-text">
+                                                {/* ... substitution details ... */}
+                                                {event.details.playerInName || event.details.playerInId
+                                                    ? ` Entra: ${String(event.details.playerInName || event.details.playerInId)}`
+                                                    : ''}
+                                                {event.details.playerInNumber ? ` (${String(event.details.playerInNumber)})` : ''}
+                                                {event.details.playerOutName || event.details.playerOutId
+                                                    ? `, Sai: ${String(event.details.playerOutName || event.details.playerOutId)}`
+                                                    : ''}
+                                                {event.details.playerOutNumber ? ` (${String(event.details.playerOutNumber)})` : ''}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {(
+                                        (event.playerNumber && event.type !== 'timeout') ||
+                                                (event.details &&
+                                                    event.details.playerId !== null &&
+                                                    event.details.playerId !== undefined &&
+                                                    event.type !== 'timeout') ||
+                                                event.teamLogo
+                                    ) && (
+                                        <div className="event-visuals-group">
+                                            {
+                                                event.playerNumber !== undefined &&
+                                                event.playerNumber !== null &&
+                                                event.playerNumber !== '' &&
+                                                event.type !== 'timeout' && (
+                                                    <div className="player-jersey-history-item">
+                                                        <PlayerJersey
+                                                            number={typeof event.playerNumber === 'string' ?
+                                                                parseInt(event.playerNumber, 10) : event.playerNumber}
+                                                            color={event.teamColor || '#273E7C'}
+                                                        />
+                                                    </div>
+                                                )
+                                            }
+
+                                            {event.teamLogo && (
+                                                <img
+                                                    src={event.teamLogo}
+                                                    alt={`${event.team || 'Equipa'} logo`}
+                                                    className="team-logo-miniature"
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="event-actions">
+                                    {(event.type === 'score' || event.type === 'card' || event.type === 'foul') && (
+                                        <button
+                                            onClick={() => handleOpenEditModal(event)}
+                                            className="action-button edit-button"
+                                            aria-label="Editar evento"
+                                        >
+                                            ✏️
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => requestDeleteEvent(event)}
+                                        className="action-button delete-button"
+                                        aria-label="Excluir evento"
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+
+                    {/* Delete Confirmation Modal */}
+                    {showDeleteConfirm && eventToDelete && (
+                        <div className="confirmation-modal-overlay">
+                            <div className="confirmation-modal">
+                                <h3 className="confirmation-modal-title">Confirmar Exclusão?</h3>
+                                <p className="confirmation-modal-text">
+                                    Tem a certeza que deseja excluir o evento: &quot;
+                                    {eventToDelete.description}
+                                    {eventToDelete.player ? ` - ${eventToDelete.player}` : ''}
+                                    &quot;?
+                                </p>
+                                <div className="confirmation-modal-actions">
+                                    <Button variant="danger" className="confirmation-modal-button cancel" onClick={cancelDelete}>
+                                        NÃO
+                                    </Button>
+                                    <Button variant="success" className="confirmation-modal-button confirm" onClick={confirmDeleteEvent}>
+                                        SIM
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Edit Event Modal */}
+                    {showEditModal && eventToEdit && (
+                        <div className="confirmation-modal-overlay">
+                            <div className="confirmation-modal edit-modal">
+                                <h3 className="confirmation-modal-title">Editar Evento</h3>
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        handleEditFormSubmit();
+                                    }}
+                                    className="edit-event-form"
+                                >
+                                    <div className="form-group">
+                                        <label>
+                                            Equipa:
+                                        </label>
+                                        <div className="team-display-info">
+                                            {editFormData.team && (
+                                                <img
+                                                    src={editFormData.team === 'home' ? getTeamLogo(homeTeam) : getTeamLogo(awayTeam)}
+                                                    alt={`${editFormData.team} logo`}
+                                                    className="team-logo-form-preview"
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="playerId">Jogador:</label>
+                                        <select
+                                            id="playerId"
+                                            name="playerId"
+                                            value={editFormData.playerId || ''}
+                                            onChange={handleEditFormChange}
+                                            required
+                                        >
+                                            <option value="">Selecione um Jogador</option>
+                                            {currentPlayers.map((player) => (
+                                                <option key={player.id} value={player.id}>
+                                                    {player.number}
+                                                    {' - '}
+                                                    {player.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {eventToEdit.type === 'card' && (
+                                        <div className="form-group">
+                                            <label htmlFor="cardType">Tipo de Cartão:</label>
+                                            <select
+                                                id="cardType"
+                                                name="cardType"
+                                                value={editFormData.cardType || ''}
+                                                onChange={handleEditFormChange}
+                                                required
+                                            >
+                                                <option value="">Selecione o Tipo</option>
+                                                <option value="yellow">Amarelo</option>
+                                                <option value="red">Vermelho</option>
+                                            </select>
                                         </div>
                                     )}
 
-                                    {event.teamLogo && (
-                                        <img
-                                            src={event.teamLogo}
-                                            alt={`${event.team || 'Equipa'} logo`}
-                                            className="team-logo-miniature"
-                                        />
+                                    {editFormError && (
+                                        <p className="form-error-text">
+                                            {editFormError}
+                                        </p>
                                     )}
-                                </div>
-                            )}
-                        </div>
-                        <div className="event-actions">
-                            {(event.type === 'score' || event.type === 'card' || event.type === 'foul') && (
-                                <button
-                                    onClick={() => handleOpenEditModal(event)}
-                                    className="action-button edit-button"
-                                    aria-label="Editar evento"
-                                >
-                                    ✏️
-                                </button>
-                            )}
-                            <button
-                                onClick={() => requestDeleteEvent(event)}
-                                className="action-button delete-button"
-                                aria-label="Excluir evento"
-                            >
-                                🗑️
-                            </button>
-                        </div>
-                    </li>
-                ))}
-            </ul>
 
-            {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && eventToDelete && (
-                <div className="confirmation-modal-overlay">
-                    <div className="confirmation-modal">
-                        <h3 className="confirmation-modal-title">Confirmar Exclusão?</h3>
-                        <p className="confirmation-modal-text">
-                            Tem a certeza que deseja excluir o evento: &quot;
-                            {eventToDelete.description}
-                            {eventToDelete.player ? ` - ${eventToDelete.player}` : ''}
-                            &quot;?
-                        </p>
-                        <div className="confirmation-modal-actions">
-                            <Button variant="danger" className="confirmation-modal-button cancel" onClick={cancelDelete}>
-                                NÃO
-                            </Button>
-                            <Button variant="success" className="confirmation-modal-button confirm" onClick={confirmDeleteEvent}>
-                                SIM
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Edit Event Modal */}
-            {showEditModal && eventToEdit && (
-                <div className="confirmation-modal-overlay">
-                    <div className="confirmation-modal edit-modal">
-                        {/* Added edit-modal class for specific styling if needed */}
-                        <h3 className="confirmation-modal-title">Editar Evento</h3>
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleEditFormSubmit();
-                            }}
-                            className="edit-event-form"
-                        >
-                            <div className="form-group">
-                                <label>
-                                    Equipa:
-                                </label>
-                                {/* Label for the static team display */}
-                                <div className="team-display-info">
-                                    {/* Container for the logo and name */}
-                                    {editFormData.team && ( // Check if team info is available in form data
-                                        <img
-                                            src={editFormData.team === 'home' ? getTeamLogo(homeTeam) : getTeamLogo(awayTeam)}
-                                            alt={`${editFormData.team} logo`}
-                                            className="team-logo-form-preview"
-                                        />
-                                    )}
-                                    {/* Optionally, display team name if desired */}
-                                    {/* <span>{editFormData.team === 'home' ? 'Casa' : 'Fora'}</span> */}
-                                </div>
+                                    <div className="confirmation-modal-actions">
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            className="confirmation-modal-button cancel"
+                                            onClick={closeEditModal}
+                                        >
+                                            Cancelar
+                                        </Button>
+                                        <Button type="submit" variant="primary" className="confirmation-modal-button confirm">
+                                            Editar
+                                        </Button>
+                                    </div>
+                                </form>
                             </div>
+                        </div>
+                    )}
 
-                            <div className="form-group">
-                                <label htmlFor="playerId">Jogador:</label>
-                                <select
-                                    id="playerId"
-                                    name="playerId"
-                                    value={editFormData.playerId || ''}
-                                    onChange={handleEditFormChange}
-                                    required
-                                >
-                                    <option value="">Selecione um Jogador</option>
-                                    {currentPlayers.map((player) => (
-                                        <option key={player.id} value={player.id}>
-                                            {player.number}
-                                            {' - '}
-                                            {player.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* {eventToEdit.type === 'score' && (
-                                <div className="form-group">
-                                    <label htmlFor="pointValue">Pontuação:</label>
-                                    <input
-                                        type="number"
-                                        id="pointValue"
-                                        name="pointValue"
-                                        value={editFormData.pointValue || ''}
-                                        onChange={handleEditFormChange}
-                                        required
-                                        min="1"
-                                    />
-                                </div>
-                            )} */}
-
-                            {eventToEdit.type === 'card' && (
-                                <div className="form-group">
-                                    <label htmlFor="cardType">Tipo de Cartão:</label>
-                                    <select
-                                        id="cardType"
-                                        name="cardType"
-                                        value={editFormData.cardType || ''}
-                                        onChange={handleEditFormChange}
-                                        required
-                                    >
-                                        <option value="">Selecione o Tipo</option>
-                                        <option value="yellow">Amarelo</option>
-                                        <option value="red">Vermelho</option>
-                                        {/* Add other card types if applicable for the sport */}
-                                    </select>
-                                </div>
-                            )}
-                            {/* Timestamp editing can be added here if needed */}
-
-                            {editFormError && (
-                                <p className="form-error-text">
-                                    {editFormError}
+                    {/* Edit Confirmation Modal */}
+                    {showEditConfirmModal && (
+                        <div className="confirmation-modal-overlay">
+                            <div className="confirmation-modal">
+                                <h3 className="confirmation-modal-title">Alterações Confirmadas</h3>
+                                <p className="confirmation-modal-text">
+                                    {editConfirmMessage}
                                 </p>
-                            )}
-
-                            <div className="confirmation-modal-actions">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    className="confirmation-modal-button cancel"
-                                    onClick={closeEditModal}
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button type="submit" variant="primary" className="confirmation-modal-button confirm">
-                                    Editar
-                                </Button>
+                                <div className="confirmation-modal-actions">
+                                    <Button variant="success" className="confirmation-modal-button confirm" onClick={closeEditConfirmModal}>
+                                        OK
+                                    </Button>
+                                </div>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Edit Confirmation Modal */}
-            {showEditConfirmModal && (
-                <div className="confirmation-modal-overlay">
-                    <div className="confirmation-modal">
-                        <h3 className="confirmation-modal-title">Alterações Confirmadas</h3>
-                        <p className="confirmation-modal-text">
-                            {editConfirmMessage}
-                        </p>
-                        <div className="confirmation-modal-actions">
-                            <Button variant="success" className="confirmation-modal-button confirm" onClick={closeEditConfirmModal}>
-                                OK
-                            </Button>
                         </div>
-                    </div>
+                    )}
                 </div>
-            )}
-        </div>
+                {' '}
+                {/* End of .event-history div */}
+            </div>
+            {' '}
+            {/* End of new centering wrapper */}
+        </>
     );
 };
 
