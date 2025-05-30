@@ -21,6 +21,8 @@
             }
         }
 
+
+
         public static function selectTeam($teamId)
         {
             $conn = DbUtils::connect();
@@ -174,15 +176,35 @@
 
         }
 
-        public static function insertPlayer($playerId, $playerName, $sport, $playerPosition, $positionAcronym, $playerNumber, $teamId)
+        public static function selectPlayerByzerozeroId($zerozeroId)
         {
             $conn = DbUtils::connect();
             if ($conn === false) {
                 return false;
             }
 
-            $stmt = $conn->prepare("INSERT INTO AbstractPlayer (id, name, sport, position, position_acronym, number, teamId) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("isssssi", $playerId, $playerName, $sport, $playerPosition, $playerNumber, $teamId);
+            $stmt = $conn->prepare("SELECT * FROM AbstractPlayer WHERE zerozero_id = ?");
+            $stmt->bind_param("i", $zerozeroId); 
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $results = $result->fetch_assoc();
+            
+            $stmt->close();
+            $conn->close();
+
+            return $results;
+
+        }
+
+        public static function insertPlayer($zerozeroId, $playerName, $sport, $playerPosition, $positionAcronym, $playerNumber, $teamId)
+        {
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return false;
+            }
+
+            $stmt = $conn->prepare("INSERT INTO AbstractPlayer (zerozero_id, name, sport, position, position_acronym, number, teamId) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("issssssi", $zerozeroId, $playerName, $sport, $playerPosition,$position_acronym, $playerNumber, $teamId);
             if ($stmt->execute()) {
                 $stmt->close();
                 $conn->close();
@@ -300,6 +322,147 @@
 
             return $placards;
         }
+
+        public static function submitTeamRoster($placardId, $players) {
+            $conn = DbUtils::connect();
+            if ($conn === false) {
+                return ["error" => "Failed to connect to the database"];
+            }
+
+            $conn->begin_transaction();
+            try {
+
+                $stmt = $conn->prepare("SELECT playerId FROM PlacardPlayer WHERE placardId = ?");
+                $stmt->bind_param("i", $placardId);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $currentPlayerIds = [];
+                while ($row = $result->fetch_assoc()) {
+                    $currentPlayerIds[] = (int)$row['playerId'];
+                }
+                $stmt->close();
+
+                // 2. Get new player IDs from $players
+                $newPlayerIds = [];
+                foreach ($players as $player) {
+                    $newPlayerIds[] = isset($player['playerId']) ? (int)$player['playerId'] : (int)$player['id'];
+                }
+
+                $toRemove = array_diff($currentPlayerIds, $newPlayerIds);
+
+                if (count($toRemove) > 0) {
+                    $placeholders = implode(',', array_fill(0, count($toRemove), '?'));
+                    $types = str_repeat('i', count($toRemove) + 1);
+                    $params = array_merge([$placardId], array_values($toRemove));
+                    $stmt = $conn->prepare("DELETE FROM PlacardPlayer WHERE placardId = ? AND playerId IN ($placeholders)");
+                    $stmt->bind_param($types, ...$params);
+                    if (!$stmt->execute()) {
+                        $conn->rollback();
+                        $stmt->close();
+                        $conn->close();
+                        return ["error" => "Failed to remove players from lineup"];
+                    }
+                    $stmt->close();
+                }
+                
+                foreach ($players as $player) {
+                    $name = trim($player['name'] ?? '');
+                    if (!preg_match('/^[a-zA-ZÀ-ÿ\s\'\-0-9]{1,50}$/u', $name)) {
+                        $conn->rollback();
+                        $conn->close();
+                        return ["error" => "Invalid player name"];
+                    }
+                    $position = trim($player['position'] ?? '');
+                    if (!preg_match('/^[a-zA-ZÀ-ÿ0-9\s\'\-]{1,30}$/u', $position)) {
+                        $conn->rollback();
+                        $conn->close();
+                        return ["error" => "Invalid player position"];
+                    }
+                    $position_acronym = trim($player['position_acronym'] ?? '');
+                    if (!preg_match('/^[A-Z0-9]{1,3}$/', $position_acronym)) {
+                        $conn->rollback();
+                        $conn->close();
+                        return ["error" => "Invalid position acronym"];
+                    }
+                    $number = $player['number'] ?? '';
+                    if (!is_numeric($number) || intval($number) < 0 || intval($number) > 99) {
+                        $conn->rollback();
+                        $conn->close();
+                        return ["error" => "Player number must be between 0 and 99"];
+                    }
+                    $number = intval($number);
+                    $teamId = $player['teamId'] ?? '';
+                    if (!is_numeric($teamId)) {
+                        $conn->rollback();
+                        $conn->close();
+                        return ["error" => "Invalid team ID"];
+                    }
+                    $teamId = intval($teamId);
+
+
+                    if (isset($player['newPlayer']) && $player['newPlayer']) {
+                        $stmt = $conn->prepare("INSERT INTO AbstractPlayer (name, position, position_acronym, number, teamId, sport) VALUES (?, ?, ?, ?, ?, (SELECT sport FROM AbstractTeam WHERE id = ?))");
+                        $stmt->bind_param("ssssii", $name, $position, $position_acronym, $number, $teamId, $teamId);
+                        
+                        if (!$stmt->execute()) {
+                            $conn->rollback();
+                            $stmt->close();
+                            $conn->close();
+                            return false;
+                        }
+                        
+                        $playerId = $conn->insert_id;
+                        $stmt->close();
+                    } else {
+                        $playerId = $player['playerId'] ?? $player['id'];
+                        if (!is_numeric($playerId)) {
+                            $conn->rollback();
+                            $conn->close();
+                            return false;
+                        }
+                        $playerId = intval($playerId);
+                    }
+                    
+                    $stmt = $conn->prepare("SELECT id FROM PlacardPlayer WHERE placardId = ? AND playerId = ?");
+                    $stmt->bind_param("ii", $placardId, $playerId);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $existingRecord = $result->fetch_assoc();
+                    $stmt->close();
+                    
+                    $isStarting = isset($player['isStarting']) ? $player['isStarting'] : 0;
+                    if ($isStarting === 'true' || $isStarting === '1' || $isStarting === true) {
+                        $isStarting = 1;
+                    } else {
+                        $isStarting = 0;
+                    }
+                    
+                    if ($existingRecord) {
+                        $stmt = $conn->prepare("UPDATE PlacardPlayer SET isStarting = ? WHERE placardId = ? AND playerId = ?");
+                        $stmt->bind_param("iii", $isStarting, $placardId, $playerId);
+                    } else {
+                        $stmt = $conn->prepare("INSERT INTO PlacardPlayer (placardId, playerId, isStarting) VALUES (?, ?, ?)");
+                        $stmt->bind_param("iii", $placardId, $playerId, $isStarting);
+                    }
+                    
+                    if (!$stmt->execute()) {
+                        $conn->rollback();
+                        $stmt->close();
+                        $conn->close();
+                        return false;
+                    }
+                    
+                    $stmt->close();
+                }
+                
+                $conn->commit();
+                $conn->close();
+                return true;
+            } catch (Exception $e) {
+                $conn->rollback();
+                $conn->close();
+                return ["error" => "Exception: " . $e->getMessage()];
+            }
+        }
     }
-          
 ?>

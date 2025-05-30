@@ -30,13 +30,13 @@
 
 
 .time-btn {
-  width: 56px;
-  height: 56px;
-  font-size: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-width: 2px;
+  width: 56px !important;
+  height: 56px !important;
+  font-size: 2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: cente !important;
+  border-width: 2px !important;
 }
 
 .timer-value {
@@ -51,12 +51,11 @@
   min-width: 40px;
   text-align: center;
   line-height: 1;
-  // Remove margin-top that's causing misalignment
 }
 
 .timer-colon-container {
   height: 100%;
-  padding-bottom: 48px; // To align with the time digits accounting for the buttons
+  padding-bottom: 48px;
 }
 
 .cancel-btn, .save-btn {

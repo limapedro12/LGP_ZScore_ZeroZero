@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import apiManager, { ApiTeam, ScoreResponse, ApiPlayer, SliderData, Sport, ApiGame } from '../api/apiManager';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import apiManager, { ApiTeam, ScoreResponse,  Sport, ApiGame, SliderData, ApiPlayer } from '../api/apiManager';
 import { useParams, useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -10,8 +10,8 @@ import TimeoutCounter from '../components/scoreboard/timeoutCounter';
 import ScoresRow from '../components/scoreboard/scoresCounter';
 import SetBox from '../components/scoreboard/setBox';
 import FoulsCounter from '../components/foulsCounter';
-import Slider from '../components/scoreboard/slider';
 import ShotClock from '../components/scoreboard/shotClock';
+import Slider from '../components/scoreboard/slider';
 import '../styles/scoreBoard.scss';
 import { BREAKPOINTS } from '../media-queries';
 import { correctSportParameter } from '../utils/navigationUtils';
@@ -38,7 +38,7 @@ const ScoreBoard = () => {
     const [shouldPollScoreHistory, setShouldPollScoreHistory] = useState(true);
     const [shouldPollCardEvents, setShouldPollCardEvents] = useState(true);
     const [shouldPollPlayers, setShouldPollPlayers] = useState(true);
-
+    //
     const [sliderData, setSliderData] = useState<SliderData>({
         data: {
             home: { lineup: [] },
@@ -57,41 +57,44 @@ const ScoreBoard = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const fetchScores = useCallback(async () => {
-        const currentSport = placardInfo?.sport || sport;
-        if (!placardId || !currentSport) return;
+    useEffect(() => {
+        const fetchScores = async () => {
+            const currentSport = placardInfo?.sport || sport;
+            if (!placardId || !currentSport) return;
 
-        try {
-            const response = await apiManager.getScores(placardId, currentSport);
-            setScoreData(response);
-        } catch (error) {
-            setScoreData(null);
-        }
+            try {
+                const response = await apiManager.getScores(placardId, currentSport);
+                setScoreData(response);
+            } catch (error) {
+                setScoreData(null);
+            }
+        };
+
+        fetchScores();
+        const interval = setInterval(fetchScores, 5000);
+
+        return () => clearInterval(interval);
     }, [placardId, sport, placardInfo]);
 
-    const fetchTeams = useCallback(async () => {
-        if (placardId === 'default') return;
-        try {
-            const info = await apiManager.getPlacardInfo(placardId, sport);
-            if (info) {
-                setPlacardInfo(info);
-                setSport(info.sport);
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            if (placardId === 'default') return;
 
-                correctSportParameter(sportParam, info.sport, navigate);
+            try {
+                const info = await apiManager.getPlacardInfo(placardId, sport);
+                if (info) {
+                    setPlacardInfo(info);
+                    setSport(info.sport);
 
-                const home = await apiManager.getTeamInfo(info.firstTeamId);
-                const away = await apiManager.getTeamInfo(info.secondTeamId);
-                setHomeTeam(home);
-                setAwayTeam(away);
-            }
-        } catch (error) {
-            console.error('Error fetching teams:', error);
-        }
-    }, [placardId, sport, sportParam, navigate]);
+                    correctSportParameter(sportParam, info.sport, navigate);
 
-    const fetchSportConfigurations = useCallback(async () => {
-        try {
-            const [noPeriodResponse, noShotClockResponse, nonTimerResponse, noCardResponse] =
+                    const home = await apiManager.getTeamInfo(info.firstTeamId);
+                    const away = await apiManager.getTeamInfo(info.secondTeamId);
+                    setHomeTeam(home);
+                    setAwayTeam(away);
+                }
+
+                const [noPeriodResponse, noShotClockResponse, nonTimerResponse, noCardResponse] =
                 await Promise.all([
                     apiManager.getNoPeriodSports(),
                     apiManager.getNoShotClockSports(),
@@ -99,146 +102,145 @@ const ScoreBoard = () => {
                     apiManager.getNoCardSports(),
                 ]);
 
-            setNoPeriodBoxSports(noPeriodResponse?.sports || []);
-            setNoShotClockSports(noShotClockResponse?.sports || []);
-            setNonTimerSports(nonTimerResponse?.sports || []);
-            setNonCardSports(noCardResponse?.sports || []);
+                setNoPeriodBoxSports(noPeriodResponse?.sports || []);
+                setNoShotClockSports(noShotClockResponse?.sports || []);
+                setNonTimerSports(nonTimerResponse?.sports || []);
+                setNonCardSports(noCardResponse?.sports || []);
+            } catch (error) {
+                console.error('Error fetching teams:', error);
+            }
+        };
+        fetchInitialData();
+    }, [placardId, sport, sportParam, navigate]);
+
+    const fetchScoreHistory = useCallback(async () => {
+        if (!placardId || !sport) return;
+
+        try {
+            const response = await apiManager.getScoreHistory(placardId, sport);
+            const hasScores = response.points.length > 0;
+
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, scores: hasScores },
+            }));
+
+            // Only for initial loading - stop polling once we have data
+            if (hasScores && shouldPollScoreHistory) {
+                setShouldPollScoreHistory(false);
+            }
         } catch (error) {
-            console.error('Error fetching sport configurations:', error);
+            console.error('Error fetching score history:', error);
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, scores: false },
+            }));
         }
-    }, []);
+    }, [placardId, sport, shouldPollScoreHistory]);
 
-    const fetchSliderData = useCallback(async () => {
-        if (placardId && sport && shouldPollScoreHistory) {
-            try {
-                const response = await apiManager.getScoreHistory(placardId, sport);
-                const hasScores = response.points.length > 0;
+    const fetchCardEvents = useCallback(async () => {
+        if (!placardId || !sport || nonCardSports.includes(sport) || !nonCardSports.length) return;
 
-                setSliderData((prev) => ({
-                    ...prev,
-                    hasData: { ...prev.hasData, scores: hasScores },
-                }));
+        try {
+            const response = await apiManager.getCards(placardId, sport);
+            const hasCards = response.cards.length > 0;
 
-                if (hasScores) setShouldPollScoreHistory(false);
-            } catch {
-                setSliderData((prev) => ({
-                    ...prev,
-                    hasData: { ...prev.hasData, scores: false },
-                }));
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, cards: hasCards },
+            }));
+
+            // Only for initial loading - stop polling once we have data
+            if (hasCards && shouldPollCardEvents) {
+                setShouldPollCardEvents(false);
             }
+        } catch (error) {
+            console.error('Error fetching card events:', error);
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, cards: false },
+            }));
         }
+    }, [placardId, sport, nonCardSports, shouldPollCardEvents]);
 
-        if (placardId && sport && shouldPollCardEvents && !nonCardSports.includes(sport) && nonCardSports.length > 0) {
-            try {
-                const response = await apiManager.getCards(placardId, sport);
-                const hasCards = response.cards.length > 0;
+    const fetchPlayers = useCallback(async () => {
+        if (!placardId || !homeTeam?.id || !awayTeam?.id) return;
 
-                setSliderData((prev) => ({
-                    ...prev,
-                    hasData: { ...prev.hasData, cards: hasCards },
-                }));
-
-                if (hasCards) setShouldPollCardEvents(false);
-            } catch {
-                setSliderData((prev) => ({
-                    ...prev,
-                    hasData: { ...prev.hasData, cards: false },
-                }));
-            }
-        } else if (nonCardSports.includes(sport)) {
-            setShouldPollCardEvents(false);
-        }
-
-        if (placardId && shouldPollPlayers && homeTeam?.id && awayTeam?.id) {
-            try {
-                const [homeLineup, awayLineup] = await Promise.all([
-                    apiManager.getTeamLineup(placardId, homeTeam.id),
-                    apiManager.getTeamLineup(placardId, awayTeam.id),
-                ]);
-
-                let homeLineupArray: ApiPlayer[] = [];
-                if (Array.isArray(homeLineup)) {
-                    homeLineupArray = homeLineup;
-                } else if (homeLineup) {
-                    homeLineupArray = [homeLineup];
-                }
-
-                let awayLineupArray: ApiPlayer[] = [];
-                if (Array.isArray(awayLineup)) {
-                    awayLineupArray = awayLineup;
-                } else if (awayLineup) {
-                    awayLineupArray = [awayLineup];
-                }
-
-                const hasPlayers = homeLineupArray.length > 0 || awayLineupArray.length > 0;
-
-                setSliderData((prev) => ({
-                    ...prev,
-                    data: {
-                        ...prev.data,
-                        home: { ...prev.data.home, lineup: homeLineupArray },
-                        away: { ...prev.data.away, lineup: awayLineupArray },
-                    },
-                    hasData: { ...prev.hasData, players: hasPlayers },
-                }));
-
-                if (hasPlayers) setShouldPollPlayers(false);
-            } catch {
-                setSliderData((prev) => ({
-                    ...prev,
-                    hasData: { ...prev.hasData, players: false },
-                }));
-            }
-        }
-    }, [placardId, sport, nonCardSports, shouldPollScoreHistory, shouldPollCardEvents,
-        shouldPollPlayers, homeTeam?.id, awayTeam?.id]);
-
-    useEffect(() => {
-        const loadInitialData = async () => {
-            await Promise.all([
-                fetchTeams(),
-                fetchSportConfigurations(),
+        try {
+            const [homeLineup, awayLineup] = await Promise.all([
+                apiManager.getTeamLineup(placardId, homeTeam.id),
+                apiManager.getTeamLineup(placardId, awayTeam.id),
             ]);
 
-            fetchScores();
-        };
+            let homeLineupArray: ApiPlayer[] = [];
+            if (Array.isArray(homeLineup)) {
+                homeLineupArray = homeLineup;
+            } else if (homeLineup) {
+                homeLineupArray = [homeLineup];
+            }
 
-        loadInitialData();
+            let awayLineupArray: ApiPlayer[] = [];
+            if (Array.isArray(awayLineup)) {
+                awayLineupArray = awayLineup;
+            } else if (awayLineup) {
+                awayLineupArray = [awayLineup];
+            }
 
-        const scoresInterval = setInterval(fetchScores, 5000);
-        const teamsInterval = setInterval(fetchTeams, 5000);
+            const hasPlayers = homeLineupArray.length > 0 || awayLineupArray.length > 0;
 
-        return () => {
-            clearInterval(scoresInterval);
-            clearInterval(teamsInterval);
-        };
-    }, [fetchScores, fetchSportConfigurations, fetchTeams]);
+            setSliderData((prev) => ({
+                ...prev,
+                data: {
+                    ...prev.data,
+                    home: { ...prev.data.home, lineup: homeLineupArray },
+                    away: { ...prev.data.away, lineup: awayLineupArray },
+                },
+                hasData: { ...prev.hasData, players: hasPlayers },
+            }));
+
+            // Only for initial loading - stop polling once we have data
+            if (hasPlayers && shouldPollPlayers) {
+                setShouldPollPlayers(false);
+            }
+        } catch (error) {
+            console.error('Error fetching players:', error);
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, players: false },
+            }));
+        }
+    }, [placardId, homeTeam?.id, awayTeam?.id, shouldPollPlayers]);
 
     useEffect(() => {
-        const loadSliderData = async () => {
-            await fetchSliderData();
-        };
+    // Initial data loading - fetch immediately
+        fetchScoreHistory();
+        fetchCardEvents();
+        fetchPlayers();
 
-        loadSliderData();
-
+        // Set up polling intervals for each data type
         const intervals: number[] = [];
 
+        // Only poll for initial data if we haven't found any yet
         if (shouldPollScoreHistory) {
-            intervals.push(window.setInterval(fetchSliderData, 5000));
+            intervals.push(window.setInterval(fetchScoreHistory, 5000));
         }
 
-        if (shouldPollCardEvents) {
-            intervals.push(window.setInterval(fetchSliderData, 5000));
+        if (shouldPollCardEvents && !nonCardSports.includes(sport)) {
+            intervals.push(window.setInterval(fetchCardEvents, 5000));
         }
 
         if (shouldPollPlayers) {
-            intervals.push(window.setInterval(fetchSliderData, 5000));
+            intervals.push(window.setInterval(fetchPlayers, 5000));
         }
 
         return () => {
             intervals.forEach((interval) => window.clearInterval(interval));
         };
-    }, [fetchSliderData, shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers]);
+    }, [
+        fetchScoreHistory, fetchCardEvents, fetchPlayers,
+        shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers,
+        sport, nonCardSports, homeTeam?.id, awayTeam?.id,
+    ]);
 
     const Center = useMemo(() => (
         <>
@@ -294,7 +296,6 @@ const ScoreBoard = () => {
                             sport={sport} team="home" placardId={placardId}
                             teamColor={homeTeam?.color}
                             sliderData={sliderData}
-
                         />
                     </Col>
 
@@ -307,8 +308,6 @@ const ScoreBoard = () => {
                             sport={sport} team="away" placardId={placardId}
                             teamColor={awayTeam?.color}
                             sliderData={sliderData}
-
-
                         />
                     </Col>
                 </Row>
@@ -326,7 +325,6 @@ const ScoreBoard = () => {
                                 sport={sport} team="home" placardId={placardId}
                                 teamColor={homeTeam?.color}
                                 sliderData={sliderData}
-
                             />
                         </Col>
                         <Col className="pe-0 h-100 overflow-hidden">
@@ -334,7 +332,6 @@ const ScoreBoard = () => {
                                 sport={sport} team="away" placardId={placardId}
                                 teamColor={awayTeam?.color}
                                 sliderData={sliderData}
-
                             />
                         </Col>
                     </Row>
