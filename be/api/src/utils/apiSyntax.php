@@ -117,7 +117,7 @@
                     }
                     continue; // Skip to next placard
                 }
-                if (!DbUtils::insertPlacard($placardId, $team1, $team2, $isFinished, $sport, $date)) {
+                if (!DbUtils::insertPlacard($placardId, $team1, $team2, $isFinished, $sport, $date, $stadium, $competition)) {
                     echo json_encode(["error" => "Failed to insert placard: $placardId"]);
                     return false; // Insert failed
                 }
