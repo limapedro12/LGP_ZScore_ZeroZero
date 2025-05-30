@@ -4,6 +4,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
 import PlayerJersey from '../../components/playerJersey';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '../../styles/playerSelection.scss';
 import apiManager, { ApiPlayer, Sport } from '../../api/apiManager';
 import { correctSportParameter } from '../../utils/navigationUtils';
@@ -100,14 +101,12 @@ const PlayerSelectionPage: React.FC = () => {
         try {
             if (isSubstitutionMode) {
                 if (!selectedPlayerOut || !selectedPlayerIn) return;
-                console.log('Confirming substitution:', placardId, currentSport, teamTag,
-                    selectedPlayerIn.playerId, selectedPlayerOut.playerId);
                 await apiManager.createSubstitution(
                     placardId,
                     currentSport,
-                    teamTag as 'home' | 'away',
-                    selectedPlayerIn.playerId,
-                    selectedPlayerOut.playerId
+                teamTag as 'home' | 'away',
+                selectedPlayerIn.playerId,
+                selectedPlayerOut.playerId
                 );
             } else {
                 if (!selectedPlayerId) return;
@@ -157,9 +156,10 @@ const PlayerSelectionPage: React.FC = () => {
                 }
             }
             navigate(`/scorersTable/${currentSport}/${placardId}`);
-        } catch {
-            console.error('Error confirming player selection:', currentSport, placardId, teamTag);
-            // Optionally show an error message to the user
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            console.error('Error confirming player selection:', error);
+        // Error toast is already shown by apiManager, no need to add another
         }
     };
 

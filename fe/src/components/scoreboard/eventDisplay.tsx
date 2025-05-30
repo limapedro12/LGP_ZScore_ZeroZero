@@ -8,7 +8,6 @@ interface EventDisplayProps {
   playerNumber?: number;
   team: 'home' | 'away';
   rightElement?: ReactNode;
-  compact?: boolean;
   teamColor?: string;
 }
 
@@ -17,15 +16,9 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
     playerNumber,
     team,
     rightElement,
-    compact = false,
     teamColor,
 }) => {
     const small = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
-    let isCompact = compact;
-
-    if (small) {
-        isCompact = false;
-    }
 
     const hasPlayerName = Boolean(playerName && playerName.trim() !== '');
 
@@ -46,9 +39,7 @@ const EventDisplay: React.FC<EventDisplayProps> = ({
     );
 
     let justifyClass;
-    if (!isCompact) {
-        justifyClass = 'justify-content-center';
-    } else if (team === 'home') {
+    if (team === 'home') {
         justifyClass = 'justify-content-start';
     } else {
         justifyClass = 'justify-content-end';

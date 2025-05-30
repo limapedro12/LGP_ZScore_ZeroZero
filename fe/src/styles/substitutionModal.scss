@@ -1,58 +1,6 @@
 @use './config.scss';
 
-.substitution-modal {
-    min-height: 100 !important;
-    max-width: 85vw;
-    .modal-content {
-        background: rgba(44, 62, 80, 0.85);
-        backdrop-filter: blur(16px) saturate(180%);
-        border-radius: 2.5rem;
-        border: none;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 1.5px 12px rgba(39, 62, 124, 0.08);
-        padding: 2.5rem 2rem;
-        min-height: 55vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: fadeInModal 0.4s cubic-bezier(.4,0,.2,1);
-    }
-}
-
-@keyframes fadeInModal {
-    from { opacity: 0; transform: scale(0.97);}
-    to { opacity: 1; transform: scale(1);}
-}
-
-.substitution-content {
-    width: 100% !important;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2.2rem;
-    position: relative;
-}
-
-.player-in, .player-out {
-    font-size: 2.1rem;
-    font-family: config.$font-secondary;
-    color: config.$text-color;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-    width: 100%;
-    justify-content: center;
-    letter-spacing: 0.01em;
-    transition: color 0.2s;
-    .player-name {
-        font-weight: 700;
-        font-size: 2.2rem;
-        letter-spacing: 0.02em;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        transition: color 0.2s;
-    }
-}
-
+// Existing styles
 .player-in {
     .player-name { color: #27ae60; }
 }
@@ -68,20 +16,6 @@
     margin: 1.2rem 0;
     border-radius: 2px;
 }
-
-.player-row-content {
-    min-width: 0;
-    width: 90%;
-    max-width: 100%;
-    .player-name {
-        flex: 1 1 auto;
-        text-align: left;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-}
-
 .triangle-green, .triangle-red {
     width: 2.2rem; height: 2.2rem;
     display: flex;
@@ -98,21 +32,178 @@
     border-bottom: 1.7rem solid #27ae60;
 }
 .triangle-red::before {
-    border-bottom-color: #c0392b;
+    border-bottom-color: #c0392b !important;
+}
+.triangle-red::before {
     transform: rotate(180deg);
 }
 
+.subst-modal {
+    &-dialog {
+        margin: 0;
+        max-width: 100%;
+        height: 100%;
+    }
+    
+    &-content {
+        border-radius: 0;
+        border: none;
+        height: 100%;
+    }
+    
+    &-container {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+    }
+    
+    &-logo-section {
+        width: 30%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.85);
+        padding: 2rem;
+    }
+    
+    &-logo-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    &-logo {
+        max-width: 100%;
+        max-height: 50vh;
+        object-fit: contain;
+    }
+    
+    &-content-section {
+        width: 70%;
+        padding: 3rem;
+        background-color: config.$background-color;
+        display: flex;
+        flex-direction: column;
+        color: white;
+    }
+    
+    &-header {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 3rem;
+    }
+    
+    &-close {
+        background: none;
+        border: none;
+        font-size: 3.5rem;
+        line-height: 1;
+        cursor: pointer;
+        color: white;
+        
+        &:hover {
+            color: darken(white, 15%);
+        }
+    }
+    
+    &-player {
+        display: flex;
+        align-items: center;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    &-player-in {
+        background-color: rgba(39, 174, 96, 0.2);
+        border-left: 8px solid #27ae60;
+    }
+    
+    &-player-out {
+        background-color: rgba(192, 57, 43, 0.2);
+        border-left: 8px solid #c0392b;
+    }
+    
+    &-jersey {
+        flex: 0 0 auto;
+        margin-right: 2.5rem;
+        transform: scale(1.75);
+    }
+    
+    &-info {
+        flex: 1;
+    }
+    
+    &-name {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    &-player-in .subst-modal-name {
+        color: #27ae60;
+    }
+    
+    &-player-out .subst-modal-name {
+        color: #c0392b;
+    }
+    
+    &-position {
+        font-size: 1.4rem;
+        color: #bbbbbb;
+        margin: 0;
+    }
+    
+    &-status {
+        flex: 0 0 auto;
+        margin-left: 2rem;
+    }
+    
+    &-in-badge, &-out-badge {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 1.6rem;
+        letter-spacing: 1px;
+    }
+    
+    &-in-badge {
+        background-color: #27ae60;
+        color: white;
+    }
+    
+    &-out-badge {
+        background-color: #c0392b;
+        color: white;
+    }
+}
 
-@media (max-width: 900px) {
-    .substitution-modal {
-        width: 95vw !important;
-        max-width: 95vw;
-    }
-    .player-in, .player-out {
-        font-size: 1.1rem;
-        .player-name { font-size: 1.2rem; }
-    }
-    .substitution-divider {
-        width: 90%;
+.subst-modal-logo-section{
+    background-color: config.$background-color;
+}
+
+.substitution-divider {
+    height: 4px;
+    opacity: 0.5;
+    width: 80%;
+}
+
+.subst-modal-position{
+    color: white ;
+}
+
+.triangle-green, .triangle-red {
+    width: 3rem; 
+    height: 3rem;
+    
+    &::before {
+        border-left: 1.5rem solid transparent;
+        border-right: 1.5rem solid transparent;
+        border-bottom: 2.3rem solid #27ae60;
     }
 }

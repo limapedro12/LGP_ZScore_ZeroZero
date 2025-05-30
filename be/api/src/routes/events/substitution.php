@@ -108,6 +108,7 @@ try {
                 }
             }
             if ($gameConfig["substitutionsPerTeam"] != 0 && sizeof($currentSubstitutions) >= $gameConfig["substitutionsPerTeam"]) {
+                http_response_code(400);
                 $response = ["error"=> "Maximum number of substitutions reached"];
                 break;
             }

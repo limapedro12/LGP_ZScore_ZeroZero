@@ -383,6 +383,19 @@ class ApiManager {
             }
 
             const data = await response.json();
+            if (data?.error) {
+                toast.error(data.error);
+                const error = new Error(data.error);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (error as any).response = {
+                    data,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                    config: options,
+                };
+                throw error;
+            }
             if (['create', 'update', 'delete', 'reset', 'start', 'pause', 'adjust', 'set', 'updateLineup'].
                 includes(action) && data?.message) {
                 toast.success(data.message);

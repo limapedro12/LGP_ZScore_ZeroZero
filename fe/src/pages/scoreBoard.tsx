@@ -240,7 +240,7 @@ const ScoreBoard = () => {
     ]);
 
     useEffect(() => {
-    // let timeoutId: number;  // REMOVE this line
+        let timeoutId: number;
 
         const fetchLatestSubstitution = async () => {
             if (!placardId || !sport) return;
@@ -248,18 +248,17 @@ const ScoreBoard = () => {
             try {
                 const response = await apiManager.getSubstitutionStatus(placardId, sport);
                 const latest = response?.substitutions?.[response?.substitutions?.length - 1] || null;
-
+                console.log(latest, latestSubstitutionRef.current);
                 if (
                     (!latestSubstitutionRef.current && latest) ||
                 (latestSubstitutionRef.current && latest && latestSubstitutionRef.current.eventId !== latest.eventId)
                 ) {
                     setNewSubstitution(latest);
                     latestSubstitutionRef.current = latest;
-                // REMOVE the timeout logic below:
-                // if (timeoutId) clearTimeout(timeoutId);
-                // timeoutId = window.setTimeout(() => {
-                //     setNewSubstitution(null);
-                // }, 3000);
+                    if (timeoutId) clearTimeout(timeoutId);
+                    timeoutId = window.setTimeout(() => {
+                        setNewSubstitution(null);
+                    }, 3000);
                 }
             } catch (error) {
                 console.error('Error fetching latest substitution:', error);
@@ -271,7 +270,7 @@ const ScoreBoard = () => {
 
         return () => {
             clearInterval(intervalId);
-        // clearTimeout(timeoutId); // REMOVE this line
+            clearTimeout(timeoutId);
         };
     }, [placardId, sport]);
 
@@ -331,6 +330,17 @@ const ScoreBoard = () => {
                         }
                         if (newSubstitution?.team === 'away') {
                             return awayTeam?.color;
+                        }
+                        return undefined;
+                    })()
+                }
+                logoUrl={
+                    (() => {
+                        if (newSubstitution?.team === 'home') {
+                            return homeTeam?.logoURL;
+                        }
+                        if (newSubstitution?.team === 'away') {
+                            return awayTeam?.logoURL;
                         }
                         return undefined;
                     })()

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PlayerJersey from '../playerJersey';
-import { Modal, Row, Col } from 'react-bootstrap';
+import { Modal } from 'react-bootstrap';
 import '../../styles/substitutionModal.scss';
 import apimanager, { Substitution, ApiPlayer } from '../../api/apiManager';
 
@@ -9,9 +9,10 @@ interface SubstitutionModalProps {
     onHide: () => void;
     substitution: Substitution | null;
     teamColor?: string;
+    logoUrl?: string;
 }
-const SubstitutionModal: React.FC<SubstitutionModalProps> = ({ show, onHide, substitution, teamColor }) => {
 
+const SubstitutionModal: React.FC<SubstitutionModalProps> = ({ show, onHide, substitution, teamColor, logoUrl }) => {
     const [playerIn, setPlayerIn] = useState<ApiPlayer | null>(null);
     const [playerOut, setPlayerOut] = useState<ApiPlayer | null>(null);
 
@@ -26,55 +27,75 @@ const SubstitutionModal: React.FC<SubstitutionModalProps> = ({ show, onHide, sub
                 .catch((error) => console.error('Error fetching player out:', error));
         }
     }, [substitution]);
+
     return (
         <Modal
             show={show}
             onHide={onHide}
-            centered
-            dialogClassName="substitution-modal"
-            contentClassName="substitution-modal-content"
-            backdropClassName="substitution-modal-backdrop"
+            dialogClassName="subst-modal-dialog"
+            contentClassName="subst-modal-content"
+            fullscreen
         >
-            <Modal.Body>
-                <div className="substitution-content">
-                    <Row className="align-items-center player-in mb-4 w-100 gx-0 justify-content-center">
-                        <Col
-                            className="d-flex justify-content-between align-items-center player-row-content"
-                            style={{ width: '90%' }}
-                        >
-                            {playerIn && (
-                                <>
-                                    <span className="player-name">
-                                        {playerIn.name}
-                                    </span>
-                                    <PlayerJersey number={parseInt(playerIn.number, 10)} color={teamColor || '#27ae60'} />
-                                </>
-                            )}
-                        </Col>
-                    </Row>
-                    <div className="divider-with-triangle w-100 d-flex flex-column align-items-center my-2">
+            <div className="subst-modal-container">
+                <div className="subst-modal-logo-section">
+                    {logoUrl && (
+                        <div className="subst-modal-logo-wrapper">
+                            <img src={logoUrl} alt="Team Logo" className="subst-modal-logo" />
+                        </div>
+                    )}
+                </div>
+                <div className="subst-modal-content-section d-flex flex-column justify-content-center">
+                    <div className="subst-modal-player subst-modal-player-in">
+                        <div className="subst-modal-jersey p-2">
+                            <PlayerJersey
+                                number={playerIn?.number ? parseInt(playerIn.number, 10) : undefined}
+                                color={teamColor || '#273E7C'}
+                            />
+                        </div>
+                        <div className="subst-modal-info">
+                            <h3 className="subst-modal-name">
+                                {playerIn?.name || 'Player In'}
+                            </h3>
+                            <p className="subst-modal-position">
+                                {playerIn?.position || ''}
+                            </p>
+                        </div>
+                        <div className="subst-modal-status">
+                            <span className="subst-modal-in-badge">ENTRA</span>
+                        </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="divider-with-triangle w-100 d-flex flex-column align-items-center my-4">
                         <span className="triangle-green mb-2" />
                         <div className="substitution-divider" />
                         <span className="triangle-red mt-2" />
                     </div>
-                    <Row className="align-items-center player-out w-100 gx-0 justify-content-center">
-                        <Col
-                            className="d-flex justify-content-between align-items-center player-row-content"
-                            style={{ width: '90%' }}
-                        >
-                            {playerOut && (
-                                <>
-                                    <span className="player-name">
-                                        {playerOut.name}
-                                    </span>
-                                    <PlayerJersey number={parseInt(playerOut.number, 10)} color={teamColor || '#c0392b'} />
-                                </>
-                            )}
-                        </Col>
-                    </Row>
+
+                    {/* Player Out */}
+                    <div className="subst-modal-player subst-modal-player-out">
+                        <div className="subst-modal-jersey p-2">
+                            <PlayerJersey
+                                number={playerOut?.number ? parseInt(playerOut.number, 10) : undefined}
+                                color={teamColor || '#273E7C'}
+                            />
+                        </div>
+                        <div className="subst-modal-info">
+                            <h3 className="subst-modal-name">
+                                {playerOut?.name || 'Player Out'}
+                            </h3>
+                            <p className="subst-modal-position">
+                                {playerOut?.position || ''}
+                            </p>
+                        </div>
+                        <div className="subst-modal-status">
+                            <span className="subst-modal-out-badge">SAI</span>
+                        </div>
+                    </div>
                 </div>
-            </Modal.Body>
+            </div>
         </Modal>
     );
 };
+
 export default SubstitutionModal;
