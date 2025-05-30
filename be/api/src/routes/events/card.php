@@ -95,10 +95,12 @@ try {
             } else {
                 $gameTimePosition = 0;
             }
+
+            $timestamp = $gameTimePosition;
             
-            if (!$playerId || !$cardType || ($timestamp === null)) {
+            if (!$playerId || !$cardType) {
                 http_response_code(400);
-                $response = ["error" => "Missing playerId, cardType or timestamp for add action"];
+                $response = ["error" => "Missing playerId or cardType for add action"];
                 break;
             }
 

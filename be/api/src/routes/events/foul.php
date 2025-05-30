@@ -25,7 +25,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $params = RequestUtils::getRequestParams();
 $response = ['status' => 'error', 'message' => 'Invalid request.'];
 
-$allowedActions = ['create', 'update', 'delete', 'gameStatus'];
+$allowedActions = ['create', 'update', 'delete', 'gameStatus', 'get'];
 
 $actionParam = $params['action'] ?? null;
 if ($actionParam === null || trim((string)$actionParam) === '') {
@@ -62,15 +62,7 @@ $placardId = trim((string)$placardIdParam);
 $sport = trim((string)$sportParam);
 
 
-if ($action === 'get_player_fouls' && $requestMethod === 'GET') {
-    $playerIdGetParam = $params['playerId'] ?? null;
-    if ($playerIdGetParam === null || trim((string)$playerIdGetParam) === '') {
-        http_response_code(400);
-        echo json_encode(["status" => "error", "message" => "Missing or empty required parameter: playerId for action 'get_player_fouls'"]);
-        exit;
-    }
-    $params['playerId'] = trim((string)$playerIdGetParam);
-} elseif ($action === 'update' || $action === 'delete') {
+if ($action === 'update' || $action === 'delete') {
     $eventIdParam = $params['eventId'] ?? null;
     if ($eventIdParam === null) {
          http_response_code(400);
@@ -166,6 +158,7 @@ try {
             $eventIdStringForRedis = (string)$eventIdRedis;
             $foulEventKey = $foulEventBaseKey . $eventIdStringForRedis;
             $accumulatedFoulKey = $accumulatedFoulBaseKey . "{$teamStr}:period:{$currentPeriod}:fouls_accumulated";
+            $timestamp = $gameTimePosition;
 
             $foulEvent = new FoulEvent((string)$timestamp, $sport, null, $playerIdStr, $teamStr, $currentPeriod);
             $foulEvent->setId($eventIdStringForRedis);
@@ -176,7 +169,7 @@ try {
                 'sport' => $sport,
                 'playerId' => $playerIdStr, 
                 'team' => $teamStr,        
-                'timestamp' => (string)$timestamp,
+                'timestamp' => $gameTimePosition ,
                 'period' => (string)$currentPeriod
             ];
             
@@ -486,6 +479,68 @@ try {
                 ]
             ];
             break;
+
+        case 'get':
+    if ($requestMethod !== 'GET') {
+        http_response_code(405);
+        $response = ["status" => "error", "message" => "Invalid request method. Only GET is allowed for retrieving all fouls."];
+        break;
+    }
+
+
+    $foulEventFullKeys = $redis->zRevRange($gameFoulsKey, 0, -1);
+    error_log("Depurando GET (CORRIGIDO): gameFoulsKey = {$gameFoulsKey}");
+    error_log("Depurando GET (CORRIGIDO): foulEventFullKeys (membros do ZSET) = " . print_r($foulEventFullKeys, true));
+
+
+    if (empty($foulEventFullKeys)) {
+        error_log("Depurando GET (CORRIGIDO): Nenhum foulEventFullKey encontrado no ZSET {$gameFoulsKey}.");
+        http_response_code(200);
+        $response = ['status' => 'success', 'fouls' => []];
+        break;
+    }
+
+    $pipeline = $redis->pipeline();
+    foreach ($foulEventFullKeys as $eventFullKey) {
+
+        error_log("Depurando GET (CORRIGIDO): Adicionando HGETALL para a chave (do ZSET): " . $eventFullKey);
+        $pipeline->hGetAll((string)$eventFullKey);
+    }
+    $foulDataResults = $pipeline->exec();
+    error_log("Depurando GET (CORRIGIDO): Resultados do Pipeline (hGetAll) = " . print_r($foulDataResults, true));
+
+
+    $transformedFouls = [];
+    if ($foulDataResults) {
+        foreach ($foulDataResults as $index => $foulData) {
+            error_log("Depurando GET (CORRIGIDO): Processando resultado do pipeline [{$index}]: " . print_r($foulData, true));
+
+            if (!empty($foulData) && isset($foulData['eventId'])) {
+                error_log("Depurando GET (CORRIGIDO): Condição IF passou para eventId: " . $foulData['eventId']);
+                $transformedFouls[] = [
+                    'eventId' => $foulData['eventId'],
+                    'placardId' => $foulData['placardId'] ?? $placardId,
+                    'sport' => $foulData['sport'] ?? $sport,
+                    'playerId' => $foulData['playerId'] ?? '',
+                    'team' => $foulData['team'] ?? '',
+                    'timestamp' => isset($foulData['timestamp']) ? (float)$foulData['timestamp'] : 0,
+                    'period' => isset($foulData['period']) ? (int)$foulData['period'] : null,
+                ];
+            } else {
+                $errorMessage = "Condição IF FALHOU. ";
+                if (empty($foulData)) {
+                    $errorMessage .= "foulData está vazio. Chave provável: " . ($foulEventFullKeys[$index] ?? 'N/A');
+                } else {
+                    $errorMessage .= "foulData NÃO está vazio. eventId está definido? " . (isset($foulData['eventId']) ? 'Sim (' . $foulData['eventId'] . ')' : 'Não');
+                }
+                error_log("Depurando GET (CORRIGIDO): " . $errorMessage);
+            }
+        }
+    }
+
+    http_response_code(200);
+    $response = ['status' => 'success', 'fouls' => $transformedFouls];
+    break;
         default:
             http_response_code(400);
             $response = ['status' => 'error', "message" => "Action '{$action}' is not supported or invalid."];

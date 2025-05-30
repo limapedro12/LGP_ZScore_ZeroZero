@@ -32,6 +32,7 @@ type ActionType =
     | 'noCards'
     | 'noPeriodBox'
     | 'noShotClock'
+    | 'noFouls'
     | 'typeOfScore'
     | 'sportConfig'
     | 'authUserSocial'
@@ -200,6 +201,7 @@ export interface SliderData {
     scores: boolean;
     players: boolean;
     cards: boolean;
+    fouls: boolean;
   };
 }
 
@@ -298,6 +300,17 @@ interface GameFoulStatusResponse {
         foulsPenaltyThreshold: number | null;
     };
 }
+
+
+interface FoulsResponse {
+    fouls: Array<{
+        eventId: string | number;
+        placardId: string;
+        playerId: string;
+        team: 'home' | 'away';
+        timestamp: number;
+        period?: number;
+    }>;}
 
 interface AuthResponse {
     success: boolean;
@@ -590,6 +603,9 @@ class ApiManager {
     getNoCardSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noCards', { }, 'GET');
 
+    getNoFoulSports = () =>
+        this.makeRequest<SportsResponse>('sports', 'noFouls', { }, 'GET');
+
     getNoShotClockSports = () =>
         this.makeRequest<SportsResponse>('sports', 'noShotClock', { }, 'GET');
 
@@ -614,12 +630,23 @@ class ApiManager {
         );
     };
 
+    getFouls = (placardId: string, sport: string): Promise<FoulsResponse> => {
+        const params: RequestParams = { placardId, sport };
+        return this.makeRequest<FoulsResponse>(
+            'foul',
+            'get',
+            params,
+            'GET'
+        );
+    };
+
     checkToken = (authToken: string) =>
         this.makeRequest<AuthResponse>('api', 'authUserSocial', { authToken }, 'GET');
     checkLoginStatus = () =>
         this.makeRequest<AuthResponse>('api', 'checkLogin', {}, 'GET');
     logout = () =>
         this.makeRequest<AuthResponse>('api', 'logout', {}, 'GET');
+
 
 }
 

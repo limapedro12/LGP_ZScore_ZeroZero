@@ -62,7 +62,7 @@ const FoulsCounter: React.FC = () => {
         return () => clearInterval(intervalId);
     }, [fetchTeamFouls]);
 
-    const isVertical = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
+    const isVertical = useMediaQuery({ maxWidth: BREAKPOINTS.xxl - 1 });
     const maxCountForDisplay = foulsThreshold === undefined ? 0 : foulsThreshold;
 
     return (

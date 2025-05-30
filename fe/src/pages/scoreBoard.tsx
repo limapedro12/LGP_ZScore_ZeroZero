@@ -44,6 +44,7 @@ const ScoreBoard = () => {
 
     const latestSubstitutionRef = React.useRef<Substitution | null>(null);
     const [newSubstitution, setNewSubstitution] = useState<Substitution | null>(null);
+    const [shouldPollFouls, setShouldPollFouls] = useState(true);
 
     const [sliderData, setSliderData] = useState<SliderData>({
         data: {
@@ -54,6 +55,7 @@ const ScoreBoard = () => {
             scores: false,
             cards: false,
             players: false,
+            fouls: false,
         },
     });
 
@@ -211,10 +213,35 @@ const ScoreBoard = () => {
         }
     }, [placardId, homeTeam?.id, awayTeam?.id, shouldPollPlayers]);
 
+    const fetchFouls = useCallback(async () => {
+        if (!placardId || !sport) return;
+
+        try {
+            const response = await apiManager.getFouls(placardId, sport);
+            const hasFouls = response.fouls.length > 0;
+
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, fouls: hasFouls },
+            }));
+
+            if (hasFouls && shouldPollFouls) {
+                setShouldPollFouls(false);
+            }
+        } catch (error) {
+            console.error('Error fetching fouls:', error);
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, fouls: false },
+            }));
+        }
+    }, [placardId, sport, shouldPollFouls]);
+
     useEffect(() => {
         fetchScoreHistory();
         fetchCardEvents();
         fetchPlayers();
+        fetchFouls();
 
         const intervals: number[] = [];
 
@@ -222,7 +249,7 @@ const ScoreBoard = () => {
             intervals.push(window.setInterval(fetchScoreHistory, 5000));
         }
 
-        if (shouldPollCardEvents && !hasCards) {
+        if (shouldPollCardEvents && hasCards) {
             intervals.push(window.setInterval(fetchCardEvents, 5000));
         }
 
@@ -230,13 +257,24 @@ const ScoreBoard = () => {
             intervals.push(window.setInterval(fetchPlayers, 5000));
         }
 
+        if (shouldPollFouls && hasFouls) {
+            intervals.push(window.setInterval(fetchFouls, 5000));
+        }
+
         return () => {
             intervals.forEach((interval) => window.clearInterval(interval));
         };
     }, [
-        fetchScoreHistory, fetchCardEvents, fetchPlayers,
-        shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers,
-        sport, hasCards, homeTeam?.id, awayTeam?.id,
+        fetchScoreHistory,
+        fetchCardEvents,
+        fetchPlayers,
+        fetchFouls,
+        shouldPollScoreHistory,
+        shouldPollCardEvents,
+        shouldPollPlayers,
+        shouldPollFouls,
+        hasCards,
+        hasFouls,
     ]);
 
     useEffect(() => {

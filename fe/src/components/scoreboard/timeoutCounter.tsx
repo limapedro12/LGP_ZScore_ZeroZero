@@ -42,7 +42,7 @@ const TimeoutCounter: React.FC = () => {
         return () => clearInterval(intervalId);
     }, [placardId, fetchTeamsTimeouts]);
 
-    const isVertical = useMediaQuery({ maxWidth: BREAKPOINTS.sm - 1 });
+    const isVertical = useMediaQuery({ maxWidth: BREAKPOINTS.xxl - 1 });
 
     return (
         <div className="timeout-counter w-100 d-flex justify-content-center m-3">
