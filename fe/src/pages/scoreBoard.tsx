@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import apiManager, { ApiTeam, ScoreResponse,  Sport, ApiGame, SliderData, ApiPlayer } from '../api/apiManager';
+import apiManager, { ApiTeam, ScoreResponse,  Sport, ApiGame, SliderData, ApiPlayer, Substitution } from '../api/apiManager';
 import { useParams, useNavigate } from 'react-router-dom';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -9,12 +9,13 @@ import TimeoutTimer from '../components/scoreboard/timeoutTimer';
 import TimeoutCounter from '../components/scoreboard/timeoutCounter';
 import ScoresRow from '../components/scoreboard/scoresCounter';
 import SetBox from '../components/scoreboard/setBox';
-import FoulsCounter from '../components/foulsCounter';
 import ShotClock from '../components/scoreboard/shotClock';
 import Slider from '../components/scoreboard/slider';
 import '../styles/scoreBoard.scss';
 import { BREAKPOINTS } from '../media-queries';
 import { correctSportParameter } from '../utils/navigationUtils';
+import FoulsCounter from '../components/foulsCounter';
+import SubstitutionModal from '../components/scoreboard/substitutionModal';
 
 const ScoreBoard = () => {
     const { sport: sportParam, placardId: placardIdParam } = useParams<{ sport: string, placardId: string }>();
@@ -28,17 +29,22 @@ const ScoreBoard = () => {
     const [awayTeam, setAwayTeam] = useState<ApiTeam | null>(null);
     const [timeoutStatus, setTimeoutStatus] = useState('inactive');
 
-    const [noPeriodBoxSports, setNoPeriodBoxSports] = useState<string[]>([]);
-    const [noShotClockSports, setNoShotClockSports] = useState<string[]>([]);
-    const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
-    const [nonCardSports, setNonCardSports] = useState<string[]>([]);
+
+    const [hasPeriodBox, setHasPeriodBox] = useState<boolean>(false);
+    const [hasShotClock, setHasShotClock] = useState<boolean>(false);
+    const [hasTimer, setHasTimer] = useState<boolean>(false);
+    const [hasCards, setHasCards] = useState<boolean>(false);
+    const [hasFouls, setHasFouls] = useState<boolean>(false);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth < BREAKPOINTS.md);
 
     const [shouldPollScoreHistory, setShouldPollScoreHistory] = useState(true);
     const [shouldPollCardEvents, setShouldPollCardEvents] = useState(true);
     const [shouldPollPlayers, setShouldPollPlayers] = useState(true);
-    //
+
+    const latestSubstitutionRef = React.useRef<Substitution | null>(null);
+    const [newSubstitution, setNewSubstitution] = useState<Substitution | null>(null);
+
     const [sliderData, setSliderData] = useState<SliderData>({
         data: {
             home: { lineup: [] },
@@ -94,18 +100,15 @@ const ScoreBoard = () => {
                     setAwayTeam(away);
                 }
 
-                const [noPeriodResponse, noShotClockResponse, nonTimerResponse, noCardResponse] =
-                await Promise.all([
-                    apiManager.getNoPeriodSports(),
-                    apiManager.getNoShotClockSports(),
-                    apiManager.getNonTimerSports(),
-                    apiManager.getNoCardSports(),
-                ]);
+                const configResp = await apiManager.getSportConfig(info?.sport || sport);
+                const config = configResp?.config || {};
 
-                setNoPeriodBoxSports(noPeriodResponse?.sports || []);
-                setNoShotClockSports(noShotClockResponse?.sports || []);
-                setNonTimerSports(nonTimerResponse?.sports || []);
-                setNonCardSports(noCardResponse?.sports || []);
+                setHasPeriodBox('periodEndScore' in config);
+                setHasShotClock('shotClock' in config);
+                setHasTimer('periodDuration' in config);
+                setHasCards('cards' in config);
+                setHasFouls('foulsPenaltyThreshold' in config);
+
             } catch (error) {
                 console.error('Error fetching teams:', error);
             }
@@ -125,7 +128,6 @@ const ScoreBoard = () => {
                 hasData: { ...prev.hasData, scores: hasScores },
             }));
 
-            // Only for initial loading - stop polling once we have data
             if (hasScores && shouldPollScoreHistory) {
                 setShouldPollScoreHistory(false);
             }
@@ -139,7 +141,7 @@ const ScoreBoard = () => {
     }, [placardId, sport, shouldPollScoreHistory]);
 
     const fetchCardEvents = useCallback(async () => {
-        if (!placardId || !sport || nonCardSports.includes(sport) || !nonCardSports.length) return;
+        if (!placardId || !sport || !hasCards) return;
 
         try {
             const response = await apiManager.getCards(placardId, sport);
@@ -150,7 +152,6 @@ const ScoreBoard = () => {
                 hasData: { ...prev.hasData, cards: hasCards },
             }));
 
-            // Only for initial loading - stop polling once we have data
             if (hasCards && shouldPollCardEvents) {
                 setShouldPollCardEvents(false);
             }
@@ -161,7 +162,7 @@ const ScoreBoard = () => {
                 hasData: { ...prev.hasData, cards: false },
             }));
         }
-    }, [placardId, sport, nonCardSports, shouldPollCardEvents]);
+    }, [placardId, sport, hasCards, shouldPollCardEvents]);
 
     const fetchPlayers = useCallback(async () => {
         if (!placardId || !homeTeam?.id || !awayTeam?.id) return;
@@ -198,7 +199,6 @@ const ScoreBoard = () => {
                 hasData: { ...prev.hasData, players: hasPlayers },
             }));
 
-            // Only for initial loading - stop polling once we have data
             if (hasPlayers && shouldPollPlayers) {
                 setShouldPollPlayers(false);
             }
@@ -212,20 +212,17 @@ const ScoreBoard = () => {
     }, [placardId, homeTeam?.id, awayTeam?.id, shouldPollPlayers]);
 
     useEffect(() => {
-    // Initial data loading - fetch immediately
         fetchScoreHistory();
         fetchCardEvents();
         fetchPlayers();
 
-        // Set up polling intervals for each data type
         const intervals: number[] = [];
 
-        // Only poll for initial data if we haven't found any yet
         if (shouldPollScoreHistory) {
             intervals.push(window.setInterval(fetchScoreHistory, 5000));
         }
 
-        if (shouldPollCardEvents && !nonCardSports.includes(sport)) {
+        if (shouldPollCardEvents && !hasCards) {
             intervals.push(window.setInterval(fetchCardEvents, 5000));
         }
 
@@ -239,18 +236,55 @@ const ScoreBoard = () => {
     }, [
         fetchScoreHistory, fetchCardEvents, fetchPlayers,
         shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers,
-        sport, nonCardSports, homeTeam?.id, awayTeam?.id,
+        sport, hasCards, homeTeam?.id, awayTeam?.id,
     ]);
+
+    useEffect(() => {
+        let timeoutId: number;
+
+        const fetchLatestSubstitution = async () => {
+            if (!placardId || !sport) return;
+
+            try {
+                const response = await apiManager.getSubstitutionStatus(placardId, sport);
+                const latest = response?.substitutions?.[response?.substitutions?.length - 1] || null;
+                console.log('Latest substitution:', response);
+
+                if (
+                    (!latestSubstitutionRef.current && latest) ||
+                (latestSubstitutionRef.current && latest && latestSubstitutionRef.current.substitutionId !== latest.substitutionId)
+                ) {
+                    setNewSubstitution(latest);
+                    latestSubstitutionRef.current = latest;
+                    if (timeoutId) clearTimeout(timeoutId);
+                    timeoutId = window.setTimeout(() => {
+                        setNewSubstitution(null);
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('Error fetching latest substitution:', error);
+            }
+        };
+
+        fetchLatestSubstitution();
+        const intervalId = window.setInterval(fetchLatestSubstitution, 5000);
+
+        return () => {
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+        };
+    }, [placardId, sport]);
+
 
     const Center = useMemo(() => (
         <>
-            {sport && !noShotClockSports.includes(sport) && noShotClockSports.length > 0 && (
+            {sport && hasShotClock && (
                 <div className="shot-clock-wrapper w-100 d-flex justify-content-center">
                     <ShotClock />
                 </div>
             )}
 
-            {sport && noPeriodBoxSports.includes(sport) ? (
+            {sport && !hasPeriodBox ? (
                 <div className="timeout-timer-wrapper w-100 d-flex justify-content-center">
                     <TimeoutTimer onStatusChange={setTimeoutStatus} />
                 </div>
@@ -266,7 +300,7 @@ const ScoreBoard = () => {
                 </>
             )}
 
-            {sport && !nonTimerSports.includes(sport) && (
+            {sport && hasTimer && (
                 <div className="timer-wrapper w-100 d-flex justify-content-center">
                     <Timer />
                 </div>
@@ -275,14 +309,18 @@ const ScoreBoard = () => {
             <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
                 <TimeoutCounter />
             </div>
-            <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
-                <FoulsCounter />
-            </div>
+
+            {sport && hasFouls && (
+                <div className="timeout-counter-wrapper w-100 d-flex justify-content-center">
+                    <FoulsCounter />
+                </div>
+            )}
         </>
-    ), [sport, noShotClockSports, noPeriodBoxSports, nonTimerSports, timeoutStatus, scoreData]);
+    ), [sport, hasShotClock, hasPeriodBox, hasTimer, timeoutStatus, scoreData, hasFouls]);
 
     return (
         <Container fluid className="scoreboard-container d-flex flex-column min-vh-100 p-0">
+            <SubstitutionModal show={!!newSubstitution} substitution={newSubstitution} onHide={() => setNewSubstitution(null)} />
             <Row className="scores-row-wrapper w-100">
                 <Col xs={12} className="p-0">
                     <ScoresRow scoreData={scoreData} homeTeam={homeTeam} awayTeam={awayTeam} />

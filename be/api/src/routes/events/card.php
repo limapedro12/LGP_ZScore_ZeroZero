@@ -89,8 +89,13 @@ try {
                 $response = ["error" => "Invalid card type"];
                 break;
             }
-            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
 
+            if (isset($gameConfig['periodDuration']) && $gameConfig['periodDuration']) {
+                $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            } else {
+                $gameTimePosition = 0;
+            }
+            
             if (!$playerId || !$cardType || ($timestamp === null)) {
                 http_response_code(400);
                 $response = ["error" => "Missing playerId, cardType or timestamp for add action"];

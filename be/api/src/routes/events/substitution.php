@@ -99,66 +99,50 @@ try {
                 exit;
             }
 
-            $ingamePlayers = getIngamePlayers($redis, $placardId, $sport, $team);
-            if (array_key_exists("error", $ingamePlayers)){
-                $response = ["error"=> $ingamePlayers["error"]];
-                echo json_encode($response);
-                exit;
-            }
-            $ingamePlayers = $ingamePlayers["players"];
-
-            if ($ingamePlayers[$playerOut] == false){
-                $response = ["error"=> "Player $playerOut is not in the game"];
-            }
-            else if ($ingamePlayers[$playerIn] == true) {
-                $response = ["error"=> "Player $playerIn is already in the game"];
-            }
-
-            else {
-                $currentSubstitutionIDs = $redis->zRange($substitutionsKey, 0, -1);
-                $currentSubstitutions = [];
-                foreach ($currentSubstitutionIDs as $eventIdKey) {
-                    $substitutionInfo = $redis->hGetAll($eventIdKey);
-                    if (!empty($substitutionInfo) && $substitutionInfo["team"] === $team) {
-                        $currentSubstitutions[] = $substitutionInfo["eventId"];
-                    }
+            $currentSubstitutionIDs = $redis->zRange($substitutionsKey, 0, -1);
+            $currentSubstitutions = [];
+            foreach ($currentSubstitutionIDs as $eventIdKey) {
+                $substitutionInfo = $redis->hGetAll($eventIdKey);
+                if (!empty($substitutionInfo) && $substitutionInfo["team"] === $team) {
+                    $currentSubstitutions[] = $substitutionInfo["eventId"];
                 }
-                if ($gameConfig["substitutionsPerTeam"] != 0 && sizeof($currentSubstitutions) >= $gameConfig["SubstitutionsPerTeam"]) { //TODO Still doesn't check per set (as in volleyball)
-                    $response = ["error"=> "Maximum number of substitutions reached"];
-                    break;
-                }
-                $eventId = $redis->incr($eventCounterKey);
-                $substitutionEventKey = $keys['substitution_event'] . $eventId;
-                $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            }
+            if ($gameConfig["substitutionsPerTeam"] != 0 && sizeof($currentSubstitutions) >= $gameConfig["substitutionsPerTeam"]) {
+                $response = ["error"=> "Maximum number of substitutions reached"];
+                break;
+            }
+            $eventId = $redis->incr($eventCounterKey);
+            $substitutionEventKey = $keys['substitution_event'] . $eventId;
+            if (isset($gameConfig['periodDuration']) && $gameConfig['periodDuration']) {
+                $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            } else {
+                $gameTimePosition = 0;
+            }
 
-                $ingamePlayers[$playerIn] = true;
-                $ingamePlayers[$playerOut] = false;
+            
+            $substitutionData = [
+                "eventId" => $eventId,
+                "team" => $team,
+                "playerInId" => $playerIn,
+                "playerOutId" => $playerOut,
+                "timestamp" => $gameTimePosition
+            ];
 
-                $substitutionData = [
-                    "eventId" => $eventId,
-                    "team" => $team,
-                    "playerInId" => $playerIn,
-                    "playerOutId" => $playerOut,
-                    "timestamp" => $timestamp
+            $redis->multi();
+            $redis->hMSet($substitutionEventKey,$substitutionData);
+            $redis->zAdd($substitutionsKey, $eventId, $substitutionEventKey);
+            $result = $redis->exec();
+
+            if ($result) {
+                http_response_code(201);
+                $response = [
+                    "message"=> "Substitution created successfully",
+                    "substitution"=> $substitutionData
                 ];
-
-                $redis->multi();
-                $redis->hMSet($substitutionEventKey,$substitutionData);
-                $redis->zAdd($substitutionsKey, $timestamp, $substitutionEventKey);
-                $result = $redis->exec();
-
-                if ($result) {
-                    http_response_code(201);
-                    $response = [
-                        "message"=> "Substitution created successfully",
-                        "substitution"=> $substitutionData,
-                        "ingamePlayers" => $ingamePlayers
-                    ];
-                }
-                else {
-                    http_response_code(500);
-                    $response = ["error"=> "Failed to create substitution event"];
-                }
+            }
+            else {
+                http_response_code(500);
+                $response = ["error"=> "Failed to create substitution event"];
             }
             break;
         case 'update':
@@ -189,33 +173,8 @@ try {
 
             $team = $oldSubstitution["team"];
 
-            $ingamePlayers = getIngamePlayers($redis, $placardId, $sport, $team);
-            if (array_key_exists("error", $ingamePlayers)){
-                $response = ["error"=> $ingamePlayers["error"]];
-                echo json_encode($response);
-                exit;
-            }
-            $ingamePlayers = $ingamePlayers["players"];
-            
-
-            //validate alterations
-            if ($oldSubstitution["playerInId"] !== $playerIn && $ingamePlayers[$playerIn] === true) {
-                $response = ["error"=> "Player $playerIn is already in the game"];
-                break;
-            }
-            if ($oldSubstitution["playerOutId"] !== $playerOut && $ingamePlayers[$playerOut] === false){
-                $response = ["error"=> "Player $playerOut is not in the game"];
-                break;
-            }
-
-            $ingamePlayers[$oldSubstitution["playerInId"]] = false;
-            $ingamePlayers[$playerIn] = true;
-            $ingamePlayers[$oldSubstitution["playerOutId"]] = true;
-            $ingamePlayers[$playerOut] = false;
-
             $newTimestamp = $params['newTimestamp'] ?? $oldSubstitution["timestamp"];
 
-            // Check if there are real alterations to the event
             if ($oldSubstitution["playerInId"] === $playerIn
                         && $oldSubstitution["playerOutId"] === $playerOut 
                         && $oldSubstitution["timestamp"] == $newTimestamp) {
@@ -234,14 +193,13 @@ try {
 
             $redis->multi();
             $redis->hMSet($substitutionEventKey, $substitutionData);
-            $redis->zAdd($substitutionsKey, $newTimestamp, $substitutionEventKey);
+            $redis->zAdd($substitutionsKey, $eventId, $substitutionEventKey);
             $result = $redis->exec();
 
             if ($result) {
                 $response = [
                     "message"=> "Substitution updated successfully",
-                    "substitution"=> $substitutionData,
-                    "ingamePlayers" => $ingamePlayers
+                    "substitution"=> $substitutionData
                 ];
             }
             else {
@@ -268,29 +226,15 @@ try {
                 break;
             }
 
-            $ingamePlayers = getIngamePlayers($redis, $placardId, $sport, $team);
-            if (array_key_exists("error", $ingamePlayers)){
-                $response = ["error"=> $ingamePlayers["error"]];
-                echo json_encode($response);
-                exit;
-            }
-            $ingamePlayers = $ingamePlayers["players"];
-            
-                
-            $ingamePlayers[$oldSubstitution["playerInId"]] = false;
-            $ingamePlayers[$oldSubstitution["playerOutId"]] = true;
-            
             $redis->multi();
             $redis->del($substitutionEventKey);
             $redis->zRem($substitutionsKey, $substitutionEventKey);
             $result = $redis->exec();
 
-
             if ($result && isset($result[0]) && $result[0] > 0 && isset($result[1]) && $result[1] > 0) {
                 $response = [
                     "message"=> "Substitution deleted successfully",
-                    "eventId"=> $eventId,
-                    "ingamePlayers" => $ingamePlayers,
+                    "eventId"=> $eventId
                 ];
             } else {
                 http_response_code(500);

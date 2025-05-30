@@ -147,7 +147,11 @@ try {
                 break;
             }
 
-            $timestamp = RequestUtils::getGameTimePosition($placardId, $sportSpecificConfig);
+            if (isset($gameConfig['periodDuration']) && $gameConfig['periodDuration']) {
+                $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            } else {
+                $gameTimePosition = 0;
+            }            
             $currentPeriod = RequestUtils::getGamePeriod($placardId, $sportSpecificConfig);
             if ($currentPeriod > $totalPeriods) {
                  http_response_code(400);
