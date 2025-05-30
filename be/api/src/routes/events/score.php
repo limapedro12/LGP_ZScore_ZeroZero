@@ -325,6 +325,10 @@ try {
                         break;
                     }
                 }
+                if ($newPointValue != $currentPointData['pointValue']) {
+                    $updatedData['pointValue'] = $newPointValue;
+                    $isChanged = true;
+                }
             }
         
             $providedUpdateParams = isset($params['playerId']) || isset($params['team']) || isset($params['pointValue']);

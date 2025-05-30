@@ -705,6 +705,9 @@ class ApiManager {
     logout = () =>
         this.makeRequest<AuthResponse>('api', 'logout', {}, 'GET');
 
+    getScore = (placardId: string, sport: string) =>
+        this.makeRequest<ScoreResponse>('score', 'get', { placardId, sport }, 'GET');
+
 
 }
 

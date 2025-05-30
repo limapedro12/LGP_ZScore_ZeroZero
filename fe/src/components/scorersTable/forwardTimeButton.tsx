@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import clockForward from '../../../public/icons/forward-icon.png';
+import clockForward from '../../../src/icons/forward-icon.png';
 
 interface TimeForwardButtonProps {
   value: number;

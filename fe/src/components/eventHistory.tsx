@@ -440,6 +440,7 @@ const EventHistory: React.FC = () => {
                     pointValue: editFormData.pointValue,
                     timestamp: eventToEdit.timestamp,
                 };
+                console.log('Updating score with params:', scoreUpdateParams);
                 await apiManager.makeRequest('score', 'update', scoreUpdateParams, 'POST');
                 setEditConfirmMessage('Golo/Ponto atualizado com sucesso!');
             } else if (eventToEdit.type === 'card') {
@@ -801,6 +802,22 @@ const EventHistory: React.FC = () => {
                                             ))}
                                         </select>
                                     </div>
+                                    {eventToEdit.type === 'score' && sport === 'basketball' && (
+                                        <div className="form-group">
+                                            <label htmlFor="pointValue">Número de pontos:</label>
+                                            <select
+                                                id="pointValue"
+                                                name="pointValue"
+                                                value={editFormData.pointValue || ''}
+                                                onChange={handleEditFormChange}
+                                                required
+                                            >
+                                                <option value="1">1 Ponto</option>
+                                                <option value="2">2 Pontos</option>
+                                                <option value="3">3 Pontos</option>
+                                            </select>
+                                        </div>
+                                    )}
 
                                     {eventToEdit.type === 'card' && (
                                         <div className="form-group">
