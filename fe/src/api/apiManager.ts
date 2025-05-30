@@ -234,6 +234,8 @@ export interface ApiGame {
     isFinished: boolean;
     sport: Sport;
     startTime: string;
+    competition: string;
+    stadium: string;
 }
 
 export interface ApiTeam {
