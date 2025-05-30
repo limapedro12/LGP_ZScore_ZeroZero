@@ -218,7 +218,7 @@ export interface SubstitutionResponse{
     message?: string;
     substitutionId?: string;
     substitutions?: Array<{
-        substitutionId: string,
+        eventId: string,
         team: string,
         playerInId: string,
         playerOutId: string,

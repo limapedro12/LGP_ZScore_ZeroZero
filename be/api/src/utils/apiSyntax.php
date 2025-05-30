@@ -161,6 +161,10 @@
     {
         $matchLiveInfo = getMatchLiveInfo($placardId);
         $matchLiveInfo = json_decode($matchLiveInfo, true);
+        if (!isset($matchLiveInfo['data']) || !is_array($matchLiveInfo['data'])) {
+            echo json_encode(["error" => "No match live info data for placardId $placardId"]);
+            return false;
+        }
         $data = $matchLiveInfo['data'];
         $homeTeamId = $data['id_home_team'];
         $awayTeamId = $data['id_away_team'];

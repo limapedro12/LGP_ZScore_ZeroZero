@@ -240,7 +240,7 @@ const ScoreBoard = () => {
     ]);
 
     useEffect(() => {
-        let timeoutId: number;
+    // let timeoutId: number;  // REMOVE this line
 
         const fetchLatestSubstitution = async () => {
             if (!placardId || !sport) return;
@@ -248,18 +248,18 @@ const ScoreBoard = () => {
             try {
                 const response = await apiManager.getSubstitutionStatus(placardId, sport);
                 const latest = response?.substitutions?.[response?.substitutions?.length - 1] || null;
-                console.log('Latest substitution:', response);
 
                 if (
                     (!latestSubstitutionRef.current && latest) ||
-                (latestSubstitutionRef.current && latest && latestSubstitutionRef.current.substitutionId !== latest.substitutionId)
+                (latestSubstitutionRef.current && latest && latestSubstitutionRef.current.eventId !== latest.eventId)
                 ) {
                     setNewSubstitution(latest);
                     latestSubstitutionRef.current = latest;
-                    if (timeoutId) clearTimeout(timeoutId);
-                    timeoutId = window.setTimeout(() => {
-                        setNewSubstitution(null);
-                    }, 3000);
+                // REMOVE the timeout logic below:
+                // if (timeoutId) clearTimeout(timeoutId);
+                // timeoutId = window.setTimeout(() => {
+                //     setNewSubstitution(null);
+                // }, 3000);
                 }
             } catch (error) {
                 console.error('Error fetching latest substitution:', error);
@@ -271,7 +271,7 @@ const ScoreBoard = () => {
 
         return () => {
             clearInterval(intervalId);
-            clearTimeout(timeoutId);
+        // clearTimeout(timeoutId); // REMOVE this line
         };
     }, [placardId, sport]);
 
@@ -320,7 +320,22 @@ const ScoreBoard = () => {
 
     return (
         <Container fluid className="scoreboard-container d-flex flex-column min-vh-100 p-0">
-            <SubstitutionModal show={!!newSubstitution} substitution={newSubstitution} onHide={() => setNewSubstitution(null)} />
+            <SubstitutionModal
+                show={!!newSubstitution}
+                substitution={newSubstitution}
+                onHide={() => setNewSubstitution(null)}
+                teamColor={
+                    (() => {
+                        if (newSubstitution?.team === 'home') {
+                            return homeTeam?.color;
+                        }
+                        if (newSubstitution?.team === 'away') {
+                            return awayTeam?.color;
+                        }
+                        return undefined;
+                    })()
+                }
+            />
             <Row className="scores-row-wrapper w-100">
                 <Col xs={12} className="p-0">
                     <ScoresRow scoreData={scoreData} homeTeam={homeTeam} awayTeam={awayTeam} />
@@ -350,7 +365,7 @@ const ScoreBoard = () => {
                     </Col>
                 </Row>
             ) : (
-                // Mobile Layout
+            // Mobile Layout
                 <Row className="w-100 justify-content-center flex-grow-1 overflow-auto">
                     <Row className="w-100 m-0">
                         <Col xs={12} className="d-flex flex-column align-items-center justify-content-center">

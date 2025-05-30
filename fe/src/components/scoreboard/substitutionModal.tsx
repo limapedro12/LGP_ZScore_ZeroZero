@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PlayerJersey from '../playerJersey';
-import { Modal } from 'react-bootstrap';
+import { Modal, Row, Col } from 'react-bootstrap';
 import '../../styles/substitutionModal.scss';
 import apimanager, { Substitution, ApiPlayer } from '../../api/apiManager';
 
@@ -8,8 +8,9 @@ interface SubstitutionModalProps {
     show: boolean;
     onHide: () => void;
     substitution: Substitution | null;
+    teamColor?: string;
 }
-const SubstitutionModal: React.FC<SubstitutionModalProps> = ({ show, onHide, substitution }) => {
+const SubstitutionModal: React.FC<SubstitutionModalProps> = ({ show, onHide, substitution, teamColor }) => {
 
     const [playerIn, setPlayerIn] = useState<ApiPlayer | null>(null);
     const [playerOut, setPlayerOut] = useState<ApiPlayer | null>(null);
@@ -36,28 +37,41 @@ const SubstitutionModal: React.FC<SubstitutionModalProps> = ({ show, onHide, sub
         >
             <Modal.Body>
                 <div className="substitution-content">
-                    <div className="player-in d-flex align-items-center mb-4">
-                        <span className="triangle-green me-3" />
-                        {playerIn && (
-                            <>
-                                <PlayerJersey number={parseInt(playerIn.number, 10)} color="#27ae60" />
-                                <span className="player-name ms-3">
-                                    {playerIn.name}
-                                </span>
-                            </>
-                        )}
+                    <Row className="align-items-center player-in mb-4 w-100 gx-0 justify-content-center">
+                        <Col
+                            className="d-flex justify-content-between align-items-center player-row-content"
+                            style={{ width: '90%' }}
+                        >
+                            {playerIn && (
+                                <>
+                                    <span className="player-name">
+                                        {playerIn.name}
+                                    </span>
+                                    <PlayerJersey number={parseInt(playerIn.number, 10)} color={teamColor || '#27ae60'} />
+                                </>
+                            )}
+                        </Col>
+                    </Row>
+                    <div className="divider-with-triangle w-100 d-flex flex-column align-items-center my-2">
+                        <span className="triangle-green mb-2" />
+                        <div className="substitution-divider" />
+                        <span className="triangle-red mt-2" />
                     </div>
-                    <div className="player-out d-flex align-items-center">
-                        <span className="triangle-red me-3" />
-                        {playerOut && (
-                            <>
-                                <PlayerJersey number={parseInt(playerOut.number, 10)} color="#c0392b" />
-                                <span className="player-name ms-3">
-                                    {playerOut.name}
-                                </span>
-                            </>
-                        )}
-                    </div>
+                    <Row className="align-items-center player-out w-100 gx-0 justify-content-center">
+                        <Col
+                            className="d-flex justify-content-between align-items-center player-row-content"
+                            style={{ width: '90%' }}
+                        >
+                            {playerOut && (
+                                <>
+                                    <span className="player-name">
+                                        {playerOut.name}
+                                    </span>
+                                    <PlayerJersey number={parseInt(playerOut.number, 10)} color={teamColor || '#c0392b'} />
+                                </>
+                            )}
+                        </Col>
+                    </Row>
                 </div>
             </Modal.Body>
         </Modal>
