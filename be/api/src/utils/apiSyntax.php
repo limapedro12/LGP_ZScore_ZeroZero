@@ -54,6 +54,8 @@
                 $team2Desc = $placard['equipa_fora_descr'];
                 $isFinished = $placard['estado'] == 'NÃ£o terminado' ?  0 : 1;
                 $date = $placard['data_jogo'];
+                $stadium = $placard['estadio_descr'];
+                $competition = $placard['edicao_descr'];
 
                 if (!DbUtils::selectTeam($team1, $sport)) {
                     $matchLiveInfo = getMatchLiveInfo($placardId);
