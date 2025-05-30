@@ -3,6 +3,7 @@ import CardSlider from './cards/cardSlider';
 import ScoreHistorySlider from './scores/scoreHistorySlider';
 import PlayerScoreSlider from './scores/playerScoreSlider';
 import SquadSlider from './scores/squadSlider';
+import FoulSlider from './fouls/foulSlider';
 import apiManager, { SliderData, Sport as ApiSports } from '../../api/apiManager';
 import { Sport as CardSports } from '../../utils/cardUtils';
 
@@ -13,6 +14,7 @@ const SCORE_TYPES: Record<string, string> = {
     'default': 'Pontos',
 };
 
+
 interface SliderProps {
   sport: ApiSports;
   placardId: string;
@@ -21,7 +23,7 @@ interface SliderProps {
   sliderData: SliderData;
 }
 
-const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, sliderData }) => {
+const  Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, sliderData }) => {
     const [scoreType, setScoreType] = useState<string>(SCORE_TYPES.default);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -50,6 +52,7 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, slid
     }, [fetchScoreType]);
 
     const sliderItems: React.ReactNode[] = [
+
         ...(sliderData.hasData.players ?
             [
                 <SquadSlider
@@ -70,6 +73,16 @@ const Slider: React.FC<SliderProps> = ({ sport, placardId, team, teamColor, slid
                 <PlayerScoreSlider
                     sport={sport} team={team} placardId={placardId}
                     teamColor={teamColor} typeOfScore={scoreType} key="player-score-item"
+                />] : []),
+        ...(sliderData.hasData.fouls ?
+            [
+                <FoulSlider
+                    sport={sport}
+                    team={team}
+                    placardId={placardId}
+                    players={teamLineup}
+                    teamColor={teamColor}
+                    key="foul-slider-item"
                 />] : []),
     ];
 

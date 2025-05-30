@@ -32,13 +32,15 @@ const ScoreBoard = () => {
     const [noShotClockSports, setNoShotClockSports] = useState<string[]>([]);
     const [nonTimerSports, setNonTimerSports] = useState<string[]>([]);
     const [nonCardSports, setNonCardSports] = useState<string[]>([]);
+    const [noFoulsSports, setNoFoulsSports] = useState<string[]>([]);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth < BREAKPOINTS.md);
 
     const [shouldPollScoreHistory, setShouldPollScoreHistory] = useState(true);
     const [shouldPollCardEvents, setShouldPollCardEvents] = useState(true);
     const [shouldPollPlayers, setShouldPollPlayers] = useState(true);
-    //
+    const [shouldPollFouls, setShouldPollFouls] = useState(true);
+
     const [sliderData, setSliderData] = useState<SliderData>({
         data: {
             home: { lineup: [] },
@@ -48,6 +50,7 @@ const ScoreBoard = () => {
             scores: false,
             cards: false,
             players: false,
+            fouls: false,
         },
     });
 
@@ -94,18 +97,20 @@ const ScoreBoard = () => {
                     setAwayTeam(away);
                 }
 
-                const [noPeriodResponse, noShotClockResponse, nonTimerResponse, noCardResponse] =
+                const [noPeriodResponse, noShotClockResponse, nonTimerResponse, noCardResponse, noFoulResponse] =
                 await Promise.all([
                     apiManager.getNoPeriodSports(),
                     apiManager.getNoShotClockSports(),
                     apiManager.getNonTimerSports(),
                     apiManager.getNoCardSports(),
+                    apiManager.getNoFoulSports(),
                 ]);
 
                 setNoPeriodBoxSports(noPeriodResponse?.sports || []);
                 setNoShotClockSports(noShotClockResponse?.sports || []);
                 setNonTimerSports(nonTimerResponse?.sports || []);
                 setNonCardSports(noCardResponse?.sports || []);
+                setNoFoulsSports(noFoulResponse?.sports || []);
             } catch (error) {
                 console.error('Error fetching teams:', error);
             }
@@ -211,16 +216,38 @@ const ScoreBoard = () => {
         }
     }, [placardId, homeTeam?.id, awayTeam?.id, shouldPollPlayers]);
 
+    const fetchFouls = useCallback(async () => {
+        if (!placardId || !sport) return;
+
+        try {
+            const response = await apiManager.getFouls(placardId, sport);
+            const hasFouls = response.fouls.length > 0;
+
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, fouls: hasFouls },
+            }));
+
+            if (hasFouls && shouldPollFouls) {
+                setShouldPollFouls(false);
+            }
+        } catch (error) {
+            console.error('Error fetching fouls:', error);
+            setSliderData((prev) => ({
+                ...prev,
+                hasData: { ...prev.hasData, fouls: false },
+            }));
+        }
+    }, [placardId, sport, shouldPollFouls]);
+
     useEffect(() => {
-    // Initial data loading - fetch immediately
         fetchScoreHistory();
         fetchCardEvents();
         fetchPlayers();
+        fetchFouls();
 
-        // Set up polling intervals for each data type
         const intervals: number[] = [];
 
-        // Only poll for initial data if we haven't found any yet
         if (shouldPollScoreHistory) {
             intervals.push(window.setInterval(fetchScoreHistory, 5000));
         }
@@ -233,13 +260,17 @@ const ScoreBoard = () => {
             intervals.push(window.setInterval(fetchPlayers, 5000));
         }
 
+        if (shouldPollFouls && !noFoulsSports.includes(sport)) {
+            intervals.push(window.setInterval(fetchFouls, 5000));
+        }
+
         return () => {
             intervals.forEach((interval) => window.clearInterval(interval));
         };
     }, [
-        fetchScoreHistory, fetchCardEvents, fetchPlayers,
-        shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers,
-        sport, nonCardSports, homeTeam?.id, awayTeam?.id,
+        fetchScoreHistory, fetchCardEvents, fetchPlayers, fetchFouls,
+        shouldPollScoreHistory, shouldPollCardEvents, shouldPollPlayers, shouldPollFouls,
+        sport, nonCardSports, noFoulsSports, homeTeam?.id, awayTeam?.id,
     ]);
 
     const Center = useMemo(() => (
