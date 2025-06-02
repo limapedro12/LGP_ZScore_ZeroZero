@@ -67,11 +67,24 @@ class RequestUtils {
                     'status' => $prefix . 'timeout_status',
                     'team' => $prefix . 'timeout_team',
                 ];
+            case 'shotclock':
+                return [
+                    'start_time' => $prefix . 'shotclock:start_time',
+                    'remaining_time' => $prefix . 'shotclock:remaining_time',
+                    'status' => $prefix . 'shotclock:status',
+                    'active_team' => $prefix . 'shotclock:active_team'
+                ];
             case 'cards':
                 return [
                     'game_cards' => $prefix . 'cards',
                     'event_counter' => $prefix . 'eventcounter',
-                    'card_event' => 'cardevent:'
+                    'card_event' => $prefix . 'cardevent:'
+                ];
+            case 'substitutions':
+                return [
+                    'substitutions' => $prefix . 'substitutions',
+                    'event_counter' => $prefix . 'event_counter',
+                    'substitution_event' => $prefix . 'substitutionevent:'
                 ];
             case 'points':
                 return [
@@ -82,6 +95,7 @@ class RequestUtils {
                     'away_points' => $prefix . 'away_points',
                     'total_game_points' => $prefix . 'total_game_points',
                     'set_points' => $prefix . 'set_points:',
+                    'current_server' => $prefix . 'current_server',
                 ];
             case 'fouls':
                 return [
@@ -93,37 +107,64 @@ class RequestUtils {
         }
     }
 
-    public static function getGameTimePosition($placardId) {
-        global $redis, $gameConfig;
+    public static function getGameTimePosition($placardId, $gameConfig) {
+        global $redis;
 
         $timerKeys = self::getRedisKeys($placardId, 'timer');
 
         if(!isset($gameConfig['periodDuration'])){
+            echo json_encode([
+                'error' => 'periodDuration not set in gameConfig'
+            ]);
             return 0;
         }
-        
+
         $pipeline = $redis->pipeline();
         $pipeline->get($timerKeys['period']);
         $pipeline->get($timerKeys['remaining_time']);
         $pipeline->get($timerKeys['status']);
         $pipeline->get($timerKeys['start_time']);
         $results = $pipeline->exec();
-        
+
         $period = (int)($results[0] ?: 1);
         $remainingTime = (int)($results[1] ?: $gameConfig['periodDuration']);
         $status = $results[2] ?: 'paused';
         $startTime = (int)($results[3] ?: 0);
-        
+
         if ($status === 'running' && $startTime > 0) {
             $currentTime = time();
             $elapsedSinceStart = $currentTime - $startTime;
             $remainingTime = max(0, $remainingTime - $elapsedSinceStart);
         }
-        
+
         $elapsedInPeriod = $gameConfig['periodDuration'] - $remainingTime;
-        
+
         $totalElapsed = (($period - 1) * $gameConfig['periodDuration']) + $elapsedInPeriod;
-        
+
         return $totalElapsed;
+    }
+
+    public static function getGamePeriod($placardId, $gameConfig) {
+        global $redis;
+
+        $timerKeys = self::getRedisKeys($placardId, 'timer');
+
+        if (!isset($gameConfig['periods'])) {
+            return 1;
+        }
+
+        $pipeline = $redis->pipeline();
+        $pipeline->get($timerKeys['period']);
+        $results = $pipeline->exec();
+
+        $period = (int)($results[0] ?: 1);
+
+        if ($period < 1) {
+            $period = 1;
+        } elseif ($period > $gameConfig['periods']) {
+            $period = $gameConfig['periods'];
+        }
+
+        return $period;
     }
 }

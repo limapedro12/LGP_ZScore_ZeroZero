@@ -68,6 +68,8 @@ logs/
 
 ## MariaDB ###
 *.sql
+!be/db/populate_lineups.sql
+!be/db/populate_demo_games.sql
 *.sql.gz
 *.sql.bak
 *.sql.zip
@@ -80,3 +82,4 @@ logs/
 *package-lock.json
 
 !schema.sql
+package.json

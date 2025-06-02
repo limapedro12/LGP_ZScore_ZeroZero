@@ -60,6 +60,7 @@ try {
     $awayPointsKey = $keys['away_points'];
     $actualPeriodKey = $timerKeys['period'];
     $totalGamePointsKey = $keys['total_game_points'];
+    $currentServerKey = $keys['current_server'];
 
     $pipeline = $redis->pipeline();
     $pipeline->get($homePointsKey);
@@ -138,12 +139,17 @@ try {
                 break;
             }
 
-            PointUtils::changePeriod($placardId, $sport, $team);
+            $periodChanged = PointUtils::changePeriod($placardId, $sport, $team);
 
-            $timestamp = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            if ($periodChanged) {
+                $redis->set($currentServerKey, null);
+            } else {
+                $redis->set($currentServerKey, $team);
+            }
 
             $currentHomePoints = ($team === 'home') ? $points : (int)$homePoints;
             $currentAwayPoints = ($team === 'away') ? $points : (int)$awayPoints;
+            $currentSetTotalPoints = $currentHomePoints + $currentAwayPoints;
             $totalGamePoints = (int)$currentHomePoints + (int)$currentAwayPoints;
 
             for ($i = 1; $i < $currentPeriod; $i++) {
@@ -154,6 +160,12 @@ try {
                 }
             }
 
+            if (isset($gameConfig['periodDuration']) && $gameConfig['periodDuration']) {
+                $gameTimePosition = RequestUtils::getGameTimePosition($placardId, $gameConfig);
+            } else {
+                $gameTimePosition = 0;
+            }
+
             $pointData = [
                 'eventId' => $eventId,
                 'placardId' => $placardId,
@@ -161,6 +173,9 @@ try {
                 'playerId' => $playerId,
                 'period' => $currentPeriod,
                 'pointValue' => $pointValue,
+                'periodTotalPoints' => $currentSetTotalPoints,
+                'teamPoints' => $points,
+                'timeSpan' => $gameTimePosition
             ];
 
             $redis->multi();
@@ -313,6 +328,10 @@ try {
                         break;
                     }
                 }
+                if ($newPointValue != $currentPointData['pointValue']) {
+                    $updatedData['pointValue'] = $newPointValue;
+                    $isChanged = true;
+                }
             }
         
             $providedUpdateParams = isset($params['playerId']) || isset($params['team']) || isset($params['pointValue']);
@@ -379,24 +398,40 @@ try {
                     $periodTotalPoints = 0;
                 }
                 
+                if ($i == $currentPeriod) {
+                    $winner = null;
+                } else if ($homePointsInPeriod > $awayPointsInPeriod) {
+                    $winner = 'home';
+                } else if ($awayPointsInPeriod > $homePointsInPeriod) {
+                    $winner = 'away';
+                } else {
+                    $winner = null;
+                }
+            
                 $periods[] = [
                     'period' => $i,
                     'homePoints' => $homePointsInPeriod,
                     'awayPoints' => $awayPointsInPeriod,
-                    'totalPoints' => $periodTotalPoints
+                    'totalPoints' => $periodTotalPoints,
+                    'winner' => $winner
                 ];
-                
+            
                 $totalHomePoints += $homePointsInPeriod;
                 $totalAwayPoints += $awayPointsInPeriod;
             }
-        
+
+            $currentServer = $redis->get($currentServerKey);
+            $currentPeriod = (int)($redis->get($actualPeriodKey) ?? 1);
+
             $response = [
                 "totalPeriods" => $totalPeriods,
+                "currentPeriod" => $currentPeriod,
                 "currentScore" => [
                     "homeScore" => (int)$homePoints,
                     "awayScore" => (int)$awayPoints
                 ],
-                "periods" => $periods
+                "periods" => $periods,
+                "currentServer" => $currentServer
             ];
             break;
         default:

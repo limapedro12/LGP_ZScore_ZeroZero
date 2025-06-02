@@ -7,7 +7,7 @@ $params = RequestUtils::getRequestParams();
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 $requiredParams = ['action'];
-$allowedActions = ['noTimer'];
+$allowedActions = ['noTimer', 'noPeriodBox', 'noCards', 'typeOfScore', 'noShotClock', 'sportConfig', 'noFouls'];
 
 $validationError = RequestUtils::validateParams($params, $requiredParams, $allowedActions);
 if ($validationError) {
@@ -28,8 +28,7 @@ $response = [];
 
 try {
     $gameConfig = new GameConfig();
-    $reflection = new ReflectionClass($gameConfig);
-
+    
     switch ($action) {
         case 'noTimer':
             if ($requestMethod !== 'GET') {
@@ -38,9 +37,7 @@ try {
                 break;
             }
             $sportsWithoutPeriodDuration = [];
-            $configsProp = $reflection->getProperty('configs');
-            $configsProp->setAccessible(true);
-            $configs = $configsProp->getValue($gameConfig);
+            $configs = $gameConfig->getAllConfigs();
 
             foreach ($configs as $sport => $config) {
                 if (!isset($config['periodDuration'])) {
@@ -49,6 +46,138 @@ try {
             }
             $response = [
                 "sports" => $sportsWithoutPeriodDuration
+            ];
+            break;
+        case 'noPeriodBox':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for this action."];
+                break;
+            }
+            $sportsWithoutPeriodEndScore = [];
+            $configs = $gameConfig->getAllConfigs();
+
+            foreach ($configs as $sport => $config) {
+                if (!isset($config['periodEndScore'])) {
+                    $sportsWithoutPeriodEndScore[] = $sport;
+                }
+            }
+            $response = [
+                "sports" => $sportsWithoutPeriodEndScore
+            ];
+            break;
+        case 'noCards':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for this action."];
+                break;
+            }
+            $sportsWithoutCards = [];
+            $configs = $gameConfig->getAllConfigs();
+
+            foreach ($configs as $sport => $config) {
+                if (!isset($config['cards'])) {
+                    $sportsWithoutCards[] = $sport;
+                }
+            }
+            $response = [
+                "sports" => $sportsWithoutCards
+            ];
+            break;
+        case 'noShotClock':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for this action."];
+                break;
+            }
+            $sportsWithoutShotClock = [];
+            $configs = $gameConfig->getAllConfigs();
+
+            foreach ($configs as $sport => $config) {
+                if (!isset($config['shotClock'])) {
+                    $sportsWithoutShotClock[] = $sport;
+                }
+            }
+            $response = [
+                "sports" => $sportsWithoutShotClock
+            ];
+            break;
+        case 'noFouls':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for this action."];
+                break;
+            }
+            $sportsWithoutFouls = [];
+            $configs = $gameConfig->getAllConfigs();
+
+            foreach ($configs as $sport => $config) {
+                if (!isset($config['foulsPenaltyThreshold'])) {
+                    $sportsWithoutFouls[] = $sport;
+                }
+            }
+            $response = [
+                "sports" => $sportsWithoutFouls
+            ];
+            break;
+        case 'typeOfScore':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for this action."];
+                break;
+            }
+            $sport = $params['sport'] ?? null;
+            if ($sport === null) {
+                http_response_code(400);
+                $response = ["error" => "Missing sport parameter"];
+                break;
+            }
+
+            $sport = strtolower($sport);
+            $configs = $gameConfig->getAllConfigs();
+            
+            if (!isset($configs[$sport])) {
+                http_response_code(400);
+                $response = ["error" => "Unknown sport: $sport"];
+                break;
+            }
+            $config = $configs[$sport];
+            if (!isset($config['typeOfScore'])) {
+                http_response_code(400);
+                $response = ["error" => "No type of score found for sport: $sport"];
+                break;
+            }
+            $typeOfScore = $config['typeOfScore'];
+            $response = [
+                "sport" => $sport,
+                "typeOfScore" => $typeOfScore
+            ];
+            break;
+        case 'sportConfig':
+            if ($requestMethod !== 'GET') {
+                http_response_code(405);
+                $response = ["error" => "Invalid request method. Only GET is allowed for this action."];
+                break;
+            }
+            $sport = $params['sport'] ?? null;
+            if ($sport === null) {
+                http_response_code(400);
+                $response = ["error" => "Missing sport parameter"];
+                break;
+            }
+
+            $sport = strtolower($sport);
+            $configs = $gameConfig->getAllConfigs();
+            
+            if (!isset($configs[$sport])) {
+                http_response_code(400);
+                $response = ["error" => "Unknown sport: $sport"];
+                break;
+            }
+            $config = $configs[$sport];
+            $response = [
+                "sport" => $sport,
+                "config" => $config
             ];
             break;
 

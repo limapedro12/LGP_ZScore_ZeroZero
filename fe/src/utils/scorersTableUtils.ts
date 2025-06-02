@@ -1,0 +1,255 @@
+import { CardTypeForSport, Sport as cardUtilsSportType } from './cardUtils';
+import apiManager, { Sport } from '../api/apiManager';
+
+export type EventCategory =   'basketballScore'
+                            | 'volleyballScore'
+                            | 'futsalScore'
+                            | 'foul'
+                            | 'timeout'
+                            | 'possession'
+                            | 'card'
+                            | 'substitution';
+
+
+export type TeamTag = 'home' | 'away';
+
+interface EventIconInfo {
+  iconPath: string;
+}
+
+const eventIcons: Record<EventCategory, EventIconInfo> = {
+    basketballScore: { iconPath: '/icons/basketball-score-icon.png' },
+    volleyballScore: { iconPath: '/icons/volleyball-score-icon.png' },
+    futsalScore: { iconPath: '/icons/futsal-score-icon.png' },
+    foul: { iconPath: '/icons/foul-icon.png' },
+    timeout: { iconPath: '/icons/timeout-icon.png' },
+    possession: { iconPath: '/icons/basketball-possession-icon.png' },
+    card: { iconPath: '/icons/yellow-red-together-card-icon.png' },
+    substitution: { iconPath: '/icons/sub-icon.png' },
+};
+
+/**
+ * Gets the icon path for a given event category.
+ * @param category The event category.
+ * @returns The path to the event icon, or undefined if not found.
+ */
+export function getEventIconPath(category: EventCategory): string | undefined {
+    const iconInfo = eventIcons[category];
+    if (iconInfo) {
+        return iconInfo.iconPath;
+    }
+    console.warn(`Icon not found for event category: ${category}`);
+    return undefined;
+}
+
+export interface SportEventConfig {
+    eventName: string;
+    eventCategory: EventCategory;
+
+    onEventAction?: (
+        teamTag: TeamTag,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        navigate?: any,
+        sport?: Sport,
+        placardId?: string,
+    ) => void;
+}
+
+const sportEventConfigurations: Record<Sport, SportEventConfig[]> = {
+    futsal: [
+        {
+            eventName: 'Golo',
+            eventCategory: 'futsalScore',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'futsalScore' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for futsal score event');
+                }
+            },
+        },
+        {
+            eventName: 'Falta',
+            eventCategory: 'foul',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'foul' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for futsal foul event');
+                }
+            },
+        },
+        {
+            eventName: 'Cartão',
+            eventCategory: 'card',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/selectCard/${teamTag}`);
+                } else {
+                    console.warn('Navigation details missing for card event');
+                }
+            },
+        },
+        {
+            eventName: 'Tempo',
+            eventCategory: 'timeout',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startTimeout(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
+        },
+    ],
+    volleyball: [
+        {
+            eventName: 'Ponto',
+            eventCategory: 'volleyballScore',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'volleyballScore' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for volleyball score event');
+                }
+            },
+        },
+        {
+            eventName: 'Substituição',
+            eventCategory: 'substitution',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'substitution' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for volleyball substitution event');
+                }
+            },
+        },
+        {
+            eventName: 'Cartão',
+            eventCategory: 'card',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/selectCard/${teamTag}`);
+                } else {
+                    console.warn('Navigation details missing for card event');
+                }
+            },
+        },
+        {
+            eventName: 'Tempo',
+            eventCategory: 'timeout',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startTimeout(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
+        },
+    ],
+    basketball: [
+        {
+            eventName: 'Cesto',
+            eventCategory: 'basketballScore',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/pointValueSelection/${teamTag}`, {
+                        state: { eventCategory: 'basketballScore' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for basketball score event');
+                }
+            },
+        },
+        {
+            eventName: 'Falta',
+            eventCategory: 'foul',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (navigate && sport && placardId) {
+                    navigate(`/scorersTable/${sport}/${placardId}/playerSelection/${teamTag}`, {
+                        state: { eventCategory: 'foul' },
+                    });
+                } else {
+                    console.warn('Navigation details missing for futsal foul event');
+                }
+            },
+        },
+        {
+            eventName: 'Tempo',
+            eventCategory: 'timeout',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startTimeout(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
+        },
+        {
+            eventName: 'Posse',
+            eventCategory: 'possession',
+            onEventAction: (teamTag, navigate, sport, placardId) => {
+                if (teamTag && sport && placardId) {
+                    apiManager.startShotClock(placardId, sport, teamTag);
+                } else {
+                    console.warn('Navigation details missing for timeout event');
+                }
+            },
+        },
+    ],
+};
+
+/**
+   * Gets the event configurations for a given sport.
+   * @param sport The sport.
+   * @returns An array of SportEventConfig for the specified sport, or an empty array if the sport is not found.
+   */
+export function getSportEvents(sport: Sport): SportEventConfig[] {
+    return sportEventConfigurations[sport] || [];
+}
+
+export interface AssignCardActionParams {
+  cardType: CardTypeForSport<cardUtilsSportType>;
+}
+
+export type PlayerActionParams = AssignCardActionParams; // |  AssignGoalActionParams |
+
+export interface PlayerAssignmentConfig<TParams extends PlayerActionParams = PlayerActionParams> {
+  apiMethod: keyof typeof apiManager;
+  getApiArgs: (
+    playerId: string,
+    placardId: string,
+    sport: Sport,
+    teamTag: TeamTag,
+    params: TParams
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => any[]; // Returns array of arguments for the apiManager method
+}
+
+export const playerAssignmentActions: {
+  assignCard: PlayerAssignmentConfig<AssignCardActionParams>;
+  // assignGoal?: PlayerAssignmentConfig<AssignGoalActionParams>;
+} = {
+    assignCard: {
+        apiMethod: 'createCard',
+        getApiArgs: (playerId, placardId, sport, teamTag, params) => [placardId, sport, teamTag, playerId, params.cardType],
+    },
+    // Example for future:
+    // assignGoal: {
+    //   apiMethod: 'createGoalEvent',
+    //   getApiArgs: (playerId, placardId, sport, params) => {
+    //     return [placardId, sport, playerId, params.points];
+    //   },
+    // },
+};
+
+export type PlayerAssignmentActionKey = keyof typeof playerAssignmentActions;

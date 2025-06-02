@@ -1,11 +1,18 @@
-// AppRouter.tsx
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import config from './config/config';
-import HomePage from './pages/home';
-import CardsPolling from './pages/cardsPolling';
 import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
+import EventHistory from './components/eventHistory';
+import GameList from './pages/gameList';
+import ScorersTable from './pages/scorersTable/scorersTable';
+import SelectCardPage from './pages/scorersTable/selectCard';
+import PlayerSelectionPage from './pages/scorersTable/playerSelection';
+import PointValueSelection from './pages/scorersTable/pointValueSelection';
+import SelectView from './pages/selectView';
+import TimeAdjustment from './pages/scorersTable/timeAdjustment';
+import ShotClockAdjustment from './pages/scorersTable/shotClockAdjustment';
+import PreGameSetupPage from './pages/scorersTable/preGameSetup';
 
 /**
  * AppRouter component
@@ -16,10 +23,19 @@ import LoginPage from './pages/login';
 const AppRouter = () => (
     <BrowserRouter basename={`${config.APP_BASE_ROUTE || ''}`}>
         <Routes>
-            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
-            <Route path="/cards/:sport/:placardId" element={<CardsPolling />} />
+            <Route path="/gameList" element={<GameList />} />
+            <Route path="/scorersTable/:sport/:placardId" element={<ScorersTable />} />
+            <Route path="/scorersTable/:sport/:placardId/selectCard/:teamTag" element={<SelectCardPage />} />
+            <Route path="/scorersTable/:sport/:placardId/playerSelection/:teamTag" element={<PlayerSelectionPage />} />
+            <Route path="/scorersTable/:sport/:placardId/clockAdjustment" element={<TimeAdjustment />} />
+            <Route path="/scorersTable/:sport/:placardId/shotClockAdjustment" element={<ShotClockAdjustment />} />
+            <Route path="/scorersTable/:sport/:placardId/pointValueSelection/:teamTag" element={<PointValueSelection />} />
+            <Route path="/selectView" element={<SelectView />} />
+            <Route path="/eventhistory/:sport/:placardId" element={<EventHistory />} />
+            <Route path="/scorersTable/:sport/:placardId/preGameSetup" element={<PreGameSetupPage />} />
+            <Route path="*" element={<Navigate to="/gameList" replace />} />
         </Routes>
     </BrowserRouter>
 );

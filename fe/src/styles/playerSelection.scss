@@ -1,0 +1,185 @@
+@use "./config.scss";
+
+.player-selection-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, config.$background-color 80%, darken(config.$background-color, 8%) 100%);
+  color: config.$text-color;
+}
+
+.header-row {
+  flex-shrink: 0;
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: config.$text-color;
+    letter-spacing: 0.5px;
+    transition: font-size 0.2s;
+  }
+  .back-button {
+    color: config.$text-color;
+    &:hover {
+      opacity: 0.8;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+  }
+}
+
+.search-row {
+  flex-shrink: 0;
+  .search-input {
+    max-width: 500px;
+    background: rgba(255, 255, 255, 0.13);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    color: config.$text-color;
+    border-radius: 18px;
+    padding: 0.6rem 1.2rem;
+    font-size: 1.05rem;
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+      font-style: italic;
+    }
+    &:focus {
+      background: rgba(255, 255, 255, 0.18);
+      color: config.$text-color;
+      box-shadow: 0 0 0 0.18rem rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+.players-row {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.2rem;
+  padding: 1.2rem;
+  @include config.lg {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  @include config.xl {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.13);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s, border-color 0.18s, box-shadow 0.18s;
+  border: 2.5px solid transparent;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px) scale(1.015);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  &.selected {
+    background: rgba(config.$background-color, 0.32);
+    border-color: white;
+    transform: scale(1.025);
+    box-shadow: 0 0 12px 2px rgba(config.$background-color, 0.18);
+  }
+
+  &.selected-out {
+    background: rgba(255, 40, 40, 0.18);
+    border-color: #b71c1c;
+    transform: scale(1.035);
+    box-shadow: 0 0 14px 2px rgba(255, 40, 40, 0.22);
+  }
+
+  &.selected-in {
+    background: rgba(0, 200, 80, 0.18);
+    border-color: #006d3c;
+    transform: scale(1.035);
+    box-shadow: 0 0 14px 2px rgba(0, 200, 80, 0.22);
+  }
+
+  .jersey-container {
+    flex: 0 0 auto;
+    width: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .player-details {
+    flex: 1;
+    margin-left: 1.1rem;
+    overflow: hidden;
+    .player-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.18rem;
+      font-size: 1.08rem;
+      letter-spacing: 0.2px;
+    }
+    .player-position {
+      font-size: 0.93rem;
+      opacity: 0.82;
+      font-style: italic;
+    }
+  }
+}
+
+.footer-row {
+  flex-shrink: 0;
+  .confirm-button {
+    border-radius: 22px;
+    padding: 12px 32px;
+    font-weight: 700;
+    font-size: 1.08rem;
+    background: linear-gradient(90deg, #fff 80%, #e0e0e0 100%);
+    color: config.$background-color;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.18s;
+    &:disabled {
+      opacity: 0.6;
+      background: #f5f5f5;
+      color: #aaa;
+      box-shadow: none;
+    }
+    &:not(:disabled):hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.13);
+      background: linear-gradient(90deg, #fff 70%, #e0e0e0 100%);
+    }
+  }
+}
+
+@include config.below-md {
+  .players-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.7rem;
+    padding: 0.7rem;
+  }
+  .player-card {
+    padding: 0.6rem;
+    .jersey-container {
+      width: 58px;
+    }
+    .player-details {
+      margin-left: 0.7rem;
+      .player-name {
+        font-size: 0.95rem;
+      }
+      .player-position {
+        font-size: 0.78rem;
+      }
+    }
+  }
+}
