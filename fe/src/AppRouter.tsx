@@ -1,7 +1,6 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import config from './config/config';
-import HomePage from './pages/home';
 import ScoreBoard from './pages/scoreBoard';
 import LoginPage from './pages/login';
 import EventHistory from './components/eventHistory';
@@ -24,7 +23,6 @@ import PreGameSetupPage from './pages/scorersTable/preGameSetup';
 const AppRouter = () => (
     <BrowserRouter basename={`${config.APP_BASE_ROUTE || ''}`}>
         <Routes>
-            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/scoreboard/:sport/:placardId" element={<ScoreBoard />} />
             <Route path="/gameList" element={<GameList />} />
@@ -37,6 +35,7 @@ const AppRouter = () => (
             <Route path="/selectView" element={<SelectView />} />
             <Route path="/eventhistory/:sport/:placardId" element={<EventHistory />} />
             <Route path="/scorersTable/:sport/:placardId/preGameSetup" element={<PreGameSetupPage />} />
+            <Route path="*" element={<Navigate to="/gameList" replace />} />
         </Routes>
     </BrowserRouter>
 );
