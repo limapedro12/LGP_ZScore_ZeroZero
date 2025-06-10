@@ -1,5 +1,8 @@
-# ZSCORE
+---
+sidebar_position: 1
+---
 
+# ZScore
 Backend for the ZScore platform
 
 ## Installation

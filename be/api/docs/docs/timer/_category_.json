@@ -1,0 +1,8 @@
+{
+  "label": "Timer",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Documentation for API routes affecting timers in sports"
+  }
+}
