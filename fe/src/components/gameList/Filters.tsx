@@ -15,8 +15,8 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
     const getUniqueTeams = (games: Game[]): string[] => {
         const teams = new Set<string>();
         games.forEach((game) => {
-            if (game.home) teams.add(game.home); // Ensure `home` is defined
-            if (game.away) teams.add(game.away); // Ensure `away` is defined
+            if (game.home) teams.add(game.home);
+            if (game.away) teams.add(game.away);
         });
         return Array.from(teams);
     };
@@ -37,7 +37,7 @@ const Filters: React.FC<FiltersProps> = ({ games, onFilter }) => {
         let localFormattedDate: string | null = null;
         if (selectedDate) {
             const day = String(selectedDate.getDate()).padStart(2, '0');
-            const month = String(selectedDate.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-indexed
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
             const year = selectedDate.getFullYear();
             localFormattedDate = `${day}/${month}/${year}`;
         }

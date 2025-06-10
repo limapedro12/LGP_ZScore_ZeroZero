@@ -29,11 +29,15 @@ You can start developing by building the local server with docker:
 ```bash
 docker compose build
 ```
-In case you have already built the server before and want to build it again, be sure to delete the folder database/data. You can do this by running  `sudo rm -r database/data/`.
-You can then start the server with:
+In case you have already built the server before and want to build it again, be sure to remove the prexisting volumes. You can do this by running:
+```bash
+docker compose down -v
+```
+
+You can then start and build the server with:
 
 ```bash
-docker compose up
+docker compose up --build
 ```
 ### Env File Specification
 

@@ -11,16 +11,6 @@ class FoulEvent extends AbstractEvent {
     protected ?string $teamId = null;
     protected ?int $period = null;
 
-    /**
-     * Constructor for FoulEvent.
-     *
-     * @param string|null $time The time within the game/period the foul occurred.
-     * @param string|null $sport The type of sport (e.g., 'futsal'). <<-- ADICIONADO AQUI
-     * @param AbstractPlacard|null $placard The placard/game object (using null based on endpoint usage). <<-- MOVIDO PARA 3º
-     * @param string|null $playerId The ID of the player.
-     * @param string|null $teamId The ID of the team.
-     * @param int|null $period The period number.
-     */
     public function __construct( 
         ?string $time = null,         
         ?string $sport = null,          
@@ -62,10 +52,7 @@ class FoulEvent extends AbstractEvent {
         $this->period = $period;
     }
 
-    /**
-     * Helper method to convert FoulEvent properties to an array format,
-     * similar to how data is stored in Redis hash.
-     */
+
     public function toDataArray(): array {
          $data = [
             'foulId'   => $this->getId(), 
@@ -80,11 +67,7 @@ class FoulEvent extends AbstractEvent {
         return array_filter($data, fn($value) => !is_null($value));
     }
 
-     /**
-      * Get the sport type associated with the event.
-      * (Assuming protected $sport exists and is set in AbstractEvent's constructor)
-      * @return string|null
-      */
+
      public function getSport(): ?string {
         return $this->sport; 
      }

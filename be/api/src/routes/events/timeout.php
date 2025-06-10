@@ -318,7 +318,6 @@ try {
             }
 
             if(!checkTimeoutsLimit($team)) {
-                // Get the current period
                 $timerKeys = RequestUtils::getRedisKeys($placardId, 'timer');
                 $currentPeriod = intval($redis->get($timerKeys['period']) ?: 1);
                 

@@ -1,20 +1,13 @@
 <?php
-// Set proper content type header for JSON responses
 header('Content-Type: application/json');
 
-// Configuration
 $config = [
     'routesDirectory' => 'routes',
     'defaultRoute' => 'index.php',
     'notFoundRoute' => '404.php'
 ];
 
-/**
- * Recursively list all files in a directory
- * @param string $dir Directory to scan
- * @param string $basePath Base path for relative paths
- * @return array List of files with relative paths
- */
+
 function listFilesWithPaths($dir, $basePath = '') {
     $files = [];
     if (!is_dir($dir)) {
@@ -36,11 +29,7 @@ function listFilesWithPaths($dir, $basePath = '') {
     return $files;
 }
 
-/**
- * Handle HTTP errors
- * @param int $code HTTP status code
- * @param string $message Error message
- */
+
 function sendError($code, $message) {
     global $config;
     http_response_code($code);
@@ -61,24 +50,19 @@ function sendError($code, $message) {
     exit;
 }
 
-// Get all available routes
 $routes = listFilesWithPaths($config['routesDirectory']);
 
-// Parse the requested URL
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestPath = trim($requestUri, '/');
 
-// Handle empty request (root path)
 if (empty($requestPath)) {
     $requestPath = str_replace('.php', '', $config['defaultRoute']);
 }
 
-// Determine if we need to append .php or if it's already there
 $requestFile = (substr($requestPath, -4) === '.php') 
     ? $requestPath 
     : $requestPath . '.php';
 
-// Check if requested route exists
 if (in_array($requestFile, $routes)) {
     // Route found, include the file
     try {

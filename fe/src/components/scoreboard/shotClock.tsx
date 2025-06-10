@@ -64,7 +64,7 @@ const ShotClock: React.FC<ShotClockProps> = ({ onStatusChange }) => {
                         <span className="shotClock-timer-number" style={{ visibility: 'hidden' }}>
                             {formatTime(24, true)}
                             {' '}
-                            {/* Use a default value to maintain space */}
+                            {}
                         </span>
                     </div>
                 </div>
