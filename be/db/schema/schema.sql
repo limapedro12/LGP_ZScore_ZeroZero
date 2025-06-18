@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS AbstractEvent (
     time TIME NOT NULL,
     sport VARCHAR(255) NOT NULL,
     placardId INT NOT NULL,
-    eventType ENUM('Card', 'Point', 'Substitution') NOT NULL,
+    eventType ENUM('Card', 'Point', 'Substitution', 'Timeout', 'Foul') NOT NULL,
     FOREIGN KEY (placardId) REFERENCES AbstractPlacard(id)
 );
 
@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS PointEvent (
     id INT PRIMARY KEY,
     abstractEventId INT NOT NULL,
     playerId INT NOT NULL,
+    numberOfPoints INT NOT NULL,
     FOREIGN KEY (abstractEventId) REFERENCES AbstractEvent(id),
     FOREIGN KEY (playerId) REFERENCES AbstractPlayer(id)
 );

@@ -78,7 +78,7 @@ BEGIN
 
     IF NOT EXISTS (SELECT 1 FROM AbstractPlacard WHERE id = placard_id_val) THEN
         INSERT INTO AbstractPlacard (id, firstTeamId, secondTeamId, isFinished, sport, startTime, allowColab, stadium, competition)
-        VALUES (placard_id_val, team1_id_val, team2_id_val, 0, sport_val, '2025-05-30 17:00:00', 1, 'Pavilhão Nº 2 da Luz', 'Liga Una Seguros Play-Off 2024/25 - Final');
+        VALUES (placard_id_val, team1_id_val, team2_id_val, 0, sport_val, '2025-06-30 17:00:00', 1, 'Pavilhão Nº 2 da Luz', 'Liga Una Seguros Play-Off 2024/25 - Final');
 
         INSERT INTO VolleyballPlacard (abstractPlacardId, currentSet, availableTimeOutsFirst, availableTimeOutsSecond, isTimeOut)
         VALUES (placard_id_val, 1, 2, 2, 0);
@@ -172,7 +172,7 @@ BEGIN
 
     DECLARE v_stadium VARCHAR(255) DEFAULT 'Pavilhão João Rocha';
     DECLARE v_competition VARCHAR(255) DEFAULT 'I Divisão Feminina Basquetebol Play-Off 24/25 - Final';
-    DECLARE v_startTime DATETIME DEFAULT '2025-05-30 18:00:00';
+    DECLARE v_startTime DATETIME DEFAULT '2025-06-30 18:00:00';
 
     SELECT MAX(id) INTO max_existing_placard_id FROM AbstractPlacard;
     IF max_existing_placard_id IS NULL THEN
@@ -301,7 +301,7 @@ BEGIN
 
     DECLARE v_stadium VARCHAR(255) DEFAULT 'AMCO Arena';
     DECLARE v_competition VARCHAR(255) DEFAULT 'Liga Placard Futsal 2024/25 - Meias-Finais';
-    DECLARE v_startTime DATETIME DEFAULT '2025-05-30 19:00:00';
+    DECLARE v_startTime DATETIME DEFAULT '2025-06-30 19:00:00';
 
     SELECT MAX(id) INTO max_existing_placard_id FROM AbstractPlacard;
     IF max_existing_placard_id IS NULL THEN
