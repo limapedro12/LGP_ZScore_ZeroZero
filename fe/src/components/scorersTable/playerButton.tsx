@@ -17,9 +17,6 @@ const PlayerButton: React.FC<PlayerButtonProps> = ({
     onSelect,
     isSelected,
 }) =>
-// const buttonClasses = `d-flex align-items-center w-100 mb-2 p-2 rounded text-white ${
-//     isSelected ? 'btn-primary' : 'btn-secondary'
-// }`;
 
     (
         <Button

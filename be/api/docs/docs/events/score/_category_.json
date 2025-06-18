@@ -1,0 +1,8 @@
+{
+  "label": "Score",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "description": "Documentation for API routes affecting the score in different sports"
+  }
+}
