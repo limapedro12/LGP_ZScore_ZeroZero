@@ -389,12 +389,21 @@ const ScorersTable = () => {
                         </Row>
 
                         {renderControlButtons(false)}
+                        <Row className="w-100 justify-content-center mt-3">
+                            <Button
+                                className="btn btn-lg rounded-pill px-4 py-2"
+                                id="acabar"
+                                onClick={() => apiManager.storeGameData(placardId, sport)}
+                            >
+                                Acabar o Jogo
+                            </Button>
+                        </Row>
                     </Container>
 
                     {/* Mobile Layout */}
                     <Container
                         fluid className="d-flex d-md-none flex-column
-                justify-content-around align-items-center vh-100 p-3" style={{ backgroundColor: '#2c3e50' }}
+                    justify-content-around align-items-center vh-100 p-3" style={{ backgroundColor: '#2c3e50' }}
                     >
                         {/* Teams */}
                         <Row className="w-100 justify-content-around align-items-center mt-3">
@@ -429,6 +438,15 @@ const ScorersTable = () => {
                         </Row>
 
                         {renderControlButtons(true)}
+                        <Row className="w-100 justify-content-center mt-3">
+                            <Button
+                                className="btn btn-lg rounded-pill px-4 py-2"
+                                id="acabar"
+                                onClick={() => apiManager.storeGameData(placardId, sport)}
+                            >
+                                Acabar o Jogo
+                            </Button>
+                        </Row>
                     </Container>
                 </>
             )}

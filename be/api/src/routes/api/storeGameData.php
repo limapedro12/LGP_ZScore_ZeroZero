@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../utils/redisUtils.php';
-require_once __DIR__ . '/../utils/dbUtils.php';
-require_once __DIR__ . '/../utils/requestUtils.php';
+require_once __DIR__ . '/../../utils/redisUtils.php';
+require_once __DIR__ . '/../../utils/dbUtils.php';
+require_once __DIR__ . '/../../utils/requestUtils.php';
 
 header('Content-Type: application/json');
 

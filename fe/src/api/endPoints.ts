@@ -10,6 +10,7 @@ const ENDPOINTS = {
     EVENTS: () => '/events',
     INFO: () => '/api/info',
     SHOTCLOCK: () => '/timer/shotclock',
+    STOREGAMEDATA: () => '/api/storeGameData',
 };
 
 export default ENDPOINTS;

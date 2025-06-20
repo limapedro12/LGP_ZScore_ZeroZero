@@ -51,7 +51,8 @@ export type EndpointType =
     | 'shotclock'
     | 'info'
     | 'foul'
-    | 'events';
+    | 'events'
+    | 'storegamedata';
 
 type EndpointKeyType = keyof typeof ENDPOINTS;
 
@@ -727,6 +728,9 @@ class ApiManager {
 
     getScore = (placardId: string, sport: string) =>
         this.makeRequest<ScoreResponse>('score', 'get', { placardId, sport }, 'GET');
+
+    storeGameData = (placardId: string, sport: string) =>
+        this.makeRequest<{ status: boolean, message: string }>('storegamedata', 'update', { placardId, sport });
 
 
 }
