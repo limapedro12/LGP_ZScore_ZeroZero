@@ -393,7 +393,10 @@ const ScorersTable = () => {
                             <Button
                                 className="btn btn-lg rounded-pill px-4 py-2"
                                 id="acabar"
-                                onClick={() => apiManager.storeGameData(placardId, sport)}
+                                onClick={() => {
+                                    apiManager.storeGameData(placardId, sport);
+                                    navigate('/gameList');
+                                }}
                             >
                                 Acabar o Jogo
                             </Button>
@@ -442,7 +445,10 @@ const ScorersTable = () => {
                             <Button
                                 className="btn btn-lg rounded-pill px-4 py-2"
                                 id="acabar"
-                                onClick={() => apiManager.storeGameData(placardId, sport)}
+                                onClick={() => {
+                                    apiManager.storeGameData(placardId, sport);
+                                    navigate('/gameList');
+                                }}
                             >
                                 Acabar o Jogo
                             </Button>
