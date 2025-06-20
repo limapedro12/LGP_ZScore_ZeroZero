@@ -29,6 +29,7 @@ if ($requestMethod !== 'POST') {
 
 $params = RequestUtils::getRequestParams();
 $placardId = $params['placardId'] ?? null;
+$sport = $params['sport'] ?? null;
 
 if (!$placardId) {
     http_response_code(400);
@@ -43,14 +44,6 @@ try {
     $keysCards = RequestUtils::getRedisKeys($placardId, 'cards');
     $keysSubstitutions = RequestUtils::getRedisKeys($placardId, 'substitutions');
     $keysFouls = RequestUtils::getRedisKeys($placardId, 'fouls');
-
-    // // print keys for debugging
-    // error_log("Keys: " . print_r($keysTimer, true));
-    // error_log("Keys Points: " . print_r($keysPoints['game_points'], true));
-    // error_log("Keys Timeouts: " . print_r($keysTimeouts['game_timeouts'], true));
-    // error_log("Keys Cards: " . print_r($keysCards['game_cards'], true));
-    // error_log("Keys Substitutions: " . print_r($keysSubstitutions['substitutions'], true));
-    // error_log("Keys Fouls: " . print_r($keysFouls['game_fouls'], true));
 
     // Fetch all relevant game data from Redis
     $gameData = [
@@ -69,24 +62,23 @@ try {
         foreach ($gameData as $type => $events) {
             foreach ($events as $eventKey) {
                 $eventData = $redis->hGetAll($eventKey);
-                $time = '2025-06-30 12:00:00';
-                $sport = 'futsal';
+                $time = '0';
                 if (!empty($eventData)) {
                     switch ($type) {
                         case 'points':
-                            DbUtils::storePointEvent($db, $eventData, $time, $sport);
+                            DbUtils::storePointEvent($db, $eventData, $time, $sport, $placardId);
                             break;
                         case 'timeouts':
-                            DbUtils::storeTimeoutEvent($db, $eventData, $time, $sport);
+                            DbUtils::storeTimeoutEvent($db, $eventData, $time, $sport, $placardId);
                             break;
                         case 'cards':
-                            DbUtils::storeCardEvent($db, $eventData, $time, $sport);
+                            DbUtils::storeCardEvent($db, $eventData, $time, $sport, $placardId);
                             break;
                         case 'substitutions':
-                            DbUtils::storeSubstitutionEvent($db, $eventData, $time, $sport);
+                            DbUtils::storeSubstitutionEvent($db, $eventData, $time, $sport, $placardId);
                             break;
                         case 'fouls':
-                            DbUtils::storeFoulEvent($db, $eventData, $time, $sport);
+                            DbUtils::storeFoulEvent($db, $eventData, $time, $sport, $placardId);
                             break;
                         default:
                             throw new Exception("Unknown event type: $type");
