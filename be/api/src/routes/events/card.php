@@ -51,7 +51,6 @@ try {
     exit;
 }
 
-//check if sport uses a card system
 if(!isset($gameConfig['cards'])) {
     http_response_code(400);
     echo json_encode(["error" => "Sport does not use a card system."]);

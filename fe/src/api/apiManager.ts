@@ -225,14 +225,6 @@ export interface SliderData {
 export type Sport = 'futsal' | 'volleyball' | 'basketball';
 
 
-/**
- * Interface for the response from the substitution API
- * @property {string} [message] - Optional message from the API
- * @property {number} substitutionId - The unique identifier for the substitution
- * @property {Map<string, boolean>} ingamePlayers - Map of players currently in the game
- * @property {Substitution[]} substitutions - Array of substitutions made
- * @property {string} [error] - Optional error message from the API
- */
 export interface SubstitutionResponse{
     message?: string;
     substitutionId?: string;
@@ -281,7 +273,7 @@ export interface ApiPlayer {
     position: string;
     teamId: string;
     position_acronym: string;
-    newPlayer?: boolean; // Indicates if this is a newly added player
+    newPlayer?: boolean;
 }
 
 interface CreatedFoulDetails {
@@ -320,19 +312,18 @@ interface GameFoulStatusResponse {
     };
 }
 
-// Novas definições de tipo para eventos brutos da API
 export interface BaseApiEvent {
-    eventId?: number | string; // ID do evento vindo da API
-    id?: number | string;      // Alias para eventId, se usado pela API
-    timestamp?: number | string; // Timestamp do evento, pode ser string ou número
-    recordedAt?: string;     // Outra forma de timestamp que algumas APIs podem usar
-    teamId?: string;         // ID da equipa, se aplicável
-    team:  TeamTag | string | null;  // 'home' ou 'away', se aplicável
-    playerId?: string | number;// ID do jogador
-    playerName?: string;     // Nome do jogador
-    teamLogo?: string;       // URL do logo da equipa
-    playerNumber?: string | number; // Número do jogador
-    cardType?: string; // Tipo de cartão, se aplicável
+    eventId?: number | string;
+    id?: number | string;
+    timestamp?: number | string;
+    recordedAt?: string;
+    teamId?: string;
+    team:  TeamTag | string | null;
+    playerId?: string | number;
+    playerName?: string;
+    teamLogo?: string;
+    playerNumber?: string | number;
+    cardType?: string;
     playerInName?: string;
     playerOutName?: string;
     playerInId?: string;
@@ -342,16 +333,13 @@ export interface BaseApiEvent {
 }
 
 export interface ApiScoreEventData extends BaseApiEvent {
-    pointValue?: number | string; // Valor dos pontos/golos
-    // Outros campos específicos de eventos de pontuação...
+    pointValue?: number | string;
 }
 
 export interface ApiFoulEventData extends BaseApiEvent {
-    period?: number | string; // Período em que a falta ocorreu
-    // Outros campos específicos de eventos de falta...
+    period?: number | string;
 }
 
-// Atualize ApiCardEventData para herdar de BaseApiEvent e manter campos obrigatórios
 export interface ApiCardEventData extends BaseApiEvent {
     eventId: number;
     placardId: string;
@@ -361,7 +349,6 @@ export interface ApiCardEventData extends BaseApiEvent {
     timestamp: number;
 }
 
-// Atualize ApiTimeoutEventData para herdar de BaseApiEvent
 export interface ApiTimeoutEventData extends BaseApiEvent {
     eventId: string;
     placardId: string;
@@ -370,7 +357,6 @@ export interface ApiTimeoutEventData extends BaseApiEvent {
     totalTimeoutsPerTeam: string;
 }
 
-// Tipo de união para os itens que a função normalizeEventData irá processar
 export type FetchedEventItem = ApiScoreEventData | ApiFoulEventData | ApiCardEventData | ApiTimeoutEventData;
 
 
@@ -389,14 +375,9 @@ interface AuthResponse {
     username?: string;
 }
 
-/**
- * API Manager that handles all API requests
- */
 class ApiManager {
 
-    /**
-     * Generic request method that can be used for any endpoint     *
-     */
+
     makeRequest = async <T>(
         endpoint: EndpointType,
         action: ActionType,
@@ -413,7 +394,6 @@ class ApiManager {
             if (params.placardId !== undefined) queryObj.placardId = params.placardId;
             if (params.sport !== undefined) queryObj.sport = params.sport;
 
-            // Add any other params
             Object.entries(params).forEach(([key, value]) => {
                 if (!['placardId', 'sport'].includes(key) && value !== undefined) {
                     queryObj[key] = String(value);
@@ -704,11 +684,7 @@ class ApiManager {
         );
     };
 
-    // getEvents = (placardId: string, sport: string): Promise<EventsResponse> =>
-    //     this.makeRequest<EventsResponse>('events', 'get', { placardId, sport }, 'GET');
 
-    // getEventDetails = (placardId: string, sport: string, eventId: number) =>
-    //     this.makeRequest<Record<string, string>>('events', 'get', { placardId, sport, eventId }, 'GET'); // !!!!!!!!!!!!
     getFouls = (placardId: string, sport: string): Promise<FoulsResponse> => {
         const params: RequestParams = { placardId, sport };
         return this.makeRequest<FoulsResponse>(
