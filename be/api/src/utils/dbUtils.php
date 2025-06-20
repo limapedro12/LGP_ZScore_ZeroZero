@@ -464,5 +464,115 @@
                 return ["error" => "Exception: " . $e->getMessage()];
             }
         }
+
+        public static function storePointEvent($conn, $eventData, $time, $sport, $placardId) {
+            $stmt = $conn->prepare("INSERT INTO AbstractEvent (placardId, eventType, time, sport) VALUES (?, ?, ?, ?)");
+            $eventType = 'Point'; // Ensure the value matches the expected format and length
+            $time = $eventData['timeSpan'];
+            $stmt->bind_param("isii", $placardId, $eventType, $time, $sport);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store point event: " . $stmt->error);
+            }
+            $stmt->close();
+            
+            // // Get the last inserted abstractEventId
+            $abstractEventId = $conn->insert_id;
+            $stmt = $conn->prepare("INSERT INTO PointEvent (abstractEventId, playerId, numberOfPoints, period) VALUES (?, ?, ?, ?)");
+            $playerId = $eventData['playerId'];
+            $numberOfPoints = $eventData['pointValue'];
+            $period = $eventData['period'] ?? -1;
+            $stmt->bind_param("iiii", $abstractEventId, $playerId, $numberOfPoints, $period);
+
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store point event: " . $stmt->error);
+            }
+
+            $stmt->close();
+        }
+
+        public static function storeTimeoutEvent($conn, $eventData, $time, $sport, $placardId) {
+            // Insert into AbstractEvent
+            $stmt = $conn->prepare("INSERT INTO AbstractEvent (placardId, eventType, time, sport) VALUES (?, ?, ?, ?)");
+            $eventType = 'Timeout';
+            $time = $eventData['timeSpan'];
+            $stmt->bind_param("isii", $placardId, $eventType, $time, $sport);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store timeout event: " . $stmt->error);
+            }
+            $stmt->close();
+            $abstractEventId = $conn->insert_id;
+
+            // Insert into TimeoutEvent
+            $stmt = $conn->prepare("INSERT INTO TimeoutEvent (abstractEventId, team, period) VALUES (?, ?, ?)");
+            $period = $eventData['period'] ?? -1;
+            $team = $eventData['team'];
+            $stmt->bind_param("iii", $abstractEventId, $team, $period);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store timeout event: " . $stmt->error);
+            }
+            $stmt->close();
+        }
+
+        public static function storeCardEvent($conn, $eventData, $time, $sport, $placardId) {
+            $stmt = $conn->prepare("INSERT INTO AbstractEvent (placardId, eventType, time, sport) VALUES (?, ?, ?, ?)");
+            $eventType = 'Card';
+            $time = $eventData['timestamp'];
+            $stmt->bind_param("isii", $placardId, $eventType, $time, $sport);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store card event: " . $stmt->error);
+            }
+            $stmt->close();
+            $eventId = $conn->insert_id; 
+
+            $stmt = $conn->prepare("INSERT INTO CardEvent (abstractEventId, playerId, cardColor) VALUES (?, ?, ?)");
+            $playerId = $eventData['playerId'];
+            $cardColor = $eventData['cardType'];
+            $stmt->bind_param("iis", $eventId, $playerId, $cardColor);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store card event: " . $stmt->error);
+            }
+            $stmt->close();
+        }
+
+        public static function storeSubstitutionEvent($conn, $eventData, $time, $sport, $placardId) {
+            $stmt = $conn->prepare("INSERT INTO AbstractEvent (placardId, eventType, time, sport) VALUES (?, ?, ?, ?)");
+            $eventType = 'Substitution';
+            $stmt->bind_param("isii", $placardId, $eventType, $time, $sport);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store substitution event: " . $stmt->error);
+            }
+            $stmt->close();
+            $eventId = $conn->insert_id;
+
+            $stmt = $conn->prepare("INSERT INTO SubstitutionEvent (abstractEventId, playerInId, playerOutId) VALUES (?, ?, ?)");
+            $playerInId = $eventData['playerInId'];
+            $playerOutId = $eventData['playerOutId'];
+            $stmt->bind_param("iii", $eventId, $playerInId, $playerOutId);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store substitution event: " . $stmt->error);
+            }
+            $stmt->close();
+        }
+
+        public static function storeFoulEvent($conn, $eventData, $time, $sport, $placardId) {
+            $stmt = $conn->prepare("INSERT INTO AbstractEvent (placardId, eventType, time, sport) VALUES (?, ?, ?, ?)");
+            $eventType = 'Foul';
+            $time = $eventData['timestamp'];
+            $stmt->bind_param("isii", $placardId, $eventType, $time, $sport);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store foul event: " . $stmt->error);
+            }
+            $stmt->close();
+            $eventId = $conn->insert_id;
+
+            $stmt = $conn->prepare("INSERT INTO FoulEvent (abstractEventId, playerId, period) VALUES (?, ?, ?)");
+            $playerId = $eventData['playerId'];
+            $period = $eventData['period'] ?? -1;
+            $stmt->bind_param("iii", $eventId, $playerId, $period);
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to store foul event: " . $stmt->error);
+            }
+            $stmt->close();
+        }
     }
 ?>

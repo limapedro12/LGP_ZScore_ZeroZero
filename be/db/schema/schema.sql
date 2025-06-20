@@ -117,16 +117,16 @@ CREATE TABLE IF NOT EXISTS BasketballPlayer (
 );
 
 CREATE TABLE IF NOT EXISTS AbstractEvent (
-    id INT PRIMARY KEY,
-    time TIME NOT NULL,
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    time VARCHAR(255) NOT NULL,
     sport VARCHAR(255) NOT NULL,
     placardId INT NOT NULL,
-    eventType ENUM('Card', 'Point', 'Substitution') NOT NULL,
+    eventType ENUM('Card', 'Point', 'Substitution', 'Timeout', 'Foul') NOT NULL,
     FOREIGN KEY (placardId) REFERENCES AbstractPlacard(id)
 );
 
 CREATE TABLE IF NOT EXISTS CardEvent (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     abstractEventId INT NOT NULL,
     playerId INT NOT NULL,
     cardColor VARCHAR(255) NOT NULL,
@@ -135,21 +135,40 @@ CREATE TABLE IF NOT EXISTS CardEvent (
 );
 
 CREATE TABLE IF NOT EXISTS PointEvent (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     abstractEventId INT NOT NULL,
     playerId INT NOT NULL,
+    numberOfPoints INT NOT NULL,
+    period INT NOT NULL,
     FOREIGN KEY (abstractEventId) REFERENCES AbstractEvent(id),
     FOREIGN KEY (playerId) REFERENCES AbstractPlayer(id)
 );
 
 CREATE TABLE IF NOT EXISTS SubstitutionEvent (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     abstractEventId INT NOT NULL,
     playerInId INT NOT NULL,
     playerOutId INT NOT NULL,
     FOREIGN KEY (abstractEventId) REFERENCES AbstractEvent(id),
     FOREIGN KEY (playerInId) REFERENCES AbstractPlayer(id),
     FOREIGN KEY (playerOutId) REFERENCES AbstractPlayer(id)
+);
+
+CREATE TABLE IF NOT EXISTS TimeoutEvent (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    abstractEventId INT NOT NULL,
+    team VARCHAR(255) NOT NULL,
+    period INT NOT NULL,
+    FOREIGN KEY (abstractEventId) REFERENCES AbstractEvent(id)
+);
+
+CREATE TABLE IF NOT EXISTS FoulEvent (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    abstractEventId INT NOT NULL,
+    playerId INT NOT NULL,
+    period INT NOT NULL,
+    FOREIGN KEY (abstractEventId) REFERENCES AbstractEvent(id),
+    FOREIGN KEY (playerId) REFERENCES AbstractPlayer(id)
 );
 
 CREATE TABLE IF NOT EXISTS PlacardPlayer (
