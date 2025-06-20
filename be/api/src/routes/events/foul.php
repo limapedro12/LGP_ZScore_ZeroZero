@@ -554,8 +554,8 @@ try {
             http_response_code($httpStatusCode);
         }
     }
-    error_log("Error: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine()); // Simplificado
-    $response = ["status" => "error", "message" => "An internal server error occurred."]; // Mensagem genérica para o cliente
+    error_log("Error: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine());
+    $response = ["status" => "error", "message" => "An internal server error occurred."];
 }
 
 if (!headers_sent() && isset($response)) {

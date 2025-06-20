@@ -1,34 +1,95 @@
+# ZSCORE
+
+Backend for the ZScore platform
+
+## Installation
+
+### Prerequisites
+
+- [`Docker`](https://www.docker.com)
+- [`Docker Compose`](https://www.docker.com)
+
+### Installing Docker
+
+The best approach to install `docker` is to follow the official guide [here](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-using-the-repository). 
+
+Please follow the steps in `Install using the repository` section.
+
+Next, follow [these](https://docs.docker.com/install/linux/linux-postinstall/) steps to configure docker access with non sudo permissions in the `Manage Docker as a non-root user` section.
+
+### Installing Docker Compose
+
+The best approach to install `docker-compose` is to follow the official guide [here](https://docs.docker.com/compose/install/#install-compose). 
+
 ## Usage
 
 ### Development
-
-To start developing, you must build a dev server. 
+You can start developing by building the local server with docker:
 
 ```bash
-docker compose build 
+docker compose build
 ```
-If you have already built the images/containers, before you can simply run:
+In case you have already built the server before and want to build it again, be sure to remove the prexisting volumes. You can do this by running:
 ```bash
-docker compose up 
+docker compose down -v
 ```
 
-### Create a new endpoint
+You can then start and build the server with:
 
-Create a file inside the `api/src/routes` directory, the name of the file will be the name of the endpoint. Each file must contain the following code to return a message:
-
-```php
-echo json_encode(["attribute1" => "data", "attribute2" => "data"]);
+```bash
+docker compose up --build
 ```
+### Env File Specification
+
+Create a `.env` file in the `api` and `db` folders with the following content:
+
+```env
+DB_NAME
+DB_USERNAME
+DB_PASSWORD
+DB_ROOTPASSWORD
+REDIS_PORT
+REDIS_HOST
+APP_KEY
+API_URL
+```
+
+### Documentation
+
+The API contains documentation, in order to check it out go to the `docs` folder inside the `api`directory and run:
+
+```bash
+npm install
+npx docusaurus start
+```
+
+After that simply open http://localhost:3000 on your web browser.
 
 ### Backend Structure
 
 ```
-├── mariaDB :: database 
-└── api :: back-end logic
-    ├── nginx.conf :: server configuration
-    └── src 
-         ├── index.php :: Init server
-         ├── router.php :: Routing logic
-         └── routes :: endpoints
+├── api/                # Backend application logic (PHP)
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── nginx.conf      # Nginx server configuration
+│   ├── .env            # API environment variables
+│   └── src/
+│       ├── index.php   # Entry point for the API
+│       ├── router.php  # Routing logic
+│       ├── config/     # Configuration files
+│       │   └──config.php  # Sports related configuration
+│       ├── classes/ # Database classes
+│       └── routes/     # API endpoint handlers
+│           ├── ...     # Individual route PHP files (endpoints)
+│
+├── db/                 # Database service (MariaDB)
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── .env            # DB environment variables
+│   └── schema/
+│       └── schema.sql  # Database schema definition
+│
+├── docker-compose.yml  # Root compose file (includes api and db)
+└── README.md           # Project documentation
 ```
 

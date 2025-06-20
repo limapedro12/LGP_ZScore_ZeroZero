@@ -1,6 +1,6 @@
-# Scoreboard and score management system
+# ZSCORE
 
-This project is a simple web application to manage scores and scoreboards. (Add a better description)
+Platform for indoor scoreboards management and display. Built-in visualization and management tools for Basketball, Volleyball, and Futsal scoreboards.
 
 ## Installation
 
@@ -24,16 +24,32 @@ The best approach to install `docker-compose` is to follow the official guide [h
 ## Usage
 
 ### Development
-
-To start developing, you must build a dev server. 
+You can start developing by building the local server with docker:
 
 ```bash
-docker compose build 
+docker compose build
 ```
-If you have already built the images/containers, before you can simply run:
+In case you have already built the server before and want to build it again, be sure to remove the prexisting volumes. You can do this by running:
 ```bash
-docker compose up 
+docker compose down -v
 ```
+
+You can then start and build the server with:
+
+```bash
+docker compose up --build
+```
+
+### Documentation
+
+The API contains documentation, in order to check it out go to the `docs` folder inside the `api`directory and run:
+
+```bash
+npm install
+npx docusaurus start
+```
+
+After that simply open http://localhost:3000 on your web browser.
 
 
 ### Project Structure

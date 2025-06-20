@@ -5,10 +5,6 @@ require_once __DIR__ . '/requestUtils.php';
 
 class CardValidationUtils {
 
-    /**
-     * Retrieves all card events for a specific game from Redis.
-     * (Keep the existing getGameCards function as is)
-     */
     private static function getGameCards($redis, $placardId): array {
         try {
             $keys = RequestUtils::getRedisKeys($placardId, 'cards');
@@ -44,18 +40,7 @@ class CardValidationUtils {
         }
     }
 
-    /**
-     * Checks if assigning/updating a card maintains a valid sequence according to sport rules.
-     *
-     * @param Redis $redis Redis connection instance.
-     * @param ?int $eventId The ID of the event being updated (null if adding).
-     * @param string $placardId The ID of the game/placard.
-     * @param string $sport The sport type ('futsal', 'volleyball', etc.).
-     * @param int $playerId The ID of the player.
-     * @param string $cardTypeToAssign The type of card to be assigned/updated to.
-     * @param int $timestampToAssign The timestamp for the card assignment/update.
-     * @return bool True if the assignment results in a valid sequence, false otherwise.
-     */
+
     public static function canAssignCard($redis, $eventId, $placardId, $sport, $playerId, $cardTypeToAssign, $timestampToAssign): bool {
         $allCards = self::getGameCards($redis, $placardId); 
 
