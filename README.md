@@ -10,6 +10,10 @@ You can see a Demo of the product by clicking in the image below.
 
 [![ZScore Demo](https://img.youtube.com/vi/wV0VnYSFYw0/0.jpg)](https://www.youtube.com/watch?v=wV0VnYSFYw0)
 
+You can also see the presentation of the product in the LGP Challenge.
+
+[![ZScore Presentation](https://img.youtube.com/vi/jGN2Ncsja2w/0.jpg)](https://www.youtube.com/watch?v=jGN2Ncsja2w&t=8h03m23s)
+
 ## Installation
 
 ### Prerequisites
