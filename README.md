@@ -2,6 +2,9 @@
 
 Platform for indoor scoreboards management and display. Built-in visualization and management tools for Basketball, Volleyball, and Futsal scoreboards.
 
+You can see a Demo of the product by clicking in the image below. 
+[![ZScore Demo](https://img.youtube.com/vi/wV0VnYSFYw0/0.jpg)](https://www.youtube.com/watch?v=wV0VnYSFYw0)
+
 ## Installation
 
 ### Prerequisites
